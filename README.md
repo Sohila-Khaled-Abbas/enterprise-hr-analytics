@@ -1,14 +1,14 @@
 <div align="center">
 
-# Enterprise Human Capital & Operational Efficiency Diagnostics
+# 💎 Enterprise Human Capital & Operational Efficiency Diagnostics
 ### Enterprise Data Warehouse · Kimball Galaxy Schema · Microsoft SQL Server (T-SQL) · Power BI PBIP / TMDL
 
-[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Database Engine](https://img.shields.io/badge/Database-Microsoft%20SQL%20Server%20(T--SQL)-CC292B?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
-[![Architecture](https://img.shields.io/badge/Architecture-Kimball%20Galaxy%20Schema-8B5CF6?style=for-the-badge)](docs/architecture.md)
+[![Python Version](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Database Engine](https://img.shields.io/badge/SQL%20Server-2022%20(T--SQL)-CC292B?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
+[![Architecture](https://img.shields.io/badge/Architecture-Kimball%20Galaxy%20Schema-8B5CF6?style=for-the-badge&logo=diagramsdotnet&logoColor=white)](docs/architecture.md)
 [![Power BI PBIP](https://img.shields.io/badge/Power%20BI-PBIP%20%2F%20TMDL%20Dev%20Mode-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)](powerbi/employess-report.pbip)
 [![Data Quality Tests](https://img.shields.io/badge/Data%20Quality-11%2F11%20Passed%20(100%25)-10B981?style=for-the-badge&logo=pytest&logoColor=white)](tests/test_data_quality.py)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)](LICENSE)
 
 <br/>
 
@@ -66,45 +66,45 @@ Unlike a simple single-fact Star Schema, this enterprise model implements a **Ki
 
 ```mermaid
 erDiagram
-    Dim_Employee ||--o{ Fact_WorkforceSnapshot : "filters (1:*)"
-    Dim_Department ||--o{ Fact_WorkforceSnapshot : "filters (1:*)"
-    Dim_Branch ||--o{ Fact_WorkforceSnapshot : "filters (1:*)"
-    Dim_Date ||--o{ Fact_WorkforceSnapshot : "filters (1:*)"
+    Dim_Employee ||--o{ Fact_WorkforceSnapshot : filters
+    Dim_Department ||--o{ Fact_WorkforceSnapshot : filters
+    Dim_Branch ||--o{ Fact_WorkforceSnapshot : filters
+    Dim_Date ||--o{ Fact_WorkforceSnapshot : filters
 
-    Dim_Employee ||--o{ Fact_DailyAttendance : "filters (1:*)"
-    Dim_Branch ||--o{ Fact_DailyAttendance : "filters (1:*)"
-    Dim_Date ||--o{ Fact_DailyAttendance : "filters (1:*)"
+    Dim_Employee ||--o{ Fact_DailyAttendance : filters
+    Dim_Branch ||--o{ Fact_DailyAttendance : filters
+    Dim_Date ||--o{ Fact_DailyAttendance : filters
 
-    Dim_Department ||--o{ Fact_DepartmentBudget : "filters (1:*)"
-    Dim_Branch ||--o{ Fact_DepartmentBudget : "filters (1:*)"
-    Dim_Date ||--o{ Fact_DepartmentBudget : "filters (1:*)"
+    Dim_Department ||--o{ Fact_DepartmentBudget : filters
+    Dim_Branch ||--o{ Fact_DepartmentBudget : filters
+    Dim_Date ||--o{ Fact_DepartmentBudget : filters
 
-    Dim_Employee ||--o{ Fact_TrainingCompletions : "filters (1:*)"
-    Dim_Course ||--o{ Fact_TrainingCompletions : "filters (1:*)"
-    Dim_Date ||--o{ Fact_TrainingCompletions : "filters (1:*)"
+    Dim_Employee ||--o{ Fact_TrainingCompletions : filters
+    Dim_Course ||--o{ Fact_TrainingCompletions : filters
+    Dim_Date ||--o{ Fact_TrainingCompletions : filters
 
     Dim_Employee {
         int EmployeeKey PK
-        string EmployeeID NK
+        string EmployeeID
         string FullName
         string JobRole
         decimal BaseSalary
         string ContractType
         date EffectiveDate
         date ExpiryDate
-        bit IsCurrent
+        boolean IsCurrent
     }
 
     Dim_Department {
         int DepartmentKey PK
-        string DepartmentID UQ
+        string DepartmentID UK
         string DepartmentName
         string Division
     }
 
     Dim_Branch {
         int BranchKey PK
-        string BranchID UQ
+        string BranchID UK
         string BranchName
         string Region
         string City
@@ -112,15 +112,15 @@ erDiagram
 
     Dim_Date {
         int DateKey PK
-        date FullDate UQ
+        date FullDate UK
         int CalendarQuarter
         int FiscalYear
-        bit IsWorkingDay
+        boolean IsWorkingDay
     }
 
     Dim_Course {
         int CourseKey PK
-        string CourseID UQ
+        string CourseID UK
         string CourseName
         string SkillDomain
     }
@@ -134,7 +134,7 @@ erDiagram
         decimal BaseSalary
         decimal AnnualPerformanceRating
         decimal SalaryPercentileInRole
-        bit IsSalaryCompressed
+        boolean IsSalaryCompressed
     }
 
     Fact_DailyAttendance {
@@ -142,11 +142,11 @@ erDiagram
         int AccessDateKey FK
         int EmployeeKey FK
         int BranchKey FK
-        time CheckInTime
-        time CheckOutTime
+        string CheckInTime
+        string CheckOutTime
         decimal DurationHours
-        bit IsContractViolation
-        bit IsImputedClockOut
+        boolean IsContractViolation
+        boolean IsImputedClockOut
     }
 
     Fact_DepartmentBudget {
@@ -166,7 +166,7 @@ erDiagram
         int CourseKey FK
         int AttemptNumber
         decimal Score
-        bit IsPassed
+        boolean IsPassed
         decimal CertificationCost_EGP
     }
 ```
@@ -278,7 +278,7 @@ enterprise-hr-analytics/
 ### 1. Environment Setup
 ```powershell
 # Clone the repository
-git clone https://github.com/your-org/enterprise-hr-analytics.git
+git clone https://github.com/Sohila-Khaled-Abbas/enterprise-hr-analytics.git
 cd enterprise-hr-analytics
 
 # Create & Activate Python Virtual Environment

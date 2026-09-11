@@ -213,12 +213,14 @@ def ingest_csv_to_table(
             df = df.drop_duplicates(subset=[pk_column], keep="last")
             logger.info("   🔄 Deduplicated to %s rows", f"{len(df):,}")
 
-    # Parse date columns (heuristic detection)
+    # Parse date columns (heuristic detection - exclude surrogate keys)
     for col in df.columns:
+        if col.endswith("Key") or col.endswith("ID") or col.endswith("Code"):
+            continue
         col_lower = col.lower()
-        if any(kw in col_lower for kw in ["date", "effectivedate", "expirydate"]):
+        if any(kw in col_lower for kw in ["fulldate", "effectivedate", "expirydate", "hiredate"]):
             try:
-                df[col] = pd.to_datetime(df[col], errors="coerce")
+                df[col] = pd.to_datetime(df[col], errors="coerce").dt.date
             except Exception:
                 pass
 
@@ -240,7 +242,7 @@ def ingest_csv_to_table(
         except Exception as e:
             logger.warning("   ⚠️  Could not truncate %s: %s", target_table, e)
 
-    # Insert data using pandas to_sql with fast_executemany
+    # Insert data using pandas to_sql with fast_executemany (do NOT use method="multi" with fast_executemany)
     try:
         df.to_sql(
             name=table_name,
@@ -248,7 +250,6 @@ def ingest_csv_to_table(
             con=engine,
             if_exists="append",  # Use 'replace' for full reload
             index=False,
-            method="multi",
             chunksize=1000,
         )
         logger.info("   ✅ Inserted %s rows into %s", f"{len(df):,}", target_table)
