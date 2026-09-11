@@ -293,7 +293,93 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
 
 ---
 
+### Step 2.3b: Enterprise SQL Server Ingestion — Importing `raw.Badge_Access_Logs` via GUI
+
+In a production enterprise architecture, rather than importing raw JSON files directly into Power BI Desktop, high-velocity device telemetry has already been flattened and landed into the Microsoft SQL Server data warehouse under `[raw].[Badge_Access_Logs]`.
+
+This step guides you through connecting Power BI Desktop directly to Microsoft SQL Server via **Windows Authentication**, navigating the schema catalog, selecting the landing table, and leveraging **Query Folding** for high-performance ETL.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ SQL Server Database Connection Dialog                                                 │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Server:   [ localhost\SQLEXPRESS                                           ]           │
+│ Database: [ EnterpriseHR_DWH                                               ]           │
+│ Data Connectivity mode: (•) Import   ( ) DirectQuery                                   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Connecting to SQL Server via the Power Query Ribbon:
+1. In Power Query Editor, go to the **Home** ribbon tab.
+2. Click **New Source > SQL Server** (or **Home > Get Data > SQL Server** in the main Power BI window).
+3. In the **SQL Server database** dialog:
+   * **Server**: Type `localhost\SQLEXPRESS` (or `.` or the server instance configured in your `.env`).
+   * **Database (optional)**: Type `EnterpriseHR_DWH`.
+   * **Data Connectivity mode**: Select **Import** (Recommended for in-memory columnar compression and maximum DAX performance).
+   * Click **OK**.
+4. In the **Authentication** window:
+   * Select **Windows** on the left menu.
+   * Choose **Use my current credentials** (Windows Authentication / Trusted Connection).
+   * Click **Connect**.
+   * *(If an "Encryption Support" prompt appears, click **OK** / **Trust Server Certificate**)*.
+
+#### 2. Selecting the Raw Badge Logs Table in the Navigator:
+1. In the **Navigator** pane, expand the `EnterpriseHR_DWH` database node.
+2. Locate and expand the **`raw`** schema folder.
+3. Check the checkbox next to **`Badge_Access_Logs`** (`[raw].[Badge_Access_Logs]`).
+4. A live preview of the 114,952 flattened IoT records will display on the right (columns: `LogID`, `SystemSource`, `EmployeeID`, `AccessDate`, `FacilityCode`, `CheckInTime`, `CheckOutTime`).
+5. Click **OK** (or **Transform Data**).
+
+#### 3. Power Query Cleansing & Type Casting via GUI:
+1. In the left **Queries** pane, right-click `Badge_Access_Logs` and rename it to **`Fact_Badge_Access_Logs_SQL`** (or `Fact_DailyAttendance`).
+2. **Confirming & Setting Data Types visually**:
+   * Click the type icon in header `LogID` $\to$ set to **Text (`ABC`)**.
+   * Click the type icon in header `SystemSource` $\to$ set to **Text (`ABC`)**.
+   * Click the type icon in header `EmployeeID` $\to$ set to **Text (`ABC`)**.
+   * Click the type icon in header `AccessDate` $\to$ set to **Date (`📅`)**.
+   * Click the type icon in header `FacilityCode` $\to$ set to **Text (`ABC`)**.
+3. **Parsing ISO UTC Timestamps into Date/Time & Time via GUI**:
+   * Select `CheckInTime` $\to$ click the type icon $\to$ choose **Date/Time (`📅🕒`)**.
+   * Select `CheckOutTime` $\to$ click the type icon $\to$ choose **Date/Time (`📅🕒`)**.
+4. **Heuristic Median Imputation for Forgotten Check-Outs (5% Null Swipes)**:
+   * Go to **Add Column > Custom Column**.
+   * Column Name: `CleanCheckOutTime`
+   * Formula:
+     ```powerquery
+     if [CheckOutTime] <> null then [CheckOutTime] else if [CheckInTime] <> null then [CheckInTime] + #duration(0, 8, 30, 0) else null
+     ```
+   * Click **OK** $\to$ set type to **Date/Time (`📅🕒`)**.
+5. **Calculating Physical Shift Duration Hours via GUI**:
+   * Go to **Add Column > Custom Column**.
+   * Column Name: `DurationHours`
+   * Formula:
+     ```powerquery
+     if [CheckInTime] = null or [CleanCheckOutTime] = null then 0.0 else Number.Round(Duration.TotalHours([CleanCheckOutTime] - [CheckInTime]), 2)
+     ```
+   * Click **OK** $\to$ set type to **Decimal Number (`1.2`)**.
+6. **Deriving Work Mode & Policy Compliance Flag via Conditional Column GUI**:
+   * Go to **Add Column > Conditional Column**.
+   * Column Name: `ActualWorkMode`
+   * Rule setup:
+     * If `FacilityCode` equals `REMOTE-VPN` then `Remote`
+     * Else `On-site`
+   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+7. **Generating Smart Integer Date Key for Galaxy Schema Joining**:
+   * Go to **Add Column > Custom Column**.
+   * Column Name: `AccessDateKey`
+   * Formula:
+     ```powerquery
+     Date.Year([AccessDate]) * 10000 + Date.Month([AccessDate]) * 100 + Date.Day([AccessDate])
+     ```
+   * Click **OK** $\to$ set type to **Whole Number (`123`)**.
+
+> [!TIP]
+> **Query Folding Advantage**: Because this query connects directly to Microsoft SQL Server via `Sql.Database()`, transformations like column selection and type casting are automatically translated into optimized T-SQL statements executed on the SQL Server instance, accelerating Power BI data refreshes and minimizing memory usage.
+
+---
+
 ### Step 2.4: Transforming Messy Wide FP&A Excel Budgets (`Fact_DepartmentBudget`) via GUI
+
 
 1. Go to **Home > New Source > Text/CSV** $\to$ select `data/raw/fpa_department_budget_messy.csv` $\to$ click **OK**.
 2. Rename query to `Fact_DepartmentBudget`.
