@@ -228,6 +228,30 @@ Full step-by-step Power Query M recipes and DAX measures are documented in [`doc
 
 ---
 
+## ⚡ Semi-Structured Ingestion: Daily IoT Badge Access Logs (JSON)
+
+Physical turnstiles and remote-work VPN gateways typically emit high-velocity, semi-structured JSON payloads. This pipeline simulates receiving raw monthly telemetry from an external IoT turnstile API or cloud storage bucket and loading it into Microsoft SQL Server:
+
+### Real-World Modeling Friction Addressed
+* **JSON Flattening**: Relational databases require flat, tabular structures, while device APIs emit nested hierarchies (`event.timestamps.first_in` $\to$ `CheckInTime`).
+* **Missing Check-Outs**: Employees tailgating or omitting badge swipes produce `null` for `CheckOutTime`. These are preserved for downstream SQL/DAX heuristic median imputation.
+* **Ghost Worker Detection**: Reconciles active HR employment contracts against device badge activity to flag personnel with 0 physical/remote events over 60+ days.
+
+### Execution Scripts
+1. **Generate Mock API Payload (May 2026)**:
+   ```powershell
+   python scripts/utils/generate_badge_data.py
+   ```
+   *Generates `data/raw/api_badge_logs_202605.json` (114,952 realistic badge events with simulated ghost workers and forgotten checkouts).*
+
+2. **Flatten & Ingest into SQL Server `raw` Schema**:
+   ```powershell
+   python scripts/ingestion/ingest_badge_logs.py
+   ```
+   *Flattens the nested JSON hierarchy using `pandas.json_normalize` and bulk-inserts into `raw.Badge_Access_Logs`.*
+
+---
+
 ## 📁 Repository Directory Structure
 
 ```text
@@ -255,9 +279,11 @@ enterprise-hr-analytics/
 ├── scripts/                              # Data Engineering Pipelines
 │   ├── ingestion/
 │   │   ├── generate_enterprise_mock_data.py # 5-system enterprise data generator
+│   │   ├── ingest_badge_logs.py           # Semi-structured JSON badge logs ingestion
 │   │   └── ingest_hr_audit.py             # SQL Server Galaxy Schema ingestion
 │   ├── utils/
-│   │   └── data_cleaners.py              # Heuristic cleaners & unpivot utilities
+│   │   ├── data_cleaners.py              # Heuristic cleaners & unpivot utilities
+│   │   └── generate_badge_data.py        # Monthly IoT badge JSON payload generator
 │   └── pipeline_runner.py                # End-to-end data processing orchestrator
 ├── sql/                                  # Microsoft SQL Server (T-SQL) Layer
 │   ├── ddl/                              # Schemas, dimensions, facts, staging DDL
@@ -308,19 +334,29 @@ Generate realistic test data for all 5 systems (7,000 Core employees, IoT access
 python scripts/ingestion/generate_enterprise_mock_data.py
 ```
 
-### 4. Run Galaxy Schema Transformation Pipeline
+### 4. Ingest Semi-Structured IoT Badge JSON Telemetry
+Simulate fetching external IoT device payloads and flattening into SQL Server `raw` schema:
+```powershell
+# Generate the May 2026 JSON mock API payload (114,952 events)
+python scripts/utils/generate_badge_data.py
+
+# Ingest flattened records into raw.Badge_Access_Logs
+python scripts/ingestion/ingest_badge_logs.py
+```
+
+### 5. Run Galaxy Schema Transformation Pipeline
 Transform raw data into the conformed dimensional model in `data/processed/`:
 ```powershell
 python scripts/pipeline_runner.py
 ```
 
-### 5. Execute Automated Data Quality Tests
+### 6. Execute Automated Data Quality Tests
 Verify primary key uniqueness, foreign key referential integrity, and metric range constraints:
 ```powershell
 pytest -v tests/test_data_quality.py
 ```
 
-### 6. Deploy SQL Server Migrations
+### 7. Deploy SQL Server Migrations
 Connect to your Microsoft SQL Server instance (e.g. via SSMS or Azure Data Studio) and run:
 ```sql
 :r sql/ddl/00_create_database_and_schemas.sql
@@ -329,7 +365,7 @@ Connect to your Microsoft SQL Server instance (e.g. via SSMS or Azure Data Studi
 :r sql/ddl/03_staging_tables.sql
 ```
 
-### 7. Ingest Data into SQL Server
+### 8. Ingest Data into SQL Server
 ```powershell
 # Dry run (validate connection, list files)
 python scripts/ingestion/ingest_hr_audit.py --dry-run
@@ -341,7 +377,7 @@ python scripts/ingestion/ingest_hr_audit.py --schema mart
 python scripts/ingestion/ingest_hr_audit.py --schema mart --truncate
 ```
 
-### 8. Open Power BI Report
+### 9. Open Power BI Report
 Open `powerbi/employess-report.pbip` in Power BI Desktop (with Developer Mode / PBIP enabled). Follow [`docs/powerbi_implementation_guide.md`](docs/powerbi_implementation_guide.md) to wire the transformed Galaxy facts and DAX measures.
 
 ---

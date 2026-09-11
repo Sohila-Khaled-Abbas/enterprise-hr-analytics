@@ -183,3 +183,22 @@ The transactional core system uses localized Arabic field names. The table below
 | `IsPassed` | `BIT` | No | Flag | `1` if Score >= 70.0; `0` otherwise. |
 | `CertificationCost_EGP` | `DECIMAL(12,2)` | No | Metric | Direct program certification fee in EGP. |
 | `IsHighestScoreAttempt` | `BIT` | No | Flag | `1` if this attempt is the top score achieved by the employee. |
+
+---
+
+## 4. Raw Landing Zone Schema: IoT Turnstiles & VPN Gateways
+
+### 4.1 `raw.Badge_Access_Logs` (Semi-Structured JSON Ingestion)
+* **Source**: High-velocity simulated IoT API / cloud blob endpoint (`api_badge_logs_YYYYMM.json`).
+* **Storage**: `[raw].[Badge_Access_Logs]`
+* **Grain**: 1 row per physical turnstile badge event or VPN gateway session.
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `LogID` | `NVARCHAR(50)` | No | PK / Unique | Event transaction identifier emitted by the device (e.g. `LOG-10482`). |
+| `SystemSource` | `NVARCHAR(50)` | No | Metadata | Ingestion origin channel (`TURNSTILE` for physical turnstile, `GATEWAY` for remote VPN). |
+| `EmployeeID` | `NVARCHAR(50)` | No | FK | Natural employee identifier (`EMP-10001` .. `EMP-17000`). |
+| `AccessDate` | `DATE` / `VARCHAR` | No | Attribute | Calendar date of access event (`YYYY-MM-DD`). |
+| `FacilityCode` | `NVARCHAR(50)` | No | Dimension Ref | Physical facility or access point (`HQ-CAIRO`, `TECH-GIZA`, `OPS-ALEX`, `REMOTE-VPN`). |
+| `CheckInTime` | `DATETIME2` / `VARCHAR` | No | Timestamp | ISO-8601 UTC timestamp of initial entry or connection (`first_in`). |
+| `CheckOutTime` | `DATETIME2` / `VARCHAR` | Yes | Timestamp | ISO-8601 UTC timestamp of departure or disconnect (`last_out`). `NULL` indicates missing clock-out. |
