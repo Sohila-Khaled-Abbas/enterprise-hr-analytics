@@ -252,6 +252,30 @@ Physical turnstiles and remote-work VPN gateways typically emit high-velocity, s
 
 ---
 
+## 📈 Unpivoted Ingestion: Departmental Budget & Planned Headcount (Excel)
+
+Finance and HR planning departments typically maintain budgets and headcount forecasts in shared Excel workbooks (`finance_budget_2026.xlsx`). These files are built for human readability (wide, pivoted columns) rather than machine readability (tall, normalized rows), creating an immediate bottleneck for dimensional modeling.
+
+### Real-World Modeling Friction Addressed
+* **Pivoted Grain**: Finance tracks targets horizontally (`Q1_Headcount`, `Q1_Budget_EGP` across columns). Unpivoted via `pandas.melt()` into normalized records to enable filtering by conformed dimensions (`Dim_Date`, `Dim_Department`, `Dim_Branch`).
+* **Mixed Granularity**: The budget exists at the `Department + Branch + Quarter` level, while HR event logs exist at `Employee + Day`. Resolved via conformed dimensions and DAX `TREATAS` variance calculations without ambiguous many-to-many relationships.
+* **Typographical Drift**: Excel manual data entry produces non-standard branches (`Alex Branch`, `سموحة`, `التجمع`), normalized via fuzzy logic and conditional mappings.
+
+### Execution Scripts
+1. **Generate Messy Finance Workbook**:
+   ```powershell
+   python scripts/utils/generate_finance_data.py
+   ```
+   *Generates `data/raw/finance_budget_2026.xlsx` (wide, pivoted Excel workbook with intentional branch typos).*
+
+2. **Unpivot & Ingest into SQL Server `raw` Schema**:
+   ```powershell
+   python scripts/ingestion/ingest_finance_plan.py
+   ```
+   *Unpivots wide columns via `pandas.melt()`, extracts `Quarter` and `MetricType`, pivots into columnar facts, and loads 168 normalized records into `raw.Finance_Budget_Plan`.*
+
+---
+
 ## 📁 Repository Directory Structure
 
 ```text

@@ -221,16 +221,48 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
 
    > **💡 Business Value:** When crossed with `SalaryBand`, this instantly reveals the most dangerous flight risk pattern: `⭐ Exceptional` performers stuck in `Entry (< 5K)` or `Junior (5K–10K)` salary bands.
 
-   #### 6e. Employment Status Flag (`IsActive`) — Drives Ghost Worker Detection
+   #### 6e. Employment Status Modeling (`EmploymentStatus` & `IsActive`)
 
-   The raw data has no status column. For the initial snapshot, we mark all records as active. When later joined against the Exit Audit fact table, DAX can override this to detect separated employees still on the payroll.
+   > [!NOTE]
+   > **Architectural Clarity & Dimensional Modeling Principles**:
+   > In a dimensional galaxy schema, hardcoding a static `IsActive = true` column across all rows in a dimension is an anti-pattern because it provides zero discriminative filtering value. Furthermore, in Power BI, DAX measures cannot mutate or "override" physical column values in a dimension table.
+   > 
+   > Depending on your pipeline design, choose one of two enterprise patterns:
 
-   * Go to **Add Column > Custom Column**.
-   * Name: `IsActive`
-   * Formula: `true`
-   * Click **OK** → set column type to **True/False**.
+   * **Option A (Dynamic Power Query Merge with Attrition Records — Recommended if status is needed in `Dim_Employee`)**:
+     1. In the **Home** ribbon, click **Merge Queries**.
+     2. Select `Dim_Employee` as the primary table and click on column `كود الموظف` (`EmployeeID`).
+     3. Select `stg.Exit_Attrition_Records` (or `raw.HR_Audit_Events`) as the secondary table and match on `EmployeeID`.
+     4. Join Kind: **Left Outer (all from first, matching from second)** $\to$ click **OK**.
+     5. Click the **Expand icon (`↔`)** on the new table column, select **only `ExitDate`**, and uncheck *Use original column name as prefix*.
+     6. Go to **Add Column > Conditional Column**:
+        * Column Name: `EmploymentStatus`
+        * Rule: If `ExitDate` is not null $\to$ `Separated`, Else $\to$ `Active`.
+     7. Go to **Add Column > Conditional Column**:
+        * Column Name: `IsActive`
+        * Rule: If `EmploymentStatus` equals `Active` then `true`, Else `false`.
+        * Set type to **True/False**.
 
-   > **⚠️ Important:** This `true` default is **not artificial** — it reflects that this source file only contains employees currently in the HRIS. The real status detection happens in DAX by cross-referencing `Fact_WorkforceSnapshot` exit dates and `Fact_DailyAttendance` ghost worker flags (employees with zero badge access over 60+ consecutive days).
+   * **Option B (Pure Galaxy Schema / Snapshot Modeling — Star Schema Standard)**:
+     * In formal Kimball dimensional modeling, `Dim_Employee` stores conformed attributes (Demographics, Titles, Skills), while point-in-time employment status belongs in the periodic snapshot fact table (`Fact_WorkforceSnapshot[EmploymentStatus]`) or is evaluated dynamically in DAX.
+     * **Ghost Worker Detection** does not rely on a dummy dimension flag; rather, the DAX engine dynamically cross-references employees active on payroll against physical/VPN turnstile swipes in `Fact_DailyAttendance`:
+       ```dax
+       // Ghost Worker Diagnostic Count (Active on Payroll with Zero Turnstile Access in >60 Days)
+       Ghost Worker Count = 
+       VAR MaxDate = MAX('Dim_Date'[FullDate])
+       VAR SixtyDaysPrior = MaxDate - 60
+       VAR EmployeesWithBadging = 
+           CALCULATETABLE(
+               VALUES('Fact_DailyAttendance'[EmployeeKey]),
+               'Dim_Date'[FullDate] >= SixtyDaysPrior
+           )
+       RETURN
+           CALCULATE(
+               DISTINCTCOUNT('Fact_WorkforceSnapshot'[EmployeeKey]),
+               NOT('Fact_WorkforceSnapshot'[EmployeeKey] IN EmployeesWithBadging),
+               'Fact_WorkforceSnapshot'[EmploymentStatus] = "Active"
+           )
+       ```
 
 ---
 
@@ -414,6 +446,93 @@ This step guides you through connecting Power BI Desktop directly to Microsoft S
 8. Add `DateKey` via Custom Column:
    `if [FiscalQuarter] = 1 then [FiscalYear] * 10000 + 101 else if [FiscalQuarter] = 2 then [FiscalYear] * 10000 + 401 else if [FiscalQuarter] = 3 then [FiscalYear] * 10000 + 701 else [FiscalYear] * 10000 + 1001`
    Set type to **Whole Number**. Add Index Column as `BudgetKey`.
+
+---
+
+### Step 2.4b: Enterprise SQL Server Ingestion — Importing `raw.Finance_Budget_Plan` via GUI
+
+In enterprise finance planning, FP&A departments maintain headcount forecasts in wide, pivoted Excel workbooks (`finance_budget_2026.xlsx`). Rather than loading aggressively pivoted files directly into Power BI (which burdens client-side Power Query data refreshes), in our production data stack Python (`scripts/ingestion/ingest_finance_plan.py`) unpivots the workbook and lands the normalized records into Microsoft SQL Server under **`[raw].[Finance_Budget_Plan]`**.
+
+This step walks through importing this normalized planning table directly from SQL Server, cleaning manual branch typographical drift, and properly handling **mixed granularity** against your HR fact tables.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ SQL Server Database Connection Dialog                                                 │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Server:   [ localhost\SQLEXPRESS                                           ]           │
+│ Database: [ EnterpriseHR_DWH                                               ]           │
+│ Data Connectivity mode: (•) Import   ( ) DirectQuery                                   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Connecting to SQL Server via Power Query Ribbon:
+1. In Power Query Editor, go to the **Home** ribbon tab.
+2. Click **New Source > SQL Server** (or **Home > Get Data > SQL Server** in the main Power BI window).
+3. In the dialog:
+   * **Server**: `localhost\SQLEXPRESS` (or `.`).
+   * **Database**: `EnterpriseHR_DWH`.
+   * **Data Connectivity mode**: **Import**.
+   * Click **OK**.
+4. In the **Authentication** window, choose **Windows > Use my current credentials** $\to$ click **Connect**.
+
+#### 2. Selecting `raw.Finance_Budget_Plan` in the Navigator:
+1. Expand `EnterpriseHR_DWH` $\to$ expand the **`raw`** schema folder.
+2. Check the checkbox next to **`Finance_Budget_Plan`** (`[raw].[Finance_Budget_Plan]`).
+3. The preview displays 168 unpivoted records with columns: `Department`, `CostCenter_Branch`, `Quarter`, `Budget_EGP`, `Headcount`, `FiscalYear`.
+4. Click **OK** (or **Transform Data**).
+
+#### 3. Power Query Cleansing, Branch Harmonization & Keys via GUI:
+1. In the **Queries** pane, rename `Finance_Budget_Plan` to **`Fact_DepartmentBudget_SQL`** (or `Fact_DepartmentBudget`).
+2. **Setting Data Types Visually**:
+   * Click the icon in header `Department` $\to$ **Text (`ABC`)**.
+   * Click the icon in header `CostCenter_Branch` $\to$ **Text (`ABC`)**.
+   * Click the icon in header `Quarter` $\to$ **Text (`ABC`)**.
+   * Click the icon in header `Headcount` $\to$ **Whole Number (`123`)**.
+   * Click the icon in header `Budget_EGP` $\to$ **Fixed Decimal Number (`$`)**.
+   * Click the icon in header `FiscalYear` $\to$ **Whole Number (`123`)**.
+3. **Harmonizing Typographical Branch Drift via Conditional Column GUI**:
+   Excel workbooks suffer from manual entry inconsistencies (e.g., "Alex Branch", "سموحة", "التجمع"). We harmonize them to match our conformed `Dim_Branch`:
+   * Go to **Add Column > Conditional Column**.
+   * Column Name: `StandardizedBranch`
+   * Rule setup:
+     * If `CostCenter_Branch` equals `Alex Branch` then `فرع الإسكندرية - سموحة`
+     * Else If `CostCenter_Branch` equals `سموحة` then `فرع الإسكندرية - سموحة`
+     * Else If `CostCenter_Branch` equals `فرع المعادي` then `فرع المعادي`
+     * Else If `CostCenter_Branch` equals `القاهرة - المعادي` then `فرع المعادي`
+     * Else If `CostCenter_Branch` equals `الجيزة - الدقي` then `فرع الجيزة - الدقي`
+     * Else If `CostCenter_Branch` equals `التجمع` then `فرع التجمع الخامس`
+     * Else If `CostCenter_Branch` equals `بورسعيد` then `فرع بورسعيد`
+     * Else `CostCenter_Branch`
+   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+4. **Generating Smart Integer Date Key for Quarter Dimension Alignment**:
+   Because budgets are set quarterly, we map each quarter to its quarter-start date key (`20260101`, `20260401`, `20260701`, `20261001`):
+   * Go to **Add Column > Custom Column**.
+   * Column Name: `DateKey`
+   * Formula:
+     ```powerquery
+     if [Quarter] = "Q1" then [FiscalYear] * 10000 + 101 
+     else if [Quarter] = "Q2" then [FiscalYear] * 10000 + 401 
+     else if [Quarter] = "Q3" then [FiscalYear] * 10000 + 701 
+     else [FiscalYear] * 10000 + 1001
+     ```
+   * Click **OK** $\to$ set type to **Whole Number (`123`)**.
+5. **Adding Surrogate Primary Key**:
+   * Go to **Add Column > Index Column > From 1**.
+   * Rename to `BudgetKey` $\to$ set type to **Whole Number (`123`)**.
+
+#### 4. Architectural Note: Handling Mixed Granularity in Power BI & DAX
+> [!IMPORTANT]
+> **Resolving Mixed Granularity (Quarterly Budget vs Daily HR Events)**:
+> - **The Problem**: `Fact_DepartmentBudget` is at the grain of `Department + Branch + Quarter`, whereas `Fact_DailyAttendance` is `Employee + Day`. Creating a direct relationship between them creates a toxic many-to-many relationship.
+> - **The Solution**: Connect `Fact_DepartmentBudget` exclusively to conformed dimensions (`Dim_Department` on `DepartmentName`, `Dim_Branch` on `StandardizedBranch`, and `Dim_Date` on `DateKey`).
+> - **DAX Variance Analysis (`TREATAS`)**: When comparing actual payroll from `Fact_WorkforceSnapshot` with budgeted salary, compute variance dynamically in DAX without model ambiguity:
+>   ```dax
+>   Budget Variance EGP = 
+>   VAR ActualPayroll = [Total Actual Base Salary EGP]
+>   VAR PlannedBudget = SUM('Fact_DepartmentBudget'[Budget_EGP])
+>   RETURN
+>       ActualPayroll - PlannedBudget
+>   ```
 
 ---
 

@@ -202,3 +202,20 @@ The transactional core system uses localized Arabic field names. The table below
 | `FacilityCode` | `NVARCHAR(50)` | No | Dimension Ref | Physical facility or access point (`HQ-CAIRO`, `TECH-GIZA`, `OPS-ALEX`, `REMOTE-VPN`). |
 | `CheckInTime` | `DATETIME2` / `VARCHAR` | No | Timestamp | ISO-8601 UTC timestamp of initial entry or connection (`first_in`). |
 | `CheckOutTime` | `DATETIME2` / `VARCHAR` | Yes | Timestamp | ISO-8601 UTC timestamp of departure or disconnect (`last_out`). `NULL` indicates missing clock-out. |
+
+---
+
+### 4.2 `raw.Finance_Budget_Plan` (Unpivoted Excel Planning Ingestion)
+* **Source**: Shared finance planning workbook (`finance_budget_2026.xlsx`), unpivoted via Python `pandas.melt()`.
+* **Storage**: `[raw].[Finance_Budget_Plan]`
+* **Grain**: 1 row per Department + Branch + Quarter + Metric.
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `Department` | `NVARCHAR(100)` | No | Dimension Ref | Department name (e.g., `تكنولوجيا المعلومات`, `الموارد البشرية`). |
+| `CostCenter_Branch` | `NVARCHAR(100)` | No | Dimension Ref | Non-standard branch identifier requiring normalization (`Alex Branch`, `سموحة`, `التجمع`). |
+| `Quarter` | `NVARCHAR(10)` | No | Dimension Ref | Fiscal quarter (`Q1`, `Q2`, `Q3`, `Q4`). |
+| `Headcount` | `FLOAT` / `INT` | Yes | Metric | Planned target headcount for the specified department and branch in the quarter. |
+| `Budget_EGP` | `FLOAT` / `DECIMAL(18,2)` | Yes | Metric | Planned salary expenditure budget in Egyptian Pounds (EGP). |
+| `FiscalYear` | `INT` | No | Dimension Ref | Fiscal planning year (`2026`). |
+
