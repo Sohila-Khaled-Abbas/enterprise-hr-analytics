@@ -254,7 +254,8 @@ enterprise-hr-analytics/
 │   └── employess-report.SemanticModel/   # Semantic Model & TMDL files
 ├── scripts/                              # Data Engineering Pipelines
 │   ├── ingestion/
-│   │   └── generate_enterprise_mock_data.py # 5-system enterprise data generator
+│   │   ├── generate_enterprise_mock_data.py # 5-system enterprise data generator
+│   │   └── ingest_hr_audit.py             # SQL Server Galaxy Schema ingestion
 │   ├── utils/
 │   │   └── data_cleaners.py              # Heuristic cleaners & unpivot utilities
 │   └── pipeline_runner.py                # End-to-end data processing orchestrator
@@ -264,8 +265,9 @@ enterprise-hr-analytics/
 │   └── run_all_migrations.sql            # Master database setup script
 ├── tests/                                # Automated Quality Assurance
 │   └── test_data_quality.py              # 11 Pytest dimensional contract tests
+├── .env.example                          # Database connection template (copy → .env)
 ├── .gitignore                            # Standard Python & Power BI ignore rules
-├── requirements.txt                      # Project dependencies (pandas, openpyxl, pytest)
+├── requirements.txt                      # Project dependencies (pandas, pyodbc, SQLAlchemy)
 └── README.md                             # Project overview & documentation index
 ```
 
@@ -279,32 +281,46 @@ enterprise-hr-analytics/
 git clone https://github.com/your-org/enterprise-hr-analytics.git
 cd enterprise-hr-analytics
 
-# Activate Python Virtual Environment
+# Create & Activate Python Virtual Environment
+python -m venv venv
 .\venv\Scripts\Activate.ps1
 
 # Install Dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Generate Enterprise Source Datasets
+### 2. Configure Database Connection
+```powershell
+# Copy the environment template
+copy .env.example .env
+
+# Edit .env with your SQL Server instance details
+# Default uses Windows Authentication with localhost\SQLEXPRESS
+```
+
+> [!TIP]
+> For **Windows Authentication**, leave `DB_USER` and `DB_PASS` empty.
+> For **SQL Server Authentication**, fill in both fields.
+
+### 3. Generate Enterprise Source Datasets
 Generate realistic test data for all 5 systems (7,000 Core employees, IoT access logs, exit audits, messy Excel budget, LMS attempts):
 ```powershell
 python scripts/ingestion/generate_enterprise_mock_data.py
 ```
 
-### 3. Run Galaxy Schema Transformation Pipeline
+### 4. Run Galaxy Schema Transformation Pipeline
 Transform raw data into the conformed dimensional model in `data/processed/`:
 ```powershell
 python scripts/pipeline_runner.py
 ```
 
-### 4. Execute Automated Data Quality Tests
+### 5. Execute Automated Data Quality Tests
 Verify primary key uniqueness, foreign key referential integrity, and metric range constraints:
 ```powershell
 pytest -v tests/test_data_quality.py
 ```
 
-### 5. Deploy SQL Server Migrations
+### 6. Deploy SQL Server Migrations
 Connect to your Microsoft SQL Server instance (e.g. via SSMS or Azure Data Studio) and run:
 ```sql
 :r sql/ddl/00_create_database_and_schemas.sql
@@ -313,7 +329,19 @@ Connect to your Microsoft SQL Server instance (e.g. via SSMS or Azure Data Studi
 :r sql/ddl/03_staging_tables.sql
 ```
 
-### 6. Open Power BI Report
+### 7. Ingest Data into SQL Server
+```powershell
+# Dry run (validate connection, list files)
+python scripts/ingestion/ingest_hr_audit.py --dry-run
+
+# Full ingestion into mart schema
+python scripts/ingestion/ingest_hr_audit.py --schema mart
+
+# Truncate and reload
+python scripts/ingestion/ingest_hr_audit.py --schema mart --truncate
+```
+
+### 8. Open Power BI Report
 Open `powerbi/employess-report.pbip` in Power BI Desktop (with Developer Mode / PBIP enabled). Follow [`docs/powerbi_implementation_guide.md`](docs/powerbi_implementation_guide.md) to wire the transformed Galaxy facts and DAX measures.
 
 ---
