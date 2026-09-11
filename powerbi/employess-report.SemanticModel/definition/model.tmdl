@@ -7,13 +7,25 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
+queryGroup Raw_Data
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup Dimensions_Tables
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup Fact_Tables
+
+	annotation PBI_QueryGroupOrder = 2
+
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["employees_data_7000"]
+annotation PBI_QueryOrder = ["employees_data_7000","Dim_Employee"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
-ref table employees_data_7000
+ref table Dim_Employee
 
 ref cultureInfo en-US
 

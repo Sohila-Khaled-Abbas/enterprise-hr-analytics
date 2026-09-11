@@ -1,0 +1,26 @@
+expression employees_data_7000 =
+		let
+		  Source = Table.FromColumns({Lines.FromBinary(File.Contents("D:\courses\Data Science\Data Engineering\Projects\enterprise-hr-analytics\data\raw\employees_data_7000.txt"), null, null, 65001)}),
+		    #"Cleaned Text" = Table.TransformColumns(Source,{{"Column1", Text.Clean, type text}}),
+		    #"Trimmed Text" = Table.TransformColumns(#"Cleaned Text",{{"Column1", Text.Trim, type text}}),
+		    #"Added Index" = Table.AddIndexColumn(#"Trimmed Text", "Index", 1, 1, Int64.Type),
+		    #"Added Conditional Column" = Table.AddColumn(#"Added Index", "RecordID", each if Text.StartsWith([Column1], "الاسم :") then [Index] else null),
+		    #"Filled Down" = Table.FillDown(#"Added Conditional Column",{"RecordID"}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Filled Down",{"Index"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each [Column1] <> "------"),
+		    #"Split Column by Delimiter" = Table.SplitColumn(#"Filtered Rows", "Column1", Splitter.SplitTextByEachDelimiter({" : "}, QuoteStyle.Csv, false), {"Column1.1", "Column1.2"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"Column1.1", type text}, {"Column1.2", type text}}),
+		    #"Trimmed Text1" = Table.TransformColumns(#"Changed Type",{{"Column1.1", Text.Trim, type text}, {"Column1.2", Text.Trim, type text}}),
+		    #"Cleaned Text1" = Table.TransformColumns(#"Trimmed Text1",{{"Column1.1", Text.Clean, type text}, {"Column1.2", Text.Clean, type text}}),
+		    #"Pivoted Column" = Table.Pivot(#"Cleaned Text1", List.Distinct(#"Cleaned Text1"[Column1.1]), "Column1.1", "Column1.2"),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Pivoted Column",{"RecordID"}),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Removed Columns1",{{"الاسم", type text}, {"الرقم التعريفي", type text}, {"السن", Int64.Type}, {"الجنس", type text}, {"المسمى الوظيفي", type text}, {"القسم", type text}, {"الفرع", type text}, {"تاريخ التعيين", type date}, {"الراتب الأساسي", Currency.Type}, {"العملة", type text}, {"نوع العقد", type text}, {"تقييم الأداء السنوي", type number}, {"الحالة الاجتماعية", type text}, {"البريد الإلكتروني", type text}})
+		in
+		    #"Changed Type1"
+	lineageTag: 8ed84576-d090-42be-b914-01dbeac82493
+	queryGroup: Raw_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

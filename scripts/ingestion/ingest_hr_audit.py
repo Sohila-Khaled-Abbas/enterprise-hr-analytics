@@ -48,16 +48,16 @@ logger = logging.getLogger(__name__)
 # ──────────────────────────────────────────────────────────────────
 TABLE_MANIFEST = {
     # Conformed Dimensions
-    "dim_employee.csv": ("mart.Dim_Employee", "EmployeeKey"),
-    "dim_department.csv": ("mart.Dim_Department", "DepartmentKey"),
-    "dim_branch.csv": ("mart.Dim_Branch", "BranchKey"),
-    "dim_date.csv": ("mart.Dim_Date", "DateKey"),
-    "dim_course.csv": ("mart.Dim_Course", "CourseKey"),
+    "Dim_Employee.csv": ("mart.Dim_Employee", "EmployeeKey"),
+    "Dim_Department.csv": ("mart.Dim_Department", "DepartmentKey"),
+    "Dim_Branch.csv": ("mart.Dim_Branch", "BranchKey"),
+    "Dim_Date.csv": ("mart.Dim_Date", "DateKey"),
+    "Dim_Course.csv": ("mart.Dim_Course", "CourseKey"),
     # Fact Tables (Galaxy Constellation)
-    "fact_workforce_snapshot.csv": ("mart.Fact_WorkforceSnapshot", "SnapshotKey"),
-    "fact_daily_attendance.csv": ("mart.Fact_DailyAttendance", "AttendanceKey"),
-    "fact_department_budget.csv": ("mart.Fact_DepartmentBudget", "BudgetKey"),
-    "fact_training_completions.csv": ("mart.Fact_TrainingCompletions", "CompletionKey"),
+    "Fact_WorkforceSnapshot.csv": ("mart.Fact_WorkforceSnapshot", "SnapshotKey"),
+    "Fact_DailyAttendance.csv": ("mart.Fact_DailyAttendance", "AttendanceKey"),
+    "Fact_DepartmentBudget.csv": ("mart.Fact_DepartmentBudget", "BudgetKey"),
+    "Fact_TrainingCompletions.csv": ("mart.Fact_TrainingCompletions", "CompletionKey"),
 }
 
 
@@ -144,18 +144,21 @@ def verify_connection(engine: Engine) -> bool:
 
 
 def get_available_csvs() -> dict:
-    """Scans the processed directory for available CSV files."""
+    """Scans the processed directory for available CSV files (case-insensitive)."""
     available = {}
     if not PROCESSED_DIR.exists():
         logger.warning("⚠️  Processed data directory not found: %s", PROCESSED_DIR)
         return available
 
+    manifest_lower = {k.lower(): k for k in TABLE_MANIFEST}
+
     for csv_file in sorted(PROCESSED_DIR.glob("*.csv")):
-        filename = csv_file.name
-        if filename in TABLE_MANIFEST:
-            available[filename] = csv_file
+        lower_name = csv_file.name.lower()
+        if lower_name in manifest_lower:
+            canonical_name = manifest_lower[lower_name]
+            available[canonical_name] = csv_file
         else:
-            logger.debug("Skipping unmapped file: %s", filename)
+            logger.debug("Skipping unmapped file: %s", csv_file.name)
 
     return available
 
@@ -352,18 +355,20 @@ def main(
     # Step 3: Ingest dimensions first (referential integrity order)
     logger.info("\n📥 Step 3: Ingesting conformed dimensions...")
     dim_order = [
-        "dim_date.csv",
-        "dim_department.csv",
-        "dim_branch.csv",
-        "dim_course.csv",
-        "dim_employee.csv",
+        "Dim_Date.csv",
+        "Dim_Department.csv",
+        "Dim_Branch.csv",
+        "Dim_Course.csv",
+        "Dim_Employee.csv",
     ]
     total_rows = 0
     tables_loaded = 0
 
     for csv_name in dim_order:
         if csv_name in available_csvs:
-            target_table, pk_col = TABLE_MANIFEST[csv_name]
+            default_target_table, pk_col = TABLE_MANIFEST[csv_name]
+            table_bare_name = default_target_table.split(".")[-1]
+            target_table = f"{target_schema}.{table_bare_name}"
             rows = ingest_csv_to_table(
                 engine, available_csvs[csv_name], target_table, pk_col, truncate
             )
@@ -374,15 +379,17 @@ def main(
     # Step 4: Ingest fact tables
     logger.info("\n📥 Step 4: Ingesting fact tables...")
     fact_order = [
-        "fact_workforce_snapshot.csv",
-        "fact_daily_attendance.csv",
-        "fact_department_budget.csv",
-        "fact_training_completions.csv",
+        "Fact_WorkforceSnapshot.csv",
+        "Fact_DailyAttendance.csv",
+        "Fact_DepartmentBudget.csv",
+        "Fact_TrainingCompletions.csv",
     ]
 
     for csv_name in fact_order:
         if csv_name in available_csvs:
-            target_table, pk_col = TABLE_MANIFEST[csv_name]
+            default_target_table, pk_col = TABLE_MANIFEST[csv_name]
+            table_bare_name = default_target_table.split(".")[-1]
+            target_table = f"{target_schema}.{table_bare_name}"
             rows = ingest_csv_to_table(
                 engine, available_csvs[csv_name], target_table, pk_col, truncate
             )

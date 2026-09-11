@@ -1,0 +1,159 @@
+table Dim_Employee
+	lineageTag: b55b37e3-f509-4aeb-9bca-20504e4aebd3
+
+	column EmployeeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: baa066b2-530b-4a03-926a-f6719b7ed55b
+		summarizeBy: count
+		sourceColumn: EmployeeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column الاسم
+		dataType: string
+		lineageTag: 84cecc23-0ce8-4da5-8f44-b0bc2aa67a91
+		summarizeBy: none
+		sourceColumn: الاسم
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'الرقم التعريفي'
+		dataType: string
+		lineageTag: df0f5469-fd60-404e-8950-5e4bc03bc59b
+		summarizeBy: none
+		sourceColumn: الرقم التعريفي
+
+		annotation SummarizationSetBy = Automatic
+
+	column السن
+		dataType: int64
+		formatString: 0
+		lineageTag: c8eace50-7efa-4881-a4e6-e2eb6eed05b4
+		summarizeBy: sum
+		sourceColumn: السن
+
+		annotation SummarizationSetBy = Automatic
+
+	column الجنس
+		dataType: string
+		lineageTag: 7b1abe58-72f7-4e23-bdcf-730e23fed1c9
+		summarizeBy: none
+		sourceColumn: الجنس
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'المسمى الوظيفي'
+		dataType: string
+		lineageTag: 96306f9d-d437-4d6e-995b-1d699494edbb
+		summarizeBy: none
+		sourceColumn: المسمى الوظيفي
+
+		annotation SummarizationSetBy = Automatic
+
+	column القسم
+		dataType: string
+		lineageTag: ca0ae163-ea0b-492f-a2a8-45fc01cbfd96
+		summarizeBy: none
+		sourceColumn: القسم
+
+		annotation SummarizationSetBy = Automatic
+
+	column الفرع
+		dataType: string
+		lineageTag: 5284128e-2e0f-4ed1-8bae-fc1daaa7d175
+		summarizeBy: none
+		sourceColumn: الفرع
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'تاريخ التعيين'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9740b66d-8682-4db8-ad6d-0042affac6f4
+		summarizeBy: none
+		sourceColumn: تاريخ التعيين
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'الراتب الأساسي'
+		dataType: decimal
+		formatString: "AED"#,0.###############;-"AED"#,0.###############;"AED"#,0.###############
+		lineageTag: 7a4580e5-bec2-4faa-a619-842087b52821
+		summarizeBy: sum
+		sourceColumn: الراتب الأساسي
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AE"}
+
+	column العملة
+		dataType: string
+		lineageTag: 326b9e8c-ddd2-4a20-a7f9-b6e02a134fab
+		summarizeBy: none
+		sourceColumn: العملة
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'نوع العقد'
+		dataType: string
+		lineageTag: 5f13b53e-ef05-44e5-a1c9-9cf637e4a4f2
+		summarizeBy: none
+		sourceColumn: نوع العقد
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'تقييم الأداء السنوي'
+		dataType: double
+		lineageTag: 9d7bc9ba-808f-4b44-917b-5f7ee71545a5
+		summarizeBy: sum
+		sourceColumn: تقييم الأداء السنوي
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'الحالة الاجتماعية'
+		dataType: string
+		lineageTag: 3e786bf4-9a69-435b-aac4-045e553055c6
+		summarizeBy: none
+		sourceColumn: الحالة الاجتماعية
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'البريد الإلكتروني'
+		dataType: string
+		lineageTag: 54337d27-facb-4656-9997-5a2c541143d8
+		summarizeBy: none
+		sourceColumn: البريد الإلكتروني
+
+		annotation SummarizationSetBy = Automatic
+
+	column TenureYears
+		dataType: int64
+		formatString: 0
+		lineageTag: 18686207-edc0-4163-91f0-5111b1e11c87
+		summarizeBy: sum
+		sourceColumn: TenureYears
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Employee = m
+		mode: import
+		queryGroup: Dimensions_Tables
+		source =
+				let
+				    Source = employees_data_7000,
+				    #"Added EmployeeKey" = Table.AddIndexColumn(Source, "EmployeeKey", 1, 1, Int64.Type),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added EmployeeKey",{"EmployeeKey", "الاسم", "الرقم التعريفي", "السن", "الجنس", "المسمى الوظيفي", "القسم", "الفرع", "تاريخ التعيين", "الراتب الأساسي", "العملة", "نوع العقد", "تقييم الأداء السنوي", "الحالة الاجتماعية", "البريد الإلكتروني"}),
+				    #"Added TenureYears" = Table.AddColumn(#"Reordered Columns", "TenureYears", each Duration.TotalDays(DateTime.LocalNow() - DateTime.From([تاريخ التعيين])) / 365.25, Decimal.Type),
+				    #"Rounded Down" = Table.TransformColumns(#"Added TenureYears",{{"TenureYears", Number.RoundDown, Int64.Type}})
+				in
+				    #"Rounded Down"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
