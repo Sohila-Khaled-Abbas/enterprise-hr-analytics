@@ -144,28 +144,93 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
    * Click **Index Column > From 1**.
    * Right-click the new `Index` header, select **Rename**, and type `EmployeeKey`.
    * Drag `EmployeeKey` to become the first column on the left.
-6. **Configuring SCD Type 2 Attributes — Why These Columns Exist in HR Analytics**:
+6. **Deriving Analytical Business Columns from Raw Employee Data**:
 
-   In enterprise HR, employees change departments, get promoted to new job roles, transfer branches, and receive salary adjustments throughout their tenure. A **Slowly Changing Dimension Type 2 (SCD-2)** preserves the *full history* of these attribute changes so that downstream fact tables (Workforce Snapshot, Attendance, Training) always join to the employee record *as it was at the time of each event*, not as it is today.
+   The raw employee file is a **point-in-time snapshot** — it has no change history. SCD Type 2 versioning (tracking when an employee changed department, salary, or branch) is handled at the SQL Server ETL layer via the [`MERGE` procedure`](../sql/transformations/01_dim_employee_scd2.sql), not in Power Query. What Power Query *should* do is derive the **calculated business columns** that the downstream DAX diagnostics depend on.
 
-   Each `Dim_Employee` row represents **one version of one employee's attribute state**. The three SCD-2 tracking columns define the validity window:
+   #### 6a. Tenure in Years (`TenureYears`) — Drives Flight Risk & Salary Compression Analysis
 
-   | Column | Business Meaning | Initial Load Value |
-   |:---|:---|:---|
-   | `EffectiveDate` | The date this attribute snapshot became active — for the first load, this is the employee's **hire date** (`تاريخ التعيين`), since their initial attributes (department, salary, role) took effect on the day they joined the organization. | Copy of `تاريخ التعيين` |
-   | `ExpiryDate` | The date this attribute snapshot was **superseded** by a newer version. If the employee has not yet had any attribute change, they have no successor row, so this remains open-ended. The Kimball convention uses `9999-12-31` (a "far-future sentinel") to signal **"this record is still the active version."** | `9999-12-31` |
-   | `IsCurrent` | A boolean convenience flag for fast filtering. `TRUE` = this row is the employee's **latest known state**. When an attribute changes and a new row is inserted, the *previous* row's `IsCurrent` flips to `FALSE` and its `ExpiryDate` is backdated. | `TRUE` |
+   Without tenure, you cannot identify wage inversion (veteran employees earning less than new hires). This column calculates how long each employee has been with the organization.
 
-   **GUI Steps:**
-   * **`EffectiveDate`**: Select the `تاريخ التعيين` column → go to **Add Column > Duplicate Column**. Right-click the new column header → **Rename** → type `EffectiveDate`. This copies each employee's hire date as the start of their first attribute validity window.
-   * **`ExpiryDate`**: Go to **Add Column > Custom Column**. Name: `ExpiryDate`. Formula: `#date(9999, 12, 31)`. Click **OK** → set column type to **Date**. This marks every record as currently active (no successor row exists yet).
-   * **`IsCurrent`**: Go to **Add Column > Custom Column**. Name: `IsCurrent`. Formula: `true`. Click **OK** → set column type to **True/False**. All rows in this initial bulk load are the current version of each employee.
+   * Go to **Add Column > Custom Column**.
+   * Name: `TenureYears`
+   * Formula:
+     ```
+     Duration.TotalDays(DateTime.LocalNow() - DateTime.From([تاريخ التعيين])) / 365.25
+     ```
+   * Click **OK** → set column type to **Decimal Number**.
+   * Right-click the `TenureYears` header → **Round** → choose **Round Down** for whole-year floors, or keep decimals for precise analysis.
 
-   > **🔑 When Do New SCD-2 Rows Appear?** In production, when the HRIS reports that an employee transferred from `فرع المعادي` to `فرع الإسكندرية - سموحة`, the ETL pipeline (or a SQL Server `MERGE` procedure — see [`sql/transformations/01_dim_employee_scd2.sql`](../sql/transformations/01_dim_employee_scd2.sql)) would:
-   > 1. **Close** the old row: set `ExpiryDate = transfer date − 1 day`, `IsCurrent = FALSE`.
-   > 2. **Insert** a new row with the updated branch, `EffectiveDate = transfer date`, `ExpiryDate = 9999-12-31`, `IsCurrent = TRUE`.
-   >
-   > This ensures that any attendance facts recorded *before* the transfer still link to the old branch, while post-transfer facts link to the new one — eliminating retroactive data corruption.
+   > **💡 Why `365.25`?** Accounts for leap years. An employee hired on `2021-03-15` should show ~5.2 years in mid-2026, not a misleading 4.9 from integer division.
+
+   #### 6b. Age Band (`AgeBand`) — Drives Demographic & Workforce Planning Analysis
+
+   Raw age as a number is hard to slice visually. Grouping into HR-standard generational bands enables workforce planning by demographic cohort.
+
+   * Go to **Add Column > Conditional Column**.
+   * Column Name: `AgeBand`
+   * Configure rules:
+
+     | Condition | Output |
+     |:---|:---|
+     | If `السن` is less than 25 | `Gen Z (< 25)` |
+     | Else if `السن` is less than 35 | `Millennial (25–34)` |
+     | Else if `السن` is less than 45 | `Gen X (35–44)` |
+     | Else if `السن` is less than 55 | `Senior (45–54)` |
+     | Else | `Pre-Retirement (55+)` |
+
+   * Click **OK** → verify type is **Text**.
+
+   > **💡 Business Value:** HR uses these bands to forecast retirement waves — if 30% of a critical department is `Pre-Retirement (55+)`, succession planning must begin immediately.
+
+   #### 6c. Salary Band (`SalaryBand`) — Drives Compensation Equity & Budget Analysis
+
+   Individual salary values create noisy scatter plots. Banding into EGP ranges enables clean cross-tabulation against departments and branches.
+
+   * Go to **Add Column > Conditional Column**.
+   * Column Name: `SalaryBand`
+   * Configure rules:
+
+     | Condition | Output |
+     |:---|:---|
+     | If `الراتب الأساسي` is less than 5000 | `Entry (< 5K)` |
+     | Else if `الراتب الأساسي` is less than 10000 | `Junior (5K–10K)` |
+     | Else if `الراتب الأساسي` is less than 20000 | `Mid-Level (10K–20K)` |
+     | Else if `الراتب الأساسي` is less than 35000 | `Senior (20K–35K)` |
+     | Else | `Executive (35K+)` |
+
+   * Click **OK** → verify type is **Text**.
+
+   #### 6d. Performance Tier (`PerformanceTier`) — Drives Retention & Upskilling ROI
+
+   The raw `تقييم الأداء السنوي` is a decimal (e.g., 3.7). Translating it into named tiers lets stakeholders immediately spot high performers at risk.
+
+   * Go to **Add Column > Conditional Column**.
+   * Column Name: `PerformanceTier`
+   * Configure rules:
+
+     | Condition | Output |
+     |:---|:---|
+     | If `تقييم الأداء السنوي` is less than 2.0 | `🔴 Underperformer` |
+     | Else if `تقييم الأداء السنوي` is less than 3.0 | `🟡 Developing` |
+     | Else if `تقييم الأداء السنوي` is less than 4.0 | `🟢 Meets Expectations` |
+     | Else if `تقييم الأداء السنوي` is less than 4.5 | `🔵 High Performer` |
+     | Else | `⭐ Exceptional (Top Talent)` |
+
+   * Click **OK** → verify type is **Text**.
+
+   > **💡 Business Value:** When crossed with `SalaryBand`, this instantly reveals the most dangerous flight risk pattern: `⭐ Exceptional` performers stuck in `Entry (< 5K)` or `Junior (5K–10K)` salary bands.
+
+   #### 6e. Employment Status Flag (`IsActive`) — Drives Ghost Worker Detection
+
+   The raw data has no status column. For the initial snapshot, we mark all records as active. When later joined against the Exit Audit fact table, DAX can override this to detect separated employees still on the payroll.
+
+   * Go to **Add Column > Custom Column**.
+   * Name: `IsActive`
+   * Formula: `true`
+   * Click **OK** → set column type to **True/False**.
+
+   > **⚠️ Important:** This `true` default is **not artificial** — it reflects that this source file only contains employees currently in the HRIS. The real status detection happens in DAX by cross-referencing `Fact_WorkforceSnapshot` exit dates and `Fact_DailyAttendance` ghost worker flags (employees with zero badge access over 60+ consecutive days).
 
 ---
 
