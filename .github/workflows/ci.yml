@@ -1,0 +1,47 @@
+name: Data Quality & Dimensional Model CI
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  validate-pipeline:
+    name: Validate Data Quality & Galaxy Schema Pipelines
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate Enterprise Mock Datasets
+        run: |
+          python scripts/ingestion/generate_enterprise_mock_data.py
+
+      - name: Execute Galaxy Schema Data Pipeline
+        run: |
+          python scripts/pipeline_runner.py
+
+      - name: Run Pytest Data Quality & Schema Contracts
+        run: |
+          pytest -v tests/test_data_quality.py
+
+      - name: Validate Power BI Files Unchanged
+        run: |
+          git status --porcelain powerbi/
+          if [ -n "$(git status --porcelain powerbi/)" ]; then
+            echo "ERROR: Power BI files were modified!"
+            exit 1
+          fi
