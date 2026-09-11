@@ -1,11 +1,19 @@
+# Power BI Developer Mode (PBIP)
 **/.pbi/localSettings.json
 **/.pbi/cache.abf
+**/.pbi/editorSettings.json
+*.pbix
+
+# Python & Environments
 venv/
-__pycache__/
 .env
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Data Directories (ignore generated artifacts, keep folder structure)
 data/raw/*
 data/processed/*
-*.pbix
-*.csv
-*.json
-*.xlsx
+!data/raw/.gitkeep
+!data/processed/.gitkeep
