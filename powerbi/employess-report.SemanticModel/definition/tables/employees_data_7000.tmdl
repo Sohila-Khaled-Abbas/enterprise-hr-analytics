@@ -1,0 +1,150 @@
+table employees_data_7000
+	lineageTag: a09f879f-ad9e-407d-8841-f77f43fad8f3
+
+	column الاسم
+		dataType: string
+		lineageTag: 6aab7288-9ef3-4d50-8421-1ac80f810d8e
+		summarizeBy: none
+		sourceColumn: الاسم
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'الرقم التعريفي'
+		dataType: string
+		lineageTag: ac156d9f-7285-4ac4-a4ff-6e8e61db3ec4
+		summarizeBy: none
+		sourceColumn: الرقم التعريفي
+
+		annotation SummarizationSetBy = Automatic
+
+	column السن
+		dataType: int64
+		formatString: 0
+		lineageTag: bdd7125b-e9de-4054-a730-99bb3ea92700
+		summarizeBy: sum
+		sourceColumn: السن
+
+		annotation SummarizationSetBy = Automatic
+
+	column الجنس
+		dataType: string
+		lineageTag: f70efb6e-0a2c-46be-9508-af33590c99ed
+		summarizeBy: none
+		sourceColumn: الجنس
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'المسمى الوظيفي'
+		dataType: string
+		lineageTag: c20d4936-6165-436b-be0c-1bf862b4319c
+		summarizeBy: none
+		sourceColumn: المسمى الوظيفي
+
+		annotation SummarizationSetBy = Automatic
+
+	column القسم
+		dataType: string
+		lineageTag: 9f82df37-ef14-41f9-9ea3-959ec35f0ab7
+		summarizeBy: none
+		sourceColumn: القسم
+
+		annotation SummarizationSetBy = Automatic
+
+	column الفرع
+		dataType: string
+		lineageTag: b9800a00-78cf-4a7b-8dca-bb5c81e4abc1
+		summarizeBy: none
+		sourceColumn: الفرع
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'تاريخ التعيين'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 4cf62534-2a5b-4544-930a-210c1d5623f4
+		summarizeBy: none
+		sourceColumn: تاريخ التعيين
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'الراتب الأساسي'
+		dataType: decimal
+		formatString: "XDR"#,0.###############;-"XDR"#,0.###############;"XDR"#,0.###############
+		lineageTag: 616f823c-27aa-4f80-accb-17fa45181ca1
+		summarizeBy: sum
+		sourceColumn: الراتب الأساسي
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-001"}
+
+	column العملة
+		dataType: string
+		lineageTag: 8b1ab874-f4b9-4225-9c88-7a624f005891
+		summarizeBy: none
+		sourceColumn: العملة
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'نوع العقد'
+		dataType: string
+		lineageTag: 0caafce0-9476-4a82-b1d7-162d809de27c
+		summarizeBy: none
+		sourceColumn: نوع العقد
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'تقييم الأداء السنوي'
+		dataType: double
+		lineageTag: bb308ff7-a43c-49d8-a99d-a732c70b4c26
+		summarizeBy: sum
+		sourceColumn: تقييم الأداء السنوي
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'الحالة الاجتماعية'
+		dataType: string
+		lineageTag: 2ded5b39-c438-4117-b23a-7df10341b197
+		summarizeBy: none
+		sourceColumn: الحالة الاجتماعية
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'البريد الإلكتروني'
+		dataType: string
+		lineageTag: 0a4bbc22-5e10-4a26-b142-acc599179cdd
+		summarizeBy: none
+		sourceColumn: البريد الإلكتروني
+
+		annotation SummarizationSetBy = Automatic
+
+	partition employees_data_7000 = m
+		mode: import
+		source =
+				let
+				  Source = Table.FromColumns({Lines.FromBinary(File.Contents("D:\courses\Data Science\Data Engineering\Projects\employees-report\employees_data_7000.txt"), null, null, 65001)}),
+				    #"Cleaned Text" = Table.TransformColumns(Source,{{"Column1", Text.Clean, type text}}),
+				    #"Trimmed Text" = Table.TransformColumns(#"Cleaned Text",{{"Column1", Text.Trim, type text}}),
+				    #"Added Index" = Table.AddIndexColumn(#"Trimmed Text", "Index", 1, 1, Int64.Type),
+				    #"Added Conditional Column" = Table.AddColumn(#"Added Index", "RecordID", each if Text.StartsWith([Column1], "الاسم :") then [Index] else null),
+				    #"Filled Down" = Table.FillDown(#"Added Conditional Column",{"RecordID"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filled Down",{"Index"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each [Column1] <> "------"),
+				    #"Split Column by Delimiter" = Table.SplitColumn(#"Filtered Rows", "Column1", Splitter.SplitTextByEachDelimiter({" : "}, QuoteStyle.Csv, false), {"Column1.1", "Column1.2"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"Column1.1", type text}, {"Column1.2", type text}}),
+				    #"Trimmed Text1" = Table.TransformColumns(#"Changed Type",{{"Column1.1", Text.Trim, type text}, {"Column1.2", Text.Trim, type text}}),
+				    #"Cleaned Text1" = Table.TransformColumns(#"Trimmed Text1",{{"Column1.1", Text.Clean, type text}, {"Column1.2", Text.Clean, type text}}),
+				    #"Pivoted Column" = Table.Pivot(#"Cleaned Text1", List.Distinct(#"Cleaned Text1"[Column1.1]), "Column1.1", "Column1.2"),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Pivoted Column",{"RecordID"}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Removed Columns1",{{"الاسم", type text}, {"الرقم التعريفي", type text}, {"السن", Int64.Type}, {"الجنس", type text}, {"المسمى الوظيفي", type text}, {"القسم", type text}, {"الفرع", type text}, {"تاريخ التعيين", type date}, {"الراتب الأساسي", Currency.Type}, {"العملة", type text}, {"نوع العقد", type text}, {"تقييم الأداء السنوي", type number}, {"الحالة الاجتماعية", type text}, {"البريد الإلكتروني", type text}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

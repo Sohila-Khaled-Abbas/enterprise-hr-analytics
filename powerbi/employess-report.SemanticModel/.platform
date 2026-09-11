@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "employess-report"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "39c2c008-3bf4-4e7b-8130-6059b17b6fb0"
+  }
+}

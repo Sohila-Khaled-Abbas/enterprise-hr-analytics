@@ -1,0 +1,11 @@
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+venv/
+__pycache__/
+.env
+data/raw/*
+data/processed/*
+*.pbix
+*.csv
+*.json
+*.xlsx
