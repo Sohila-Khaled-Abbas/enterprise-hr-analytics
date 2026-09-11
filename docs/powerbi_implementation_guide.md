@@ -230,18 +230,38 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
    > Depending on your pipeline design, choose one of two enterprise patterns:
 
    * **Option A (Dynamic Power Query Merge with Attrition Records — Recommended if status is needed in `Dim_Employee`)**:
-     1. In the **Home** ribbon, click **Merge Queries**.
-     2. Select `Dim_Employee` as the primary table and click on column `كود الموظف` (`EmployeeID`).
-     3. Select `stg.Exit_Attrition_Records` (or `raw.HR_Audit_Events`) as the secondary table and match on `EmployeeID`.
-     4. Join Kind: **Left Outer (all from first, matching from second)** $\to$ click **OK**.
-     5. Click the **Expand icon (`↔`)** on the new table column, select **only `ExitDate`**, and uncheck *Use original column name as prefix*.
-     6. Go to **Add Column > Conditional Column**:
+
+     **Sub-step A1: Import `stg.Exit_Attrition_Records` into Power Query**:
+     1. In Power Query Editor, go to **Home > New Source > SQL Server** (or **New Source > Text/CSV** $\to$ `data/raw/exit_attrition_records.csv`).
+     2. In the dialog:
+        * **Server**: `localhost\SQLEXPRESS` (or `.`).
+        * **Database**: `EnterpriseHR_DWH`.
+        * **Data Connectivity mode**: **Import** $\to$ click **OK**.
+     3. In the **Navigator** window, expand `EnterpriseHR_DWH` $\to$ expand the **`stg`** schema $\to$ check **`Exit_Attrition_Records`** (or `raw` $\to$ `HR_Audit_Events`) $\to$ click **OK**.
+     4. In the left **Queries** pane, verify `Exit_Attrition_Records` is present.
+     5. *(Best Practice)*: Right-click `Exit_Attrition_Records` in the left pane $\to$ uncheck **Enable Load** (this keeps it as an ETL staging query feeding `Dim_Employee` without duplicating tables in your Power BI reporting canvas).
+
+     **Sub-step A2: Merge into `Dim_Employee`**:
+     1. In the left **Queries** pane, select **`Dim_Employee`**.
+     2. In the **Home** ribbon, click **Merge Queries** (top ribbon).
+     3. In the Merge dialog:
+        * Upper table preview: Click column **`كود الموظف`** (or `EmployeeID`).
+        * Lower dropdown: Select **`Exit_Attrition_Records`** $\to$ click column **`EmployeeID`**.
+        * **Join Kind**: Select **Left Outer (all from first, matching from second)**.
+        * The dialog will report matching rows (e.g. 350 of 7,000 employees matched). Click **OK**.
+     4. Scroll to the far right of `Dim_Employee` and locate the new table column. Click the **Expand icon (`↔`)** at the right of the header:
+        * Uncheck *(Select All Columns)* $\to$ check **only `ExitDate`**.
+        * Uncheck *Use original column name as prefix*.
+        * Click **OK**.
+     5. **Derive Employment Status**:
+        * Go to **Add Column > Conditional Column**.
         * Column Name: `EmploymentStatus`
-        * Rule: If `ExitDate` is not null $\to$ `Separated`, Else $\to$ `Active`.
-     7. Go to **Add Column > Conditional Column**:
+        * Rule: If `ExitDate` does not equal `null` then `Separated`, Else `Active`. Click **OK**.
+     6. **Derive Boolean Active Flag**:
+        * Go to **Add Column > Conditional Column**.
         * Column Name: `IsActive`
         * Rule: If `EmploymentStatus` equals `Active` then `true`, Else `false`.
-        * Set type to **True/False**.
+        * Click **OK** $\to$ set data type to **True/False**.
 
    * **Option B (Pure Galaxy Schema / Snapshot Modeling — Star Schema Standard)**:
      * In formal Kimball dimensional modeling, `Dim_Employee` stores conformed attributes (Demographics, Titles, Skills), while point-in-time employment status belongs in the periodic snapshot fact table (`Fact_WorkforceSnapshot[EmploymentStatus]`) or is evaluated dynamically in DAX.
