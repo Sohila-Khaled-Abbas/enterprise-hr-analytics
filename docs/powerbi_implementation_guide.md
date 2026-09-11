@@ -144,10 +144,28 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
    * Click **Index Column > From 1**.
    * Right-click the new `Index` header, select **Rename**, and type `EmployeeKey`.
    * Drag `EmployeeKey` to become the first column on the left.
-6. **Configuring SCD Type 2 Attributes visually**:
-   * Go to **Add Column > Duplicate Column** while selecting `تاريخ التعيين`. Rename the duplicate `EffectiveDate`.
-   * Go to **Add Column > Custom Column**. Name it `ExpiryDate` and enter: `#date(9999, 12, 31)`. Set type to **Date**.
-   * Go to **Add Column > Custom Column**. Name it `IsCurrent` and enter: `true`. Set type to **True/False**.
+6. **Configuring SCD Type 2 Attributes — Why These Columns Exist in HR Analytics**:
+
+   In enterprise HR, employees change departments, get promoted to new job roles, transfer branches, and receive salary adjustments throughout their tenure. A **Slowly Changing Dimension Type 2 (SCD-2)** preserves the *full history* of these attribute changes so that downstream fact tables (Workforce Snapshot, Attendance, Training) always join to the employee record *as it was at the time of each event*, not as it is today.
+
+   Each `Dim_Employee` row represents **one version of one employee's attribute state**. The three SCD-2 tracking columns define the validity window:
+
+   | Column | Business Meaning | Initial Load Value |
+   |:---|:---|:---|
+   | `EffectiveDate` | The date this attribute snapshot became active — for the first load, this is the employee's **hire date** (`تاريخ التعيين`), since their initial attributes (department, salary, role) took effect on the day they joined the organization. | Copy of `تاريخ التعيين` |
+   | `ExpiryDate` | The date this attribute snapshot was **superseded** by a newer version. If the employee has not yet had any attribute change, they have no successor row, so this remains open-ended. The Kimball convention uses `9999-12-31` (a "far-future sentinel") to signal **"this record is still the active version."** | `9999-12-31` |
+   | `IsCurrent` | A boolean convenience flag for fast filtering. `TRUE` = this row is the employee's **latest known state**. When an attribute changes and a new row is inserted, the *previous* row's `IsCurrent` flips to `FALSE` and its `ExpiryDate` is backdated. | `TRUE` |
+
+   **GUI Steps:**
+   * **`EffectiveDate`**: Select the `تاريخ التعيين` column → go to **Add Column > Duplicate Column**. Right-click the new column header → **Rename** → type `EffectiveDate`. This copies each employee's hire date as the start of their first attribute validity window.
+   * **`ExpiryDate`**: Go to **Add Column > Custom Column**. Name: `ExpiryDate`. Formula: `#date(9999, 12, 31)`. Click **OK** → set column type to **Date**. This marks every record as currently active (no successor row exists yet).
+   * **`IsCurrent`**: Go to **Add Column > Custom Column**. Name: `IsCurrent`. Formula: `true`. Click **OK** → set column type to **True/False**. All rows in this initial bulk load are the current version of each employee.
+
+   > **🔑 When Do New SCD-2 Rows Appear?** In production, when the HRIS reports that an employee transferred from `فرع المعادي` to `فرع الإسكندرية - سموحة`, the ETL pipeline (or a SQL Server `MERGE` procedure — see [`sql/transformations/01_dim_employee_scd2.sql`](../sql/transformations/01_dim_employee_scd2.sql)) would:
+   > 1. **Close** the old row: set `ExpiryDate = transfer date − 1 day`, `IsCurrent = FALSE`.
+   > 2. **Insert** a new row with the updated branch, `EffectiveDate = transfer date`, `ExpiryDate = 9999-12-31`, `IsCurrent = TRUE`.
+   >
+   > This ensures that any attendance facts recorded *before* the transfer still link to the old branch, while post-transfer facts link to the new one — eliminating retroactive data corruption.
 
 ---
 
