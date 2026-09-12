@@ -110,15 +110,34 @@ def load_core_employees_from_txt() -> List[Dict[str, Any]]:
     return formatted_employees
 
 
-def generate_attendance_badge_logs(employees: List[Dict[str, Any]], num_days: int = 45) -> List[Dict[str, Any]]:
+BRANCH_TO_BUILDING = {
+    "الإسكندرية - لوران": "BLD-001",
+    "الدقهلية - المنصورة": "BLD-002",
+    "الجيزة - 6 أكتوبر": "BLD-003",
+    "أسيوط - أسيوط الجديدة": "BLD-004",
+    "دمياط - دمياط الجديدة": "BLD-005",
+    "الجيزة - الشيخ زايد": "BLD-006",
+    "القاهرة - المعادي": "BLD-007",
+    "القاهرة - التجمع الخامس": "BLD-008",
+    "القاهرة - مصر الجديدة": "BLD-009",
+    "الجيزة - الدقي": "BLD-010",
+    "القاهرة - القرية الذكية": "BLD-011",
+    "بورسعيد - الشرق": "BLD-012",
+    "الإسكندرية - سموحة": "BLD-013",
+    "الغربية - طنطا": "BLD-014",
+}
+
+
+def generate_attendance_badge_logs(employees: List[Dict[str, Any]], num_days: int = 28) -> List[Dict[str, Any]]:
     """
     Generates IoT daily badge logs with deliberate real-world challenges:
     - Missing clock-outs (forgotten badges)
     - Night shifts crossing midnight
     - Ghost workers with 0 access events in 60+ days
     - Contract violation records
+    - BuildingID: Clean alphanumeric codes BLD-001 to BLD-014 matching branches, or REMOTE_GATE
     """
-    print(f"[*] Generating Daily IoT Badge Access Logs ({num_days} workdays)...")
+    print(f"[*] Generating Daily IoT Badge Access Logs ({num_days} calendar days)...")
     logs = []
     end_date = datetime(2026, 2, 28)
 
@@ -138,16 +157,26 @@ def generate_attendance_badge_logs(employees: List[Dict[str, Any]], num_days: in
             contract = emp["نوع العقد"]
             branch = emp["الفرع"]
 
+            # Map the employee's branch to clean alphanumeric BuildingID (BLD-001..BLD-014)
+            bld_code = BRANCH_TO_BUILDING.get(branch)
+            if not bld_code:
+                for b_name, b_code in BRANCH_TO_BUILDING.items():
+                    if b_name in branch or branch in b_name:
+                        bld_code = b_code
+                        break
+            if not bld_code:
+                bld_code = "BLD-001"
+
             is_contract_onsite = ("حضوري" in contract)
             if is_contract_onsite and random.random() < 0.15:
                 declared_mode = "Remote"
                 building_id = "REMOTE_GATE"
             elif "هجين" in contract or "عن بعد" in contract:
                 declared_mode = "Remote" if random.random() < 0.60 else "On-site"
-                building_id = "REMOTE_GATE" if declared_mode == "Remote" else f"BLD-{branch[-4:]}"
+                building_id = "REMOTE_GATE" if declared_mode == "Remote" else bld_code
             else:
                 declared_mode = "On-site"
-                building_id = f"BLD-{branch[-4:]}"
+                building_id = bld_code
 
             is_night_shift = random.random() < 0.05
             is_missing_clock_out = random.random() < 0.08
@@ -451,8 +480,8 @@ def export_data():
         writer.writerows(employees)
     print(f"[OK] Saved Core HR data to {core_csv_path}")
 
-    # 2. Daily Attendance Logs
-    att_logs = generate_attendance_badge_logs(employees, num_days=30)
+    # 2. Daily Attendance Logs (28 calendar days = exactly 20 Egypt workdays * 800 employees = 16,000 logs)
+    att_logs = generate_attendance_badge_logs(employees, num_days=28)
     att_json_path = RAW_DATA_DIR / "attendance_badge_logs.json"
     with open(att_json_path, mode="w", encoding="utf-8") as f:
         json.dump(att_logs, f, ensure_ascii=False, indent=2)

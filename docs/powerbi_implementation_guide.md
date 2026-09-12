@@ -345,6 +345,11 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
 3. Click the **Expand Column icon (`↔`)** at the top right of `Column1`.
 4. Ensure all fields are checked: `EmployeeID`, `AccessDate`, `CheckInTime`, `CheckOutTime`, `BuildingID`, `DeclaredWorkMode`. Uncheck *Use original column name as prefix*. Click **OK**.
 5. Select `AccessDate` $\to$ set type to **Date**. Select `CheckInTime` and `CheckOutTime` $\to$ set types to **Time**.
+
+> [!NOTE]
+> **Alphanumeric Facility Codes (`BuildingID`)**:
+> `BuildingID` uses clean alphanumeric facility codes (`BLD-001` through `BLD-014`) directly mapped to the 14 regional branches from `employees_data_7000.txt` (`BLD-001` = `الإسكندرية - لوران`, `BLD-002` = `الدقهلية - المنصورة`, ..., `BLD-014` = `الغربية - طنطا`), or `REMOTE_GATE` for virtual/remote access sessions.
+
 6. **Imputing Missing Clock-Outs visually**:
    * Go to **Add Column > Custom Column**. Name it `CleanCheckOutTime`.
    * Use the simple arithmetic expression:
