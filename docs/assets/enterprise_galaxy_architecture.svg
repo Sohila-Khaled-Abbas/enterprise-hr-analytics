@@ -1,338 +1,322 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1150" width="1800" height="1150">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1350" width="2200" height="1350" style="background:#050811; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050812"/>
+      <stop offset="40%" stop-color="#0A1024"/>
+      <stop offset="80%" stop-color="#060A17"/>
+      <stop offset="100%" stop-color="#030408"/>
+    </linearGradient>
+
+    <pattern id="dotGrid2" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#1E293B" fill-opacity="0.4"/>
+    </pattern>
+
     <!-- Gradients -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#070A13"/>
-      <stop offset="50%" stop-color="#0D1322"/>
-      <stop offset="100%" stop-color="#080C17"/>
-    </linearGradient>
-
-    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95"/>
-    </linearGradient>
-
-    <linearGradient id="sourceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#1D4ED8"/>
-    </linearGradient>
-
-    <linearGradient id="factGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F59E0B"/>
-      <stop offset="100%" stop-color="#D97706"/>
-    </linearGradient>
-
-    <linearGradient id="dimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="dimHeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#10B981"/>
       <stop offset="100%" stop-color="#047857"/>
     </linearGradient>
 
-    <linearGradient id="pbiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="factHeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#F59E0B"/>
-      <stop offset="100%" stop-color="#EAB308"/>
+      <stop offset="100%" stop-color="#D97706"/>
     </linearGradient>
 
-    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#60A5FA"/>
-      <stop offset="50%" stop-color="#A78BFA"/>
+    <linearGradient id="titleGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="40%" stop-color="#38BDF8"/>
+      <stop offset="80%" stop-color="#A78BFA"/>
       <stop offset="100%" stop-color="#F472B6"/>
     </linearGradient>
 
-    <!-- Filters -->
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.45"/>
+    <linearGradient id="cardDark2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#141C30" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0B1020" stop-opacity="0.98"/>
+    </linearGradient>
+
+    <!-- Markers -->
+    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#10B981"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#F59E0B"/>
+    </marker>
+
+    <!-- Filter -->
+    <filter id="shadowBox2" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
     </filter>
   </defs>
 
-  <style>
-    .title { font-family: 'Segoe UI', Inter, -apple-system, sans-serif; font-weight: 800; font-size: 32px; fill: url(#headerGrad); letter-spacing: -0.5px; }
-    .subtitle { font-family: 'Segoe UI', Inter, sans-serif; font-size: 15px; fill: #94A3B8; }
-    .sec-label { font-family: 'Segoe UI', Inter, sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; fill: #64748B; }
-    .card-title { font-family: 'Segoe UI', Inter, sans-serif; font-size: 15px; font-weight: 700; fill: #F8FAFC; }
-    .card-meta { font-family: 'Segoe UI', Inter, sans-serif; font-size: 11px; fill: #94A3B8; }
-    .table-head { font-family: 'Segoe UI', Inter, sans-serif; font-size: 14px; font-weight: 700; }
-    .table-body { font-family: 'Segoe UI', monospace; font-size: 11.5px; fill: #CBD5E1; }
-    .badge { font-family: 'Segoe UI', Inter, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-    .connector { stroke: #334155; stroke-width: 1.5; stroke-dasharray: 4 4; fill: none; }
-    .connector-active { stroke: #3B82F6; stroke-width: 2; fill: none; }
-    .dim-link { stroke: #10B981; stroke-width: 1.8; fill: none; opacity: 0.6; }
-  </style>
+  <rect width="2200" height="1350" fill="url(#bgGrad2)"/>
+  <rect width="2200" height="1350" fill="url(#dotGrid2)"/>
 
-  <!-- Background -->
-  <rect width="1800" height="1150" fill="url(#bgGrad)"/>
-  <rect x="25" y="25" width="1750" height="1100" rx="16" fill="none" stroke="#1E293B" stroke-width="1.5"/>
-
-  <!-- Top Header -->
-  <text x="60" y="70" class="title">Enterprise Human Capital &amp; Operational Efficiency Diagnostics</text>
-  <text x="60" y="96" class="subtitle">Heterogeneous Ingestion · T-SQL Data Warehouse · Galaxy Schema (Fact Constellation) · Power BI PBIP Integration</text>
+  <!-- Ambient Glows -->
+  <circle cx="1100" cy="650" r="500" fill="#059669" fill-opacity="0.04" filter="blur(90px)"/>
+  <circle cx="350" cy="400" r="350" fill="#D97706" fill-opacity="0.04" filter="blur(70px)"/>
+  <circle cx="1850" cy="900" r="350" fill="#2563EB" fill-opacity="0.04" filter="blur(70px)"/>
 
   <!-- ========================================================================= -->
-  <!-- SECTION 1: INGESTION SOURCES (TOP ROW) -->
+  <!-- HEADER                                                                    -->
   <!-- ========================================================================= -->
-  <text x="60" y="145" class="sec-label">1. Heterogeneous Enterprise Source Systems</text>
+  <g transform="translate(100, 50)">
+    <rect x="0" y="0" width="280" height="32" rx="16" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+    <circle cx="16" cy="16" r="5" fill="#34D399"/>
+    <text x="32" y="21" fill="#A7F3D0" font-size="11" font-weight="800" letter-spacing="1.5">KIMBALL GALAXY SCHEMA</text>
 
-  <!-- Source 1: Core HR -->
-  <g transform="translate(60, 160)" filter="url(#shadow)">
-    <rect width="310" height="115" rx="10" fill="url(#cardGrad)" stroke="#3B82F6" stroke-width="1.5"/>
-    <rect x="0" y="0" width="310" height="6" rx="3" fill="url(#sourceGrad)"/>
-    <text x="18" y="32" class="card-title">Core HRIS System (ERP)</text>
-    <text x="18" y="52" class="card-meta">Grain: Active Master Employee Record</text>
-    <text x="18" y="72" class="table-body">Format: Text Extract / Tabular DB</text>
-    <text x="18" y="92" class="table-body">Volume: 7,000 Staff (14 Arabic Fields)</text>
-    <rect x="225" y="18" width="68" height="20" rx="4" fill="#1E3A8A"/>
-    <text x="235" y="32" class="badge" fill="#93C5FD">Master</text>
-  </g>
-
-  <!-- Source 2: Daily Badge IoT -->
-  <g transform="translate(410, 160)" filter="url(#shadow)">
-    <rect width="310" height="115" rx="10" fill="url(#cardGrad)" stroke="#06B6D4" stroke-width="1.5"/>
-    <rect x="0" y="0" width="310" height="6" rx="3" fill="#06B6D4"/>
-    <text x="18" y="32" class="card-title">IoT Daily Badge &amp; Turnstile</text>
-    <text x="18" y="52" class="card-meta">Grain: 1 Event / Employee / Workday</text>
-    <text x="18" y="72" class="table-body">Format: JSON / Parquet Streams</text>
-    <text x="18" y="92" class="table-body">Challenges: Night shifts, Missing outs</text>
-    <rect x="225" y="18" width="68" height="20" rx="4" fill="#0E7490"/>
-    <text x="236" y="32" class="badge" fill="#A5F3FC">Access</text>
-  </g>
-
-  <!-- Source 3: HR Exit Database -->
-  <g transform="translate(760, 160)" filter="url(#shadow)">
-    <rect width="300" height="115" rx="10" fill="url(#cardGrad)" stroke="#8B5CF6" stroke-width="1.5"/>
-    <rect x="0" y="0" width="300" height="6" rx="3" fill="#8B5CF6"/>
-    <text x="18" y="32" class="card-title">HR Exit &amp; Attrition Audit</text>
-    <text x="18" y="52" class="card-meta">Grain: Separated Employee Transaction</text>
-    <text x="18" y="72" class="table-body">Format: Relational OLTP (SQL Server)</text>
-    <text x="18" y="92" class="table-body">Fields: ExitType, Reason, Rating, SCD2</text>
-    <rect x="215" y="18" width="68" height="20" rx="4" fill="#5B21B6"/>
-    <text x="225" y="32" class="badge" fill="#DDD6FE">Attrition</text>
-  </g>
-
-  <!-- Source 4: FP&A Shared Excel -->
-  <g transform="translate(1090, 160)" filter="url(#shadow)">
-    <rect width="320" height="115" rx="10" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.5"/>
-    <rect x="0" y="0" width="320" height="6" rx="3" fill="#10B981"/>
-    <text x="18" y="32" class="card-title">FP&amp;A Headcount &amp; Budget</text>
-    <text x="18" y="52" class="card-meta">Grain: Quarterly Dept × Branch Target</text>
-    <text x="18" y="72" class="table-body">Format: Shared Messy Excel (.xlsx)</text>
-    <text x="18" y="92" class="table-body">Challenges: Wide Q1-Q4, Branch Typos</text>
-    <rect x="235" y="18" width="68" height="20" rx="4" fill="#065F46"/>
-    <text x="248" y="32" class="badge" fill="#A7F3D0">Finance</text>
-  </g>
-
-  <!-- Source 5: LMS Platform API -->
-  <g transform="translate(1440, 160)" filter="url(#shadow)">
-    <rect width="300" height="115" rx="10" fill="url(#cardGrad)" stroke="#EC4899" stroke-width="1.5"/>
-    <rect x="0" y="0" width="300" height="6" rx="3" fill="#EC4899"/>
-    <text x="18" y="32" class="card-title">LMS &amp; Talent Platform</text>
-    <text x="18" y="52" class="card-meta">Grain: 1 Course Completion Attempt</text>
-    <text x="18" y="72" class="table-body">Format: REST Web API / CSV</text>
-    <text x="18" y="92" class="table-body">Challenges: Retakes, Cert Cost ROI</text>
-    <rect x="215" y="18" width="68" height="20" rx="4" fill="#831843"/>
-    <text x="228" y="32" class="badge" fill="#FBCFE8">Skills</text>
+    <text x="0" y="72" fill="url(#titleGrad2)" font-size="34" font-weight="800">
+      Enterprise Fact Constellation: Conformed Dimensions &amp; Multi-Grain Facts
+    </text>
+    <text x="0" y="100" fill="#94A3B8" font-size="15">
+      5 Conformed Dimensions (Green) Shared Across 4 Distinct Analytical Fact Tables (Amber) with Single-Direction (1 → *) Filter Propagation
+    </text>
   </g>
 
   <!-- ========================================================================= -->
-  <!-- SECTION 2: T-SQL ETL & TRANSFORMATION MIDDLEWARE -->
+  <!-- CONFORMED DIMENSIONS (CENTER & PERIPHERY)                                -->
   <!-- ========================================================================= -->
-  <g transform="translate(60, 310)" filter="url(#shadow)">
-    <rect width="1680" height="70" rx="8" fill="#131C31" stroke="#2563EB" stroke-width="1.2"/>
-    <text x="25" y="28" class="card-title" fill="#60A5FA">Microsoft SQL Server (T-SQL) Staging &amp; Cleansing Pipelines (Schema: [stg])</text>
-    
-    <g transform="translate(25, 42)">
-      <rect width="255" height="22" rx="4" fill="#1E293B"/>
-      <text x="10" y="15" class="table-body" fill="#93C5FD">usp_Transform_Dim_Employee_SCD2</text>
+
+  <!-- DIMENSION 1: Dim_Employee (CENTER HUB) -->
+  <g transform="translate(900, 480)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="400" height="380" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 384 0 C 392.84 0 400 7.16 400 16 L 400 50 L 0 50 Z" fill="url(#dimHeaderGrad)"/>
+    <polygon points="25,18 35,24 35,36 25,42 15,36 15,24" fill="#064E3B" stroke="#34D399" stroke-width="1.5"/>
+    <text x="45" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Dim_Employee</text>
+    <text x="380" y="32" text-anchor="end" fill="#D1FAE5" font-size="12" font-weight="700">7,000 Rows</text>
+
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 EmployeeKey (INT PK, Surrogate)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">EmployeeID (VARCHAR - EMP-10001..17000)</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">FullName (NVARCHAR - Arabic Authentic)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">Age, Gender (ذكر / أنثى), MaritalStatus</text>
+      <text x="0" y="120" fill="#E2E8F0" font-size="12">JobRole, ContractType (دوام كامل / هجين)</text>
+      <text x="0" y="145" fill="#E2E8F0" font-size="12">BaseSalary, Currency (EGP)</text>
+      <text x="0" y="170" fill="#E2E8F0" font-size="12">HireDate, TenureYears, AgeBand</text>
+      <text x="0" y="195" fill="#E2E8F0" font-size="12">SalaryBand, PerformanceTier</text>
+      <rect x="0" y="210" width="360" height="1" fill="#334155"/>
+      <text x="0" y="235" fill="#FBBF24" font-size="12" font-weight="700">SCD Type 2 Validity Intervals:</text>
+      <text x="0" y="255" fill="#94A3B8" font-size="11">EffectiveDate, ExpiryDate (9999-12-31), IsCurrent</text>
+      <text x="0" y="280" fill="#38BDF8" font-size="11" font-weight="700">Grounded strictly on employees_data_7000.txt</text>
     </g>
-    <g transform="translate(300, 42)">
-      <rect width="280" height="22" rx="4" fill="#1E293B"/>
-      <text x="10" y="15" class="table-body" fill="#A5F3FC">Heuristic Shift &amp; Night Clock Imputation</text>
+  </g>
+
+  <!-- DIMENSION 2: Dim_Date (TOP CENTER) -->
+  <g transform="translate(900, 170)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="400" height="240" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 384 0 C 392.84 0 400 7.16 400 16 L 400 50 L 0 50 Z" fill="url(#dimHeaderGrad)"/>
+    <polygon points="25,18 35,24 35,36 25,42 15,36 15,24" fill="#064E3B" stroke="#34D399" stroke-width="1.5"/>
+    <text x="45" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Dim_Date (Enterprise Calendar)</text>
+    <text x="380" y="32" text-anchor="end" fill="#D1FAE5" font-size="12" font-weight="700">1,096 Days</text>
+
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 DateKey (INT PK - YYYYMMDD)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">FullDate (DATE - 2024-01-01 to 2026-12-31)</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">CalendarYear, CalendarQuarter (Q1..Q4)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">MonthNumberOfYear (1..12), MonthName</text>
+      <text x="0" y="120" fill="#E2E8F0" font-size="12">DayNumberOfWeek, DayNameOfWeek</text>
+      <text x="0" y="145" fill="#94A3B8" font-size="11">Egyptian Weekend: IsWeekend = (Day ∈ [Fri, Sat])</text>
     </g>
-    <g transform="translate(600, 42)">
-      <rect width="250" height="22" rx="4" fill="#1E293B"/>
-      <text x="10" y="15" class="table-body" fill="#DDD6FE">Ghost Worker &amp; Violation Detector</text>
+  </g>
+
+  <!-- DIMENSION 3: Dim_Department (LEFT TOP) -->
+  <g transform="translate(480, 200)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="340" height="190" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 45 L 0 45 Z" fill="url(#dimHeaderGrad)"/>
+    <text x="20" y="28" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Department</text>
+    <text x="320" y="28" text-anchor="end" fill="#D1FAE5" font-size="11">6 Depts</text>
+
+    <g transform="translate(20, 60)">
+      <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 DepartmentKey (INT PK)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">DepartmentID (DEPT-001..006)</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">DepartmentName (المالية, الموارد البشرية...)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">Division (Corporate Services, Tech...)</text>
     </g>
-    <g transform="translate(870, 42)">
-      <rect width="270" height="22" rx="4" fill="#1E293B"/>
-      <text x="10" y="15" class="table-body" fill="#A7F3D0">CROSS APPLY Unpivot &amp; Fuzzy Branch</text>
+  </g>
+
+  <!-- DIMENSION 4: Dim_Branch (RIGHT TOP) -->
+  <g transform="translate(1380, 200)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="340" height="210" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 45 L 0 45 Z" fill="url(#dimHeaderGrad)"/>
+    <text x="20" y="28" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Branch (Geographic)</text>
+    <text x="320" y="28" text-anchor="end" fill="#D1FAE5" font-size="11">14 Branches</text>
+
+    <g transform="translate(20, 60)">
+      <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 BranchKey (INT PK)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">BranchID (BR-001..014), BranchName</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">Region (Cairo, Alex, Delta, Upper Egypt)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">City (Cairo, Alexandria, Tanta, Assiut...)</text>
+      <text x="0" y="120" fill="#94A3B8" font-size="11">DeskCapacity (Physical space quotas)</text>
     </g>
-    <g transform="translate(1160, 42)">
-      <rect width="240" height="22" rx="4" fill="#1E293B"/>
-      <text x="10" y="15" class="table-body" fill="#FBCFE8">ROW_NUMBER() LMS Deduplication</text>
-    </g>
-    <g transform="translate(1420, 42)">
-      <rect width="235" height="22" rx="4" fill="#1E293B"/>
-      <text x="10" y="15" class="table-body" fill="#FED7AA">PERCENT_RANK Salary Compression</text>
+  </g>
+
+  <!-- DIMENSION 5: Dim_Course (RIGHT BOTTOM) -->
+  <g transform="translate(1380, 720)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="340" height="210" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 45 L 0 45 Z" fill="url(#dimHeaderGrad)"/>
+    <text x="20" y="28" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Course (LMS Catalog)</text>
+    <text x="320" y="28" text-anchor="end" fill="#D1FAE5" font-size="11">10 Courses</text>
+
+    <g transform="translate(20, 60)">
+      <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 CourseKey (INT PK)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">CourseID (CRS-101..302), CourseName</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">SkillDomain (Tech, Leadership, Soft...)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">EstimatedHours, CertificationCost_EGP</text>
     </g>
   </g>
 
   <!-- ========================================================================= -->
-  <!-- SECTION 3: PRODUCTION GALAXY SCHEMA (FACT CONSTELLATION) - [mart] -->
-  <!-- ========================================================================= -->
-  <text x="60" y="425" class="sec-label">2. Target Kimball Galaxy Schema (Fact Constellation) · Schema: [mart]</text>
-
-  <!-- Conformed Dimension 1: Dim_Employee (Left-Center) -->
-  <g transform="translate(60, 450)" filter="url(#shadow)">
-    <rect width="290" height="210" rx="10" fill="url(#cardGrad)" stroke="#10B981" stroke-width="2"/>
-    <rect x="0" y="0" width="290" height="32" rx="10" fill="#065F46"/>
-    <text x="15" y="22" class="table-head" fill="#A7F3D0">Dim_Employee (SCD Type 2)</text>
-    <text x="15" y="52" class="table-body" fill="#34D399">🔑 EmployeeKey (PK, Surrogate)</text>
-    <text x="15" y="72" class="table-body"># EmployeeID (Natural Key)</text>
-    <text x="15" y="92" class="table-body">FullName, Age, Gender, Role</text>
-    <text x="15" y="112" class="table-body">DepartmentKey, BranchKey (FKs)</text>
-    <text x="15" y="132" class="table-body">BaseSalary, Currency (EGP), Contract</text>
-    <text x="15" y="152" class="table-body">EffectiveDate, ExpiryDate</text>
-    <text x="15" y="172" class="table-body" fill="#FBBF24">IsCurrent (Bit Flag)</text>
-    <text x="15" y="195" class="card-meta">Shared Conformed Dimension</text>
-  </g>
-
-  <!-- Conformed Dimension 2: Dim_Department (Top Middle) -->
-  <g transform="translate(400, 450)" filter="url(#shadow)">
-    <rect width="240" height="140" rx="10" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.8"/>
-    <rect x="0" y="0" width="240" height="30" rx="10" fill="#065F46"/>
-    <text x="15" y="21" class="table-head" fill="#A7F3D0">Dim_Department</text>
-    <text x="15" y="52" class="table-body" fill="#34D399">🔑 DepartmentKey (PK)</text>
-    <text x="15" y="72" class="table-body"># DepartmentID</text>
-    <text x="15" y="92" class="table-body">DepartmentName (Arabic)</text>
-    <text x="15" y="112" class="table-body">Division, CostCenterCode</text>
-  </g>
-
-  <!-- Conformed Dimension 3: Dim_Branch (Center Middle) -->
-  <g transform="translate(680, 450)" filter="url(#shadow)">
-    <rect width="250" height="140" rx="10" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.8"/>
-    <rect x="0" y="0" width="250" height="30" rx="10" fill="#065F46"/>
-    <text x="15" y="21" class="table-head" fill="#A7F3D0">Dim_Branch</text>
-    <text x="15" y="52" class="table-body" fill="#34D399">🔑 BranchKey (PK)</text>
-    <text x="15" y="72" class="table-body"># BranchID</text>
-    <text x="15" y="92" class="table-body">BranchName, CanonicalName</text>
-    <text x="15" y="112" class="table-body">Region (Cairo, Alex, Delta), City</text>
-  </g>
-
-  <!-- Conformed Dimension 4: Dim_Date (Right Middle) -->
-  <g transform="translate(970, 450)" filter="url(#shadow)">
-    <rect width="240" height="140" rx="10" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.8"/>
-    <rect x="0" y="0" width="240" height="30" rx="10" fill="#065F46"/>
-    <text x="15" y="21" class="table-head" fill="#A7F3D0">Dim_Date (Calendar)</text>
-    <text x="15" y="52" class="table-body" fill="#34D399">🔑 DateKey (Smart: YYYYMMDD)</text>
-    <text x="15" y="72" class="table-body">FullDate, Month, MonthNumber</text>
-    <text x="15" y="92" class="table-body">CalendarQuarter, FiscalQuarter</text>
-    <text x="15" y="112" class="table-body">IsWeekend (Fri/Sat), IsWorkDay</text>
-  </g>
-
-  <!-- Conformed Dimension 5: Dim_Course (Far Right) -->
-  <g transform="translate(1250, 450)" filter="url(#shadow)">
-    <rect width="230" height="140" rx="10" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.8"/>
-    <rect x="0" y="0" width="230" height="30" rx="10" fill="#065F46"/>
-    <text x="15" y="21" class="table-head" fill="#A7F3D0">Dim_Course</text>
-    <text x="15" y="52" class="table-body" fill="#34D399">🔑 CourseKey (PK)</text>
-    <text x="15" y="72" class="table-body"># CourseID</text>
-    <text x="15" y="92" class="table-body">CourseName, SkillDomain</text>
-    <text x="15" y="112" class="table-body">TargetCompetency, EstHours</text>
-  </g>
-
-  <!-- ========================================================================= -->
-  <!-- 4 GALAXY FACT TABLES (BOTTOM HALF) -->
+  <!-- GALAXY FACT TABLES (SURROUNDING)                                          -->
   <!-- ========================================================================= -->
 
-  <!-- Fact 1: Fact_WorkforceSnapshot -->
-  <g transform="translate(60, 690)" filter="url(#shadow)">
-    <rect width="380" height="230" rx="10" fill="url(#cardGrad)" stroke="#F59E0B" stroke-width="2"/>
-    <rect x="0" y="0" width="380" height="32" rx="10" fill="#92400E"/>
-    <text x="15" y="22" class="table-head" fill="#FDE68A">Fact_WorkforceSnapshot (Monthly)</text>
-    <text x="15" y="52" class="table-body" fill="#FBBF24">🔑 SnapshotKey (BIGINT PK)</text>
-    <text x="15" y="72" class="table-body" fill="#60A5FA">🔗 SnapshotDateKey → Dim_Date</text>
-    <text x="15" y="92" class="table-body" fill="#60A5FA">🔗 EmployeeKey → Dim_Employee</text>
-    <text x="15" y="112" class="table-body" fill="#60A5FA">🔗 DepartmentKey, BranchKey</text>
-    <text x="15" y="132" class="table-body">BaseSalary (EGP), AnnualPerfRating</text>
-    <text x="15" y="152" class="table-body">TenureMonths, TenureYears</text>
-    <text x="15" y="172" class="table-body" fill="#F87171">SalaryPercentileInRole (0.00-1.00)</text>
-    <text x="15" y="192" class="table-body" fill="#F87171">IsSalaryCompressed (Flight Risk Flag)</text>
-    <text x="15" y="215" class="card-meta">Diagnostic: Salary Compression &amp; Flight Risk</text>
-  </g>
+  <!-- FACT 1: Fact_WorkforceSnapshot (LEFT) -->
+  <g transform="translate(80, 480)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="370" height="380" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 354 0 C 362.84 0 370 7.16 370 16 L 370 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+    <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Fact_WorkforceSnapshot</text>
+    <text x="350" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Monthly</text>
 
-  <!-- Fact 2: Fact_DailyAttendance -->
-  <g transform="translate(480, 690)" filter="url(#shadow)">
-    <rect width="380" height="230" rx="10" fill="url(#cardGrad)" stroke="#F59E0B" stroke-width="2"/>
-    <rect x="0" y="0" width="380" height="32" rx="10" fill="#92400E"/>
-    <text x="15" y="22" class="table-head" fill="#FDE68A">Fact_DailyAttendance (Daily IoT)</text>
-    <text x="15" y="52" class="table-body" fill="#FBBF24">🔑 AttendanceKey (BIGINT PK)</text>
-    <text x="15" y="72" class="table-body" fill="#60A5FA">🔗 AccessDateKey → Dim_Date</text>
-    <text x="15" y="92" class="table-body" fill="#60A5FA">🔗 EmployeeKey → Dim_Employee</text>
-    <text x="15" y="112" class="table-body" fill="#60A5FA">🔗 BranchKey → Dim_Branch</text>
-    <text x="15" y="132" class="table-body">CheckInTime, CheckOutTime (Imputed)</text>
-    <text x="15" y="152" class="table-body">DurationHours, DeclaredWorkMode</text>
-    <text x="15" y="172" class="table-body">IsMissingClockOut, IsNightShift</text>
-    <text x="15" y="192" class="table-body" fill="#F87171">IsContractViolation (60% Rule / Onsite)</text>
-    <text x="15" y="215" class="card-meta">Diagnostic: Remote Policy Breach &amp; Ghost Workers</text>
-  </g>
-
-  <!-- Fact 3: Fact_DepartmentBudget -->
-  <g transform="translate(900, 690)" filter="url(#shadow)">
-    <rect width="390" height="230" rx="10" fill="url(#cardGrad)" stroke="#F59E0B" stroke-width="2"/>
-    <rect x="0" y="0" width="390" height="32" rx="10" fill="#92400E"/>
-    <text x="15" y="22" class="table-head" fill="#FDE68A">Fact_DepartmentBudget (Quarterly FP&amp;A)</text>
-    <text x="15" y="52" class="table-body" fill="#FBBF24">🔑 BudgetKey (INT PK)</text>
-    <text x="15" y="72" class="table-body">FiscalYear, FiscalQuarter</text>
-    <text x="15" y="92" class="table-body" fill="#60A5FA">🔗 DateKey (Quarter Start) → Dim_Date</text>
-    <text x="15" y="112" class="table-body" fill="#60A5FA">🔗 DepartmentKey → Dim_Department</text>
-    <text x="15" y="132" class="table-body" fill="#60A5FA">🔗 BranchKey → Dim_Branch</text>
-    <text x="15" y="152" class="table-body">BudgetedHeadcount (Allocated target)</text>
-    <text x="15" y="172" class="table-body">AllocatedSalaryBudget_EGP</text>
-    <text x="15" y="192" class="table-body">OvertimeAllowance_EGP</text>
-    <text x="15" y="215" class="card-meta">Diagnostic: Headcount &amp; Budget Burn Rate Variance</text>
-  </g>
-
-  <!-- Fact 4: Fact_TrainingCompletions -->
-  <g transform="translate(1330, 690)" filter="url(#shadow)">
-    <rect width="410" height="230" rx="10" fill="url(#cardGrad)" stroke="#F59E0B" stroke-width="2"/>
-    <rect x="0" y="0" width="410" height="32" rx="10" fill="#92400E"/>
-    <text x="15" y="22" class="table-head" fill="#FDE68A">Fact_TrainingCompletions (Transactional)</text>
-    <text x="15" y="52" class="table-body" fill="#FBBF24">🔑 CompletionKey (BIGINT PK)</text>
-    <text x="15" y="72" class="table-body" fill="#60A5FA">🔗 CompletionDateKey → Dim_Date</text>
-    <text x="15" y="92" class="table-body" fill="#60A5FA">🔗 EmployeeKey → Dim_Employee</text>
-    <text x="15" y="112" class="table-body" fill="#60A5FA">🔗 CourseKey → Dim_Course</text>
-    <text x="15" y="132" class="table-body">AttemptNumber (1, 2, 3...)</text>
-    <text x="15" y="152" class="table-body">Score (0-100), IsPassed (Bit)</text>
-    <text x="15" y="172" class="table-body">CertificationCost_EGP (Direct fee)</text>
-    <text x="15" y="192" class="table-body" fill="#34D399">IsHighestScoreAttempt (Deduplication)</text>
-    <text x="15" y="215" class="card-meta">Diagnostic: Upskilling ROI &amp; Perf Score Velocity</text>
-  </g>
-
-  <!-- ========================================================================= -->
-  <!-- SECTION 4: CONSUMPTION & POWER BI SEMANTIC LAYER -->
-  <!-- ========================================================================= -->
-  <g transform="translate(60, 955)" filter="url(#shadow)">
-    <rect width="1680" height="150" rx="12" fill="#131C31" stroke="#F59E0B" stroke-width="1.8"/>
-    <rect x="0" y="0" width="1680" height="34" rx="12" fill="#78350F"/>
-    <text x="25" y="23" class="table-head" fill="#FDE68A">3. Consumption &amp; Semantic Modeling Layer: Power BI PBIP / TMDL &amp; DAX Diagnostics</text>
-
-    <!-- Block 1: Business Diagnostics -->
-    <g transform="translate(25, 45)">
-      <text x="0" y="18" class="card-title" fill="#60A5FA">Core Business Problem Solutions</text>
-      <text x="0" y="40" class="table-body">• Salary Compression: Tenure vs Role Percentile Index</text>
-      <text x="0" y="60" class="table-body">• Budget Variance: USERELATIONSHIP Fact-to-Fact matrix</text>
-      <text x="0" y="80" class="table-body">• Workplace Policy: Badge vs Contract violation %</text>
-      <text x="0" y="100" class="table-body">• Upskilling ROI: Pre/Post Certification performance delta</text>
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 SnapshotKey (BIGINT PK)</text>
+      <rect x="0" y="30" width="330" height="1" fill="#334155"/>
+      <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 EmployeeKey (FK → Dim_Employee)</text>
+      <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 DepartmentKey (FK → Dim_Department)</text>
+      <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 BranchKey (FK → Dim_Branch)</text>
+      <text x="0" y="130" fill="#6EE7B7" font-size="12">🔗 SnapshotDateKey (FK → Dim_Date)</text>
+      <rect x="0" y="145" width="330" height="1" fill="#334155"/>
+      <text x="0" y="170" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Diagnostics:</text>
+      <text x="0" y="195" fill="#CBD5E1" font-size="12">• BaseSalary (Monthly Run-rate)</text>
+      <text x="0" y="220" fill="#CBD5E1" font-size="12">• AnnualPerformanceRating (1.0..5.0)</text>
+      <text x="0" y="245" fill="#CBD5E1" font-size="12">• SalaryPercentileInRole (0.00..1.00)</text>
+      <text x="0" y="270" fill="#EF4444" font-size="12">• IsSalaryCompressed (Flight Risk Flag)</text>
+      <text x="0" y="295" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Active Employee / Month</text>
     </g>
+  </g>
 
-    <!-- Block 2: Power BI Pro Tooling -->
-    <g transform="translate(560, 45)">
-      <text x="0" y="18" class="card-title" fill="#FBBF24">Power BI Enhanced PBIP Architecture</text>
-      <text x="0" y="40" class="table-body">• Git-Native TMDL (Tabular Model Definition Language)</text>
-      <text x="0" y="60" class="table-body">• Strict Preservation of Original PBIP Report / Model</text>
-      <text x="0" y="80" class="table-body">• Bi-temporal Snapshot Relationships without Cycles</text>
-      <text x="0" y="100" class="table-body">• Format Strings: EGP Currency, Formatted Headcounts</text>
-    </g>
+  <!-- FACT 2: Fact_DailyAttendance (BOTTOM CENTER) -->
+  <g transform="translate(900, 930)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="400" height="350" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 384 0 C 392.84 0 400 7.16 400 16 L 400 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+    <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Fact_DailyAttendance</text>
+    <text x="380" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Daily IoT</text>
 
-    <!-- Block 3: Production Engineering Quality -->
-    <g transform="translate(1120, 45)">
-      <text x="0" y="18" class="card-title" fill="#34D399">Software &amp; Data Engineering Quality</text>
-      <text x="0" y="40" class="table-body">• Pytest Suite: 100% Schema Contracts &amp; FK Integrity</text>
-      <text x="0" y="60" class="table-body">• Automated Heuristic Imputation for Clock Events</text>
-      <text x="0" y="80" class="table-body">• GitHub CI/CD Workflows, PR &amp; Issue Templates</text>
-      <text x="0" y="100" class="table-body">• Idempotent T-SQL Migrations ([raw] → [stg] → [mart])</text>
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 AttendanceKey (BIGINT PK)</text>
+      <rect x="0" y="30" width="360" height="1" fill="#334155"/>
+      <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 EmployeeKey (FK → Dim_Employee)</text>
+      <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 BranchKey (FK → Dim_Branch)</text>
+      <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 AccessDateKey (FK → Dim_Date)</text>
+      <rect x="0" y="120" width="360" height="1" fill="#334155"/>
+      <text x="0" y="145" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Diagnostics:</text>
+      <text x="0" y="170" fill="#CBD5E1" font-size="12">• CheckInTime, CheckOutTime, DurationHours</text>
+      <text x="0" y="195" fill="#EF4444" font-size="12">• IsImputedClockOut (Recovered Forgotten Swipe)</text>
+      <text x="0" y="220" fill="#EF4444" font-size="12">• IsContractViolation (Remote breach)</text>
+      <text x="0" y="245" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Employee / Badge Access Day</text>
     </g>
+  </g>
+
+  <!-- FACT 3: Fact_DepartmentBudget (LEFT BOTTOM) -->
+  <g transform="translate(480, 930)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="340" height="350" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+    <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Fact_DepartmentBudget</text>
+    <text x="320" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Quarterly</text>
+
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 BudgetFactKey (INT PK)</text>
+      <rect x="0" y="30" width="300" height="1" fill="#334155"/>
+      <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 DepartmentKey (FK → Dim_Department)</text>
+      <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 BranchKey (FK → Dim_Branch)</text>
+      <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 DateKey (FK → Dim_Date, Quarter Start)</text>
+      <rect x="0" y="120" width="300" height="1" fill="#334155"/>
+      <text x="0" y="145" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Quotas:</text>
+      <text x="0" y="170" fill="#CBD5E1" font-size="12">• BudgetedHeadcount</text>
+      <text x="0" y="195" fill="#CBD5E1" font-size="12">• AllocatedSalaryBudget_EGP</text>
+      <text x="0" y="220" fill="#38BDF8" font-size="11">Apportioned in DAX: Budget ÷ 3 = Monthly</text>
+      <text x="0" y="245" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Dept / Branch / Quarter</text>
+    </g>
+  </g>
+
+  <!-- FACT 4: Fact_TrainingCompletions (RIGHT) -->
+  <g transform="translate(1760, 480)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="360" height="380" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 344 0 C 352.84 0 360 7.16 360 16 L 360 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+    <text x="20" y="32" fill="#FFFFFF" font-size="15" font-weight="800">Fact_TrainingCompletions</text>
+    <text x="340" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Events</text>
+
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 CompletionFactKey (INT PK)</text>
+      <rect x="0" y="30" width="320" height="1" fill="#334155"/>
+      <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 EmployeeKey (FK → Dim_Employee)</text>
+      <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 CourseKey (FK → Dim_Course)</text>
+      <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 DateKey (FK → Dim_Date, Exam Date)</text>
+      <rect x="0" y="120" width="320" height="1" fill="#334155"/>
+      <text x="0" y="145" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Scores:</text>
+      <text x="0" y="170" fill="#CBD5E1" font-size="12">• Score (0.0 .. 100.0)</text>
+      <text x="0" y="195" fill="#CBD5E1" font-size="12">• IsPassed (Score ≥ 70)</text>
+      <text x="0" y="220" fill="#CBD5E1" font-size="12">• CertificationCost_EGP</text>
+      <text x="0" y="245" fill="#38BDF8" font-size="11">Talent ROI: Delta P (Upskilling Velocity)</text>
+      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Certification Attempt</text>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- SINGLE DIRECTION RELATIONSHIP CONNECTORS (1 → *)                          -->
+  <!-- ========================================================================= -->
+
+  <!-- Dim_Employee -> Fact_WorkforceSnapshot -->
+  <path d="M 900 650 L 450 650" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="895" cy="650" r="4" fill="#34D399"/>
+  <text x="675" y="640" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+
+  <!-- Dim_Employee -> Fact_DailyAttendance -->
+  <path d="M 1100 860 L 1100 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="1100" cy="865" r="4" fill="#34D399"/>
+  <text x="1115" y="900" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+
+  <!-- Dim_Employee -> Fact_TrainingCompletions -->
+  <path d="M 1300 650 L 1760 650" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="1305" cy="650" r="4" fill="#34D399"/>
+  <text x="1530" y="640" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+
+  <!-- Dim_Date -> Fact_WorkforceSnapshot -->
+  <path d="M 900 290 C 350 290, 350 400, 350 480" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="895" cy="290" r="4" fill="#34D399"/>
+
+  <!-- Dim_Date -> Fact_DailyAttendance -->
+  <path d="M 1300 290 C 1340 290, 1340 1050, 1300 1050" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Department -> Fact_WorkforceSnapshot -->
+  <path d="M 600 390 C 600 440, 400 440, 400 480" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Department -> Fact_DepartmentBudget -->
+  <path d="M 650 390 L 650 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="665" y="660" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+
+  <!-- Dim_Branch -> Fact_WorkforceSnapshot -->
+  <path d="M 1380 300 C 700 300, 420 400, 420 480" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Branch -> Fact_DailyAttendance -->
+  <path d="M 1550 410 C 1550 850, 1250 850, 1250 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Branch -> Fact_DepartmentBudget -->
+  <path d="M 1450 410 C 1450 900, 780 900, 780 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Course -> Fact_TrainingCompletions -->
+  <path d="M 1720 800 C 1740 800, 1740 750, 1760 750" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="1730" y="770" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+
+  <!-- ========================================================================= -->
+  <!-- LEGEND                                                                    -->
+  <!-- ========================================================================= -->
+  <g transform="translate(80, 1220)">
+    <rect x="0" y="0" width="740" height="65" rx="12" fill="#0B1222" stroke="#1E293B"/>
+    <circle cx="30" cy="32" r="7" fill="#10B981"/>
+    <text x="45" y="37" fill="#E2E8F0" font-size="12" font-weight="700">Conformed Dimension (1 Side)</text>
+
+    <circle cx="260" cy="32" r="7" fill="#F59E0B"/>
+    <text x="275" y="37" fill="#E2E8F0" font-size="12" font-weight="700">Galaxy Fact Table (* Side)</text>
+
+    <line x1="470" y1="32" x2="520" y2="32" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+    <text x="530" y="37" fill="#E2E8F0" font-size="12" font-weight="700">Single-Direction Filter (1 → *)</text>
   </g>
 </svg>

@@ -74,7 +74,7 @@ def get_db_engine() -> Engine:
     load_dotenv(BASE_DIR / ".env")
 
     driver = os.getenv("DB_DRIVER", "{ODBC Driver 17 for SQL Server}")
-    server = os.getenv("DB_SERVER", r"localhost\SQLEXPRESS")
+    server = os.getenv("DB_SERVER", "localhost")
     database = os.getenv("DB_DATABASE", "EnterpriseHR_DWH")
     user = os.getenv("DB_USER", "").strip()
     password = os.getenv("DB_PASS", "").strip()

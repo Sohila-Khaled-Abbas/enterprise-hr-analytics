@@ -124,3 +124,25 @@ BEGIN
     CREATE NONCLUSTERED INDEX [IX_stg_LMS_EmpCourse] ON [stg].[LMS_Course_Completions] ([EmployeeID] ASC, [CourseID] ASC);
 END;
 GO
+
+-- 6. [stg].[Stg_HR_Audit]: Cleansed & Deduplicated SCD Type 2 HR Event Log
+IF OBJECT_ID(N'[stg].[Stg_HR_Audit]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [stg].[Stg_HR_Audit] (
+        [StagingKey]              INT IDENTITY(1,1)    NOT NULL,
+        [EmployeeID]              VARCHAR(20)          NOT NULL,
+        [EventType]               VARCHAR(50)          NOT NULL,
+        [ValidFrom]               DATE                 NOT NULL,
+        [ValidTo]                 DATE                 NOT NULL,
+        [IsCurrent]               BIT                  NOT NULL,
+        [BranchOrSalaryContext]   NVARCHAR(150)        NULL,
+        [Salary_EGP]              DECIMAL(18,2)        NULL,
+        [IsTerminated]            INT                  NULL,
+        [IngestedAt]              DATETIME2(7)         NOT NULL CONSTRAINT [DF_Stg_Audit_Ingested] DEFAULT (SYSUTCDATETIME()),
+        CONSTRAINT [PK_stg_Stg_HR_Audit] PRIMARY KEY CLUSTERED ([StagingKey] ASC)
+    );
+
+    CREATE NONCLUSTERED INDEX [IX_Stg_HR_Audit_Emp_Valid] ON [stg].[Stg_HR_Audit] ([EmployeeID] ASC, [ValidFrom] ASC, [ValidTo] ASC);
+END;
+GO
+

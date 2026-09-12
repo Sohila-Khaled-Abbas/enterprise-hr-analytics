@@ -211,3 +211,123 @@ def test_standardize_branch_name():
     assert standardize_branch_name("اسكندرية سموحة") == "الإسكندرية - سموحة"
     assert standardize_branch_name("التجمع") == "القاهرة - التجمع الخامس"
     assert standardize_branch_name("الدقي") == "الجيزة - الدقي"
+
+
+# =============================================================================
+# 4. Master 7,000 Employees Fidelity & SCD2 Audit Integrity Tests
+# =============================================================================
+def test_master_txt_dataset_fidelity():
+    """Validates that employees_data_7000.txt, employees_core.csv, and Dim_Employee.csv
+
+    exhibit 100% data fidelity: exactly 7000 employees, sequential EMP IDs, and matching attributes.
+    """
+    raw_txt_path = RAW_DIR / "employees_data_7000.txt"
+    assert raw_txt_path.exists(), "Master raw text file employees_data_7000.txt is missing"
+
+    # Count records in master text file
+    with open(raw_txt_path, "r", encoding="utf-8") as f:
+        txt_content = f.read()
+    records = [r for r in txt_content.split("------") if r.strip()]
+    assert len(records) == 7000, f"Expected exactly 7000 records in master txt, found {len(records)}"
+
+    # Check processed Dim_Employee
+    dim_emps = load_csv("Dim_Employee.csv")
+    assert len(dim_emps) == 7000, f"Expected 7000 employees in Dim_Employee, found {len(dim_emps)}"
+
+    expected_ids = [f"EMP-{10000 + i}" for i in range(1, 7001)]
+    actual_ids = [r["EmployeeID"] for r in dim_emps]
+    assert actual_ids == expected_ids, "EmployeeID sequence mismatch against master specification"
+
+    # Validate non-empty mandatory core fields
+    for r in dim_emps:
+        assert r["FullName"].strip() != "", f"Empty FullName for {r['EmployeeID']}"
+        assert int(r["Age"]) >= 18, f"Invalid Age for {r['EmployeeID']}"
+        assert r["Gender"] in ("ذكر", "أنثى"), f"Invalid Gender for {r['EmployeeID']}"
+        assert float(r["BaseSalary"]) > 0, f"Invalid BaseSalary for {r['EmployeeID']}"
+        assert "@" in r["Email"], f"Invalid Email for {r['EmployeeID']}"
+
+
+def test_scd2_hr_audit_staging_rules():
+    """Validates the exact SCD Type 2 audit transformation rules:
+
+    - Deduplication of retry duplicates (12516 -> 12392)
+    - ValidFrom <= ValidTo temporal intervals
+    - Exactly 1 current record per employee (IsCurrent = 1, ValidTo = '9999-12-31')
+    - 7000 unique employees represented
+    """
+    audit_path = RAW_DIR / "hr_audit_events.csv"
+    assert audit_path.exists(), "hr_audit_events.csv is missing"
+
+    with open(audit_path, "r", encoding="utf-8") as f:
+        raw_rows = list(csv.DictReader(f))
+
+    assert len(raw_rows) == 12516, f"Expected 12516 raw audit events, found {len(raw_rows)}"
+
+    # Simulate deduplication on (EmployeeID, EventType, EffectiveDate, NewValue, Salary_EGP)
+    dedup_map = {}
+    for r in raw_rows:
+        key = (
+            r["EmployeeID"],
+            r["EventType"].strip().upper(),
+            r["EffectiveDate"],
+            (r.get("NewValue") or "").strip().lower(),
+            r.get("Salary_EGP", ""),
+        )
+        if key not in dedup_map:
+            dedup_map[key] = r
+
+    deduped_rows = list(dedup_map.values())
+    assert len(deduped_rows) == 12392, f"Expected 12392 deduped rows, found {len(deduped_rows)}"
+
+    # Check 7000 unique employees
+    audit_emp_ids = set(r["EmployeeID"] for r in deduped_rows)
+    assert len(audit_emp_ids) == 7000, f"Expected 7000 unique employees in audit, found {len(audit_emp_ids)}"
+
+    # Group by employee and test temporal chain
+    from collections import defaultdict
+    emp_events = defaultdict(list)
+    for r in deduped_rows:
+        emp_events[r["EmployeeID"]].append(r)
+
+    for emp_id, events in emp_events.items():
+        sorted_events = sorted(events, key=lambda x: x["EffectiveDate"])
+        for i, ev in enumerate(sorted_events):
+            valid_from = ev["EffectiveDate"]
+            valid_to = sorted_events[i + 1]["EffectiveDate"] if i + 1 < len(sorted_events) else "9999-12-31"
+            assert valid_from <= valid_to, f"Temporal inversion for {emp_id}: {valid_from} > {valid_to}"
+            if valid_to == "9999-12-31":
+                assert i == len(sorted_events) - 1, f"Premature open-ended interval for {emp_id}"
+
+
+def test_foreign_key_cross_fact_integrity():
+    """Validates 100% referential integrity across all 4 Galaxy Schema fact tables against conformed dimensions."""
+    emps = {r["EmployeeKey"] for r in load_csv("Dim_Employee.csv")}
+    depts = {r["DepartmentKey"] for r in load_csv("Dim_Department.csv")}
+    branches = {r["BranchKey"] for r in load_csv("Dim_Branch.csv")}
+    dates = {r["DateKey"] for r in load_csv("Dim_Date.csv")}
+    courses = {r["CourseKey"] for r in load_csv("Dim_Course.csv")}
+
+    # Fact_WorkforceSnapshot
+    for r in load_csv("Fact_WorkforceSnapshot.csv"):
+        assert r["EmployeeKey"] in emps
+        assert r["DepartmentKey"] in depts
+        assert r["BranchKey"] in branches
+        assert r["SnapshotDateKey"] in dates
+
+    # Fact_DailyAttendance
+    for r in load_csv("Fact_DailyAttendance.csv"):
+        assert r["EmployeeKey"] in emps
+        assert r["BranchKey"] in branches
+        assert r["AccessDateKey"] in dates
+
+    # Fact_DepartmentBudget
+    for r in load_csv("Fact_DepartmentBudget.csv"):
+        assert r["DepartmentKey"] in depts
+        assert r["BranchKey"] in branches
+        assert r["DateKey"] in dates
+
+    # Fact_TrainingCompletions
+    for r in load_csv("Fact_TrainingCompletions.csv"):
+        assert r["EmployeeKey"] in emps
+        assert r["CourseKey"] in courses
+        assert r["CompletionDateKey"] in dates

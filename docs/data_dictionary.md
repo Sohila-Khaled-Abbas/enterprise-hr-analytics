@@ -219,3 +219,155 @@ The transactional core system uses localized Arabic field names. The table below
 | `Budget_EGP` | `FLOAT` / `DECIMAL(18,2)` | Yes | Metric | Planned salary expenditure budget in Egyptian Pounds (EGP). |
 | `FiscalYear` | `INT` | No | Dimension Ref | Fiscal planning year (`2026`). |
 
+---
+
+### 4.3 `raw.HR_Audit_Events` (Raw Temporal Audit Event Log)
+* **Source**: Transactional HRIS audit stream (`hr_audit_events.csv`).
+* **Storage**: `[raw].[HR_Audit_Events]`
+* **Grain**: 1 row per employee lifecycle event (Hire, Promotion, Transfer, Salary Revision, Termination).
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `EmployeeID` | `VARCHAR(20)` | No | Natural Key | Natural employee identifier (`EMP-10001` .. `EMP-17000`). |
+| `EventType` | `VARCHAR(50)` | No | Attribute | Audit event classification (`HIRE`, `PROMOTION`, `TRANSFER`, `SALARY_UPDATE`, `TERMINATION`). |
+| `EffectiveDate` | `DATE` | No | Timestamp | Date when the HR event took operational effect. |
+| `PreviousValue` | `NVARCHAR(150)` | Yes | History | Value prior to the event (job title, branch, or old compensation). |
+| `NewValue` | `NVARCHAR(150)` | Yes | History | New value applied by the event (job title, branch, or new compensation). |
+| `Salary_EGP` | `DECIMAL(18,2)` | Yes | Metric | Compensation at the time of the event. |
+| `IsTerminated` | `INT` | Yes | Flag | `1` if employee reached terminal state; `0` otherwise. |
+
+---
+
+### 4.4 `raw.LMS_Certifications` (Raw Training & Certification Telemetry)
+* **Source**: Learning Management System completion records (`lms_certifications.csv`).
+* **Storage**: `[raw].[LMS_Certifications]`
+* **Grain**: 1 row per employee course attempt.
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `EmployeeID` | `VARCHAR(50)` | No | Natural Key | Employee identifier. |
+| `CourseID` | `VARCHAR(50)` | No | Dimension Ref | Course catalog ID (`CRS-101`, `CRS-102`, etc.). |
+| `CourseName` | `NVARCHAR(200)` | No | Attribute | Full title of certification program. |
+| `SkillDomain` | `NVARCHAR(100)` | No | Attribute | Competency domain (`Tech`, `Leadership`, `Soft Skills`, `Compliance`). |
+| `CompletionDate` | `DATE` | No | Timestamp | Date of examination or completion. |
+| `Score` | `FLOAT` | No | Metric | Final exam score percentage (0.0 to 100.0). |
+| `Status` | `VARCHAR(50)` | No | Attribute | Completion outcome (`Completed`, `In Progress`, `Failed`). |
+| `Cost_EGP` | `DECIMAL(18,2)` | No | Metric | Direct program tuition/certification expense. |
+
+---
+
+## 5. Cleansed Staging Layer Schema (`stg` Schema)
+
+### 5.1 `stg.Stg_HR_Audit` (Deduplicated SCD Type 2 Audit Master)
+* **Source**: Transformed from `raw.HR_Audit_Events` via `sql/transformations/00_stg_hr_audit.sql`.
+* **Storage**: `[stg].[Stg_HR_Audit]`
+* **Grain**: 1 row per valid temporal interval per employee.
+* **Transformations Applied**:
+  1. ROW_NUMBER deduplication over `(EmployeeID, EventType, EffectiveDate, NewValue, Salary_EGP)` to remove API retries.
+  2. Deterministic Arabic branch name standardization.
+  3. `LEAD()` window function to compute closed-interval `ValidFrom` and `ValidTo` boundaries.
+  4. Flagging current active records (`ValidTo = '9999-12-31' → IsCurrent = 1`).
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `StagingKey` | `INT IDENTITY(1,1)` | No | PK | Surrogate staging identifier. |
+| `EmployeeID` | `VARCHAR(20)` | No | Natural Key | Employee identifier. |
+| `EventType` | `VARCHAR(50)` | No | Attribute | Audit event type. |
+| `ValidFrom` | `DATE` | No | SCD2 | Effective start date of this historical state slice. |
+| `ValidTo` | `DATE` | No | SCD2 | Expiry date of this state slice (`9999-12-31` for current). |
+| `IsCurrent` | `BIT` | No | SCD2 | `1` if this is the employee's current state; `0` if historical. |
+| `BranchOrSalaryContext` | `NVARCHAR(150)` | Yes | Attribute | Standardized branch or role context. |
+| `Salary_EGP` | `DECIMAL(18,2)` | Yes | Metric | Applicable salary during this validity window. |
+| `IsTerminated` | `INT` | Yes | Flag | Separation flag. |
+
+---
+
+### 5.2 `stg.Exit_Attrition_Records` (Separation & Attrition Audits)
+* **Source**: Transactional exit survey records (`exit_attrition_records.csv`).
+* **Storage**: `[stg].[Exit_Attrition_Records]`
+* **Grain**: 1 row per separated employee.
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `ExitAuditID` | `INT IDENTITY(1,1)` | No | PK | Surrogate key for exit audit event. |
+| `EmployeeID` | `NVARCHAR(50)` | No | FK | Natural employee identifier (`EMP-10001` .. `EMP-17000`). |
+| `NoticeDate` | `DATE` | Yes | Timestamp | Date when formal resignation notice was submitted. |
+| `ExitDate` | `DATE` | No | Timestamp | Official last day of employment. |
+| `ExitType` | `NVARCHAR(50)` | No | Attribute | Separation classification (`Voluntary`, `Involuntary`). |
+| `PrimaryExitReason` | `NVARCHAR(100)` | No | Attribute | Reason for departure (`Compensation`, `Career Opportunity`, `Relocation`, `Burnout`). |
+| `LastPerformanceScore`| `DECIMAL(4,2)` | Yes | Metric | Performance appraisal rating prior to departure. |
+| `RehireEligible` | `BIT` | No | Flag | `1` if eligible for corporate rehire; `0` otherwise. |
+| `SeparationSalary` | `DECIMAL(18,2)` | Yes | Metric | Base salary at separation. |
+| `SeparationBranch` | `NVARCHAR(100)` | Yes | Dimension Ref | Branch where the employee was located at departure. |
+
+---
+
+## 6. Analytical Presentation Mart Tables (`mart` Schema)
+
+Materialized via `sql/transformations/02_mart_dimensional_model.sql` and `scripts/transformations/run_mart_transformations.py`:
+
+### 6.1 `mart.Dim_Employee` (Current Master Employee State)
+* **Source**: Filtered from `stg.Stg_HR_Audit` where `rn = 1` ordered by `ValidFrom DESC`.
+* **Grain**: Exactly 1 row per employee (7,000 rows).
+* **Primary Key**: `EmployeeID` (Primary Key constraint `PK_Dim_Employee`).
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `EmployeeID` | `VARCHAR(20)` | No | PK | Natural employee identifier (`EMP-10001` .. `EMP-17000`). |
+| `LatestBranch` | `NVARCHAR(150)` | Yes | Attribute | Most recently recorded operational branch. |
+| `LatestSalary` | `DECIMAL(18,2)` | Yes | Metric | Current base monthly compensation in EGP. |
+| `EmploymentStatus` | `VARCHAR(8)` | No | Attribute | Derived status: `'Active'` or `'Inactive'`. |
+
+---
+
+### 6.2 `mart.Fact_Employee_SCD2` (Historical Point-in-Time Headcount & Salary Fact)
+* **Source**: Directly exposed from `stg.Stg_HR_Audit`.
+* **Grain**: 1 row per validity interval per employee (12,392 rows).
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `StagingKey` | `INT` | No | PK / Identity | Staging transaction key. |
+| `EmployeeID` | `VARCHAR(20)` | No | FK | Natural employee identifier. |
+| `EventType` | `VARCHAR(50)` | No | Attribute | Lifecycle change event (`HIRE`, `PROMOTION`, `TRANSFER`, etc.). |
+| `ValidFrom` | `DATE` | No | Timestamp | Beginning of validity interval. |
+| `ValidTo` | `DATE` | No | Timestamp | End of validity interval (`9999-12-31` for current). |
+| `IsCurrent` | `BIT` | No | Flag | `1` if record represents current state; `0` otherwise. |
+| `BranchOrSalaryContext` | `NVARCHAR(150)` | Yes | Attribute | Historical branch or role context during interval. |
+| `Salary_EGP` | `DECIMAL(18,2)` | Yes | Metric | Historical salary during interval. |
+| `IsTerminated` | `INT` | Yes | Flag | `1` if terminated at this event; `0` otherwise. |
+
+---
+
+### 6.3 `mart.Fact_Daily_Badge` (IoT Access Telemetry with Imputed Durations)
+* **Source**: Cleaned and transformed from `raw.Badge_Access_Logs`.
+* **Grain**: 1 row per badge access log (114,952 rows).
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `LogID` | `VARCHAR(50)` | No | PK / Identity | Badge transaction identifier. |
+| `EmployeeID` | `VARCHAR(50)` | No | FK | Employee identifier. |
+| `AccessDate` | `DATE` | No | Date FK | Calendar access date. |
+| `FacilityCode` | `VARCHAR(50)` | Yes | Attribute | Building identifier (`HQ-CAIRO`, `TECH-GIZA`, `OPS-ALEX`, etc.). |
+| `SystemSource` | `VARCHAR(50)` | Yes | Attribute | Device channel (`TURNSTILE` or `GATEWAY`). |
+| `CheckInTime` | `DATETIME` | Yes | Timestamp | First physical or virtual clock-in timestamp. |
+| `CheckOutTime` | `DATETIME` | Yes | Timestamp | Clock-out timestamp (heurisically imputed +8 hours if missing). |
+| `WorkDurationHours` | `DECIMAL(10,2)` | Yes | Metric | Total shift duration calculated in hours. |
+
+---
+
+### 6.4 `mart.Fact_LMS_Training` (Deduplicated Talent Development Completions)
+* **Source**: Deduplicated from `raw.LMS_Certifications` retaining only valid (`Completed`) attempts with `AttemptRank = 1`.
+* **Grain**: 1 row per unique employee per course completion (5,553 rows).
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `EmployeeID` | `VARCHAR(20)` | No | FK | Employee identifier. |
+| `CourseID` | `VARCHAR(20)` | No | FK | Course identifier (`CRS-101` .. `CRS-302`). |
+| `CourseName` | `VARCHAR(150)` | No | Attribute | Course title. |
+| `SkillDomain` | `VARCHAR(50)` | No | Attribute | Domain (`Tech`, `Leadership`, `Soft Skills`, `Compliance`). |
+| `CompletionDate` | `DATE` | No | Date FK | Certification completion date. |
+| `Score` | `BIGINT` | No | Metric | Final examination score. |
+| `Cost_EGP` | `BIGINT` | No | Metric | Tuition or certification cost in EGP. |
+
+
+

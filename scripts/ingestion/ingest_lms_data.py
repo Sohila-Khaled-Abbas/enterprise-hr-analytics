@@ -34,16 +34,30 @@ def ingest_lms_logs(file_path: str, schema_name: str, table_name: str):
         logging.info(f"Reading LMS data from {resolved_path}...")
         df = pd.read_csv(resolved_path)
         
+        from sqlalchemy.types import VARCHAR, Float
+
         engine = get_db_engine()
         logging.info(f"Loading {len(df)} records into {schema_name}.{table_name}...")
         
+        dtype_map = {
+            "EmployeeID": VARCHAR(20),
+            "CourseID": VARCHAR(20),
+            "CourseName": VARCHAR(150),
+            "SkillDomain": VARCHAR(50),
+            "CompletionDate": VARCHAR(30),
+            "Score": Float(),
+            "Status": VARCHAR(30),
+            "Cost_EGP": Float()
+        }
+
         df.to_sql(
             name=table_name,
             con=engine,
             schema=schema_name,
             if_exists='replace',
             index=False,
-            chunksize=5000
+            chunksize=5000,
+            dtype=dtype_map
         )
         logging.info("LMS data ingestion complete.")
         

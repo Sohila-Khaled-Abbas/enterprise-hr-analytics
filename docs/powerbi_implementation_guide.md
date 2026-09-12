@@ -131,8 +131,17 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
 
 ### Step 2.1: Cleansing Core HR & Building `Dim_Employee` via GUI
 
-1. In the **Home** ribbon, click **New Source > Text/CSV**.
-2. Select `data/raw/employees_core.csv` and click **Open**. Verify file origin is **65001: Unicode (UTF-8)** and click **OK**.
+> [!IMPORTANT]
+> **Authoritative Master Grounding (`employees_data_7000.txt`)**:
+> The single source of truth for all 7,000 employees is `data/raw/employees_data_7000.txt`. In this repository, the Power BI semantic model (`powerbi/employess-report.SemanticModel/definition/expressions.tmdl`) provides the native Power Query M script (`employees_data_7000`) that parses the raw text file directly (lines, headers, colon-delimited key-value pairs).
+> 
+> You have two easy ways to load `Dim_Employee`:
+> * **Native Power Query / TMDL (Recommended)**: The pre-configured query `employees_data_7000` is already wired into `Dim_Employee`.
+> * **Text/CSV File**: If importing manually via GUI, you can select `data/raw/employees_core.csv` (which is the direct UTF-8 CSV representation generated from `employees_data_7000.txt`).
+> * **SQL Server**: Alternatively, select **New Source > SQL Server**, connect to `localhost` (`EnterpriseHR_DWH`), and select `[mart].[Dim_Employee]`.
+
+1. In the **Home** ribbon, click **New Source > Text/CSV** (or use the existing `employees_data_7000` query).
+2. Select `data/raw/employees_core.csv` (or browse to `data/raw/employees_data_7000.txt`) and click **Open**. Verify file origin is **65001: Unicode (UTF-8)** and click **OK**.
 3. In the left **Queries** pane, right-click the imported query, choose **Rename**, and name it `Dim_Employee`.
 4. **Setting Correct Data Types visually**:
    * Click the icon in the column header for **`السن`** (Age) $\to$ choose **Whole Number (`123`)**.
@@ -146,7 +155,7 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
    * Drag `EmployeeKey` to become the first column on the left.
 6. **Deriving Analytical Business Columns from Raw Employee Data**:
 
-   The raw employee file is a **point-in-time snapshot** — it has no change history. SCD Type 2 versioning (tracking when an employee changed department, salary, or branch) is handled at the SQL Server ETL layer via the [`MERGE` procedure`](../sql/transformations/01_dim_employee_scd2.sql), not in Power Query. What Power Query *should* do is derive the **calculated business columns** that the downstream DAX diagnostics depend on.
+   The raw employee file is a **point-in-time snapshot** — it has no change history. SCD Type 2 versioning (tracking when an employee changed department, salary, or branch) is handled at the SQL Server ETL layer via the [`MERGE` procedure](../sql/stored_procedures/01_dim_employee_scd2.sql), not in Power Query. What Power Query *should* do is derive the **calculated business columns** that the downstream DAX diagnostics depend on.
 
    #### 6a. Tenure in Years (`TenureYears`) — Drives Flight Risk & Salary Compression Analysis
 
@@ -229,41 +238,23 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
    > 
    > Depending on your pipeline design, choose one of two enterprise patterns:
 
-   * **Option A (Dynamic Power Query Merge with Attrition Records — Recommended if status is needed in `Dim_Employee`)**:
+   * **Option A (Automatic Power Query Merge — Built into Dim_Employee M Code ✅ ACTIVE)**:
 
-     **Sub-step A1: Import `stg.Exit_Attrition_Records` into Power Query**:
-     1. In Power Query Editor, go to **Home > New Source > SQL Server** (or **New Source > Text/CSV** $\to$ `data/raw/exit_attrition_records.csv`).
-     2. In the dialog:
-        * **Server**: `localhost\SQLEXPRESS` (or `.`).
-        * **Database**: `EnterpriseHR_DWH`.
-        * **Data Connectivity mode**: **Import** $\to$ click **OK**.
-     3. In the **Navigator** window, expand `EnterpriseHR_DWH` $\to$ expand the **`stg`** schema $\to$ check **`Exit_Attrition_Records`** (or `raw` $\to$ `HR_Audit_Events`) $\to$ click **OK**.
-     4. In the left **Queries** pane, verify `Exit_Attrition_Records` is present.
-     5. *(Best Practice)*: Right-click `Exit_Attrition_Records` in the left pane $\to$ uncheck **Enable Load** (this keeps it as an ETL staging query feeding `Dim_Employee` without duplicating tables in your Power BI reporting canvas).
+     > [!TIP]
+     > **No Manual Merge Required!** The `Dim_Employee` partition in the `.tmdl` file already contains `Table.NestedJoin` M code that automatically merges `employees_data_7000` with `Exit_Attrition_Records` on `الرقم التعريفي = EmployeeID`. The three derived columns (`ExitDate`, `EmploymentStatus`, `IsActive`) are computed automatically.
+     >
+     > **What you need to do**: Simply open the Power BI project, refresh the data (**Home → Refresh All**), and the `Dim_Employee` table will contain:
+     > - `ExitDate` — the date the employee left (null for active employees)
+     > - `EmploymentStatus` — `"Active"` or `"Separated"`
+     > - `IsActive` — `TRUE` / `FALSE` (boolean)
+     >
+     > **Expected result**: 6650 rows with `IsActive = TRUE`, 350 rows with `IsActive = FALSE`.
 
-     **Sub-step A2: Merge into `Dim_Employee`**:
-     1. In the left **Queries** pane, select **`Dim_Employee`**.
-     2. In the **Home** ribbon, click **Merge Queries** (top ribbon).
-     3. In the Merge dialog:
-        * **Upper table preview (Dim_Employee)**: Click the column header **الرقم التعريفي** (column 3, containing values like EMP-10001, EMP-10002...).
-          > [!WARNING]
-          > **Do NOT click EmployeeKey**: Column 1 (EmployeeKey) contains surrogate integer values (1, 2, 3...). If you select EmployeeKey, comparing integers against alphanumeric string IDs (EMP-12583) will result in **The selection matches 0 of 7000 rows from the first table**. You **must** select **الرقم التعريفي**.
-        * **Lower dropdown**: Select **Exit_Attrition_Records** $\to$ click column **EmployeeID**.
-        * **Join Kind**: Select **Left Outer (all from first, matching from second)**.
-        * The dialog will confirm at the bottom: **The selection matches 350 of 7000 rows from the first table.** Click **OK**.
-     4. Scroll to the far right of `Dim_Employee` and locate the new table column. Click the **Expand icon (`↔`)** at the right of the header:
-        * Uncheck *(Select All Columns)* $\to$ check **only `ExitDate`**.
-        * Uncheck *Use original column name as prefix*.
-        * Click **OK**.
-     5. **Derive Employment Status**:
-        * Go to **Add Column > Conditional Column**.
-        * Column Name: `EmploymentStatus`
-        * Rule: If `ExitDate` does not equal `null` then `Separated`, Else `Active`. Click **OK**.
-     6. **Derive Boolean Active Flag**:
-        * Go to **Add Column > Conditional Column**.
-        * Column Name: `IsActive`
-        * Rule: If `EmploymentStatus` equals `Active` then `true`, Else `false`.
-        * Click **OK** $\to$ set data type to **True/False**.
+     **Pre-requisite**: Ensure the `Exit_Attrition_Records` query exists in the Queries pane:
+     1. If it's missing, go to **Home > New Source > SQL Server**.
+     2. Server: `localhost` (or `.` or `localhost\SQLEXPRESS`), Database: `EnterpriseHR_DWH`, Mode: **Import** → click **OK**.
+     3. In **Navigator**, expand `stg` schema → check **`Exit_Attrition_Records`** → click **OK**.
+     4. *(Best Practice)*: Right-click `Exit_Attrition_Records` in the left pane → uncheck **Enable Load** (keeps it as a staging-only query).
 
    * **Option B (Pure Galaxy Schema / Snapshot Modeling — Star Schema Standard)**:
      * In formal Kimball dimensional modeling, `Dim_Employee` stores conformed attributes (Demographics, Titles, Skills), while point-in-time employment status belongs in the periodic snapshot fact table (`Fact_WorkforceSnapshot[EmploymentStatus]`) or is evaluated dynamically in DAX.
@@ -357,7 +348,7 @@ This step guides you through connecting Power BI Desktop directly to Microsoft S
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │ SQL Server Database Connection Dialog                                                 │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Server:   [ localhost\SQLEXPRESS                                           ]           │
+│ Server:   [ localhost                                                      ]           │
 │ Database: [ EnterpriseHR_DWH                                               ]           │
 │ Data Connectivity mode: (•) Import   ( ) DirectQuery                                   │
 └────────────────────────────────────────────────────────────────────────────────────────┘
@@ -367,7 +358,7 @@ This step guides you through connecting Power BI Desktop directly to Microsoft S
 1. In Power Query Editor, go to the **Home** ribbon tab.
 2. Click **New Source > SQL Server** (or **Home > Get Data > SQL Server** in the main Power BI window).
 3. In the **SQL Server database** dialog:
-   * **Server**: Type `localhost\SQLEXPRESS` (or `.` or the server instance configured in your `.env`).
+   * **Server**: Type `localhost` (or `.` or `localhost\SQLEXPRESS` or the server instance configured in your `.env`).
    * **Database (optional)**: Type `EnterpriseHR_DWH`.
    * **Data Connectivity mode**: Select **Import** (Recommended for in-memory columnar compression and maximum DAX performance).
    * Click **OK**.
@@ -481,7 +472,7 @@ This step walks through importing this normalized planning table directly from S
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │ SQL Server Database Connection Dialog                                                 │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Server:   [ localhost\SQLEXPRESS                                           ]           │
+│ Server:   [ localhost                                                      ]           │
 │ Database: [ EnterpriseHR_DWH                                               ]           │
 │ Data Connectivity mode: (•) Import   ( ) DirectQuery                                   │
 └────────────────────────────────────────────────────────────────────────────────────────┘
@@ -491,7 +482,7 @@ This step walks through importing this normalized planning table directly from S
 1. In Power Query Editor, go to the **Home** ribbon tab.
 2. Click **New Source > SQL Server** (or **Home > Get Data > SQL Server** in the main Power BI window).
 3. In the dialog:
-   * **Server**: `localhost\SQLEXPRESS` (or `.`).
+   * **Server**: `localhost` (or `.` or `localhost\SQLEXPRESS`).
    * **Database**: `EnterpriseHR_DWH`.
    * **Data Connectivity mode**: **Import**.
    * Click **OK**.
@@ -581,7 +572,7 @@ When ingesting LMS certifications from Microsoft SQL Server instead of a flat CS
 #### 1. Connecting to SQL Server:
 1. In Power Query Editor, go to **Home > New Source > SQL Server**.
 2. In the connection dialog:
-   * **Server**: `localhost\SQLEXPRESS` (or `.` or your machine name).
+   * **Server**: `localhost` (or `.` or `localhost\SQLEXPRESS` or your machine name).
    * **Database**: `EnterpriseHR_DWH`.
    * **Data Connectivity mode**: **Import** $\to$ click **OK**.
 
@@ -1266,6 +1257,53 @@ Power BI allows calculations defined directly within a visual matrix (e.g. runni
 
 ---
 
+## 🚀 Module 7: Enterprise Best Practices, Tips & Tricks (Kimball, DAX & VertiPaq)
+
+### 7.1 Kimball Dimensional Modeling Rules for Enterprise HR
+
+1. **Enforce Single-Direction (1-to-Many) Relationships Exclusively**:
+   * *The Problem*: Bi-directional cross-filtering introduces ambiguity into relationship topology, inflates memory footprints, and forces the VertiPaq engine into costly table-scan evaluation loops.
+   * *The Rule*: Always keep relationship cross-filter direction set to **Single**. When filtering across facts (e.g., filtering `Fact_DailyAttendance` based on an attribute in `Fact_WorkforceSnapshot`), use conformed dimensions (`Dim_Employee`, `Dim_Date`) as the shared bridge.
+2. **Semi-Additive Snapshots vs Discrete Events**:
+   * *The Problem*: Headcount cannot simply be summed (`SUM(Headcount)`) across time — summing headcount across 12 months produces 12x the actual workforce.
+   * *The Rule*: Model snapshot facts with temporal boundary filters in DAX. Use `CALCULATE([Metric], LASTDATE(Dim_Date[FullDate]))` or point-in-time evaluation:
+     ```dax
+     Headcount End of Period = 
+     CALCULATE(
+         COUNTROWS('Dim_Employee'),
+         'Dim_Employee'[HireDate] <= MAX('Dim_Date'[FullDate]),
+         ISBLANK('Dim_Employee'[TerminationDate]) || 'Dim_Employee'[TerminationDate] > MAX('Dim_Date'[FullDate])
+     )
+     ```
+3. **Surrogate Keys vs Natural Keys**:
+   * Always hide surrogate integer keys (`EmployeeKey`, `DateKey`, `BranchKey`) in the Report View. End users and report builders should only see natural codes (`EmployeeID`, `BranchCode`) and user-facing attributes (`FullName`, `BranchName`).
+
+---
+
+### 7.2 DAX Performance Tuning & Query Optimization
+
+| Pattern | Anti-Pattern (Slow / Risky) | Best Practice (Fast / Optimized) | Rationale |
+| :--- | :--- | :--- | :--- |
+| **Row Count** | `COUNT('Dim_Employee'[EmployeeID])` | `COUNTROWS('Dim_Employee')` | Scans table metadata rather than reading individual column dictionary pages. |
+| **Safe Division** | `[A] / [B]` or `IF([B]=0, 0, [A]/[B])` | `DIVIDE([A], [B], 0)` | Built-in C++ level divide that avoids branching and prevents division-by-zero crashes. |
+| **Variable Scoping** | Repeating `[Total Salary] / CALCULATE([Total Salary], ALL(...))` | `VAR _Total = [Total Salary] RETURN ...` | `VAR` evaluates once into an immutable scalar constant, preventing redundant formula engine re-calculations. |
+| **Filtering Tables** | `FILTER('Fact_WorkforceSnapshot', [BaseSalary] > 50000)` | `FILTER(VALUES('Fact_WorkforceSnapshot'[BaseSalary]), 'Fact_WorkforceSnapshot'[BaseSalary] > 50000)` | Filtering a single column reduces the filter context cardinality from millions of rows to distinct values. |
+| **Context Transition** | Calling raw columns inside iterators without awareness | Wrap with explicit measures or understand `CALCULATE` context transition | Calling `CALCULATE` inside an iterator converts current row context into equivalent filter context, which can trigger costly query loops if unmonitored. |
+
+---
+
+### 7.3 VertiPaq In-Memory Storage Engine Optimization
+
+1. **Split High-Cardinality DateTime Columns**:
+   * An 8-byte DateTime column with timestamp precision down to the second has up to $86,400$ unique values per day, causing poor VertiPaq dictionary compression.
+   * *Action*: Split `CheckInTime` and `CheckOutTime` into a separate `Date` column (`AccessDate`) and a rounded `Time` column (or 15-minute time bucket integer).
+2. **Eliminate Default Auto Date/Time**:
+   * *Action*: Go to **File > Options and settings > Options > Current File > Data Load**, and **uncheck "Auto Date/Time"**. Auto Date/Time creates hidden internal hierarchy tables for every date column, massively bloating `.pbix` file size.
+3. **Configure Sort By Column**:
+   * For non-alphabetical sorting (e.g., `MonthName` "January", "February"), set **Sort by Column** to `MonthNumberOfYear`. Ensure the sort-by column has a strict $1:1$ relationship with the attribute to prevent circular dependency errors.
+
+---
+
 ## 🏆 Final Summary Checklist: Enterprise Analytics Delivery
 
 - [x] **Diagnose Operational Friction**: Formulate hypotheses on Wage Inversion, Grain Collisions, Ghost Workers, and Attrition Survivorship before modeling.
@@ -1274,4 +1312,6 @@ Power BI allows calculations defined directly within a visual matrix (e.g. runni
 - [x] **Semantic Model Engineering (TMDL)**: Implement Calculation Groups, Field Parameters, RLS/OLS, and Incremental Refresh policies.
 - [x] **VertiPaq Memory Optimization**: Eliminate Auto Date/Time, split DateTime into Date and Time, hide surrogate keys, and enforce column sorting.
 - [x] **Advanced DAX Formulas**: Deploy 7 analytical diagnostic solutions covering salary compression, ghost workers, upskilling ROI, and branch space stress.
+- [x] **Kimball & Enterprise Best Practices**: Single-direction filter relationships, semi-additive snapshots, metadata row counts, and VertiPaq column splitting.
 - [x] **Web App UX Design**: Build a 1920x1080 canvas with a persistent sidebar, New Card visuals, wage inversion quadrant scatter plots, and 360° employee dossiers.
+

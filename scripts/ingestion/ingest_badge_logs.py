@@ -46,16 +46,29 @@ def ingest_badge_logs(file_path: str, schema_name: str, table_name: str):
             "event.timestamps.last_out": "CheckOutTime"
         })
         
+        from sqlalchemy.types import VARCHAR
+
         engine = get_db_engine()
         logging.info(f"Loading {len(df)} flattened records into {schema_name}.{table_name}...")
         
+        badge_dtype_map = {
+            "LogID": VARCHAR(50),
+            "SystemSource": VARCHAR(50),
+            "EmployeeID": VARCHAR(20),
+            "AccessDate": VARCHAR(20),
+            "FacilityCode": VARCHAR(20),
+            "CheckInTime": VARCHAR(30),
+            "CheckOutTime": VARCHAR(30)
+        }
+
         df.to_sql(
             name=table_name,
             con=engine,
             schema=schema_name,
             if_exists='replace', # Use 'append' for daily rolling loads
             index=False,
-            chunksize=10000
+            chunksize=10000,
+            dtype=badge_dtype_map
         )
         logging.info("Badge log ingestion complete.")
         
