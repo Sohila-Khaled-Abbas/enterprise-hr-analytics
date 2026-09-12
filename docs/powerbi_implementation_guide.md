@@ -544,20 +544,56 @@ This step walks through importing this normalized planning table directly from S
    * Click the icon in header `Headcount` $\to$ **Whole Number (`123`)**.
    * Click the icon in header `Budget_EGP` $\to$ **Fixed Decimal Number (`$`)**.
    * Click the icon in header `FiscalYear` $\to$ **Whole Number (`123`)**.
-3. **Harmonizing Typographical Branch Drift via Conditional Column GUI**:
-   Excel workbooks suffer from manual entry inconsistencies (e.g., "Alex Branch", "سموحة", "التجمع"). We harmonize them to match our conformed `Dim_Branch`:
-   * Go to **Add Column > Conditional Column**.
+3. **Harmonizing Typographical Branch Drift via Advanced M Formula (Custom Column)**:
+   Excel workbooks and SQL views often suffer from manual entry variations (e.g., `"Alex Branch"`, `"سموحة"`, `"التجمع"`, `"المعادي"`). Rather than configuring a long chain of GUI conditional clicks, you can deploy an advanced functional M formula that performs resilient keyword matching against your conformed `Dim_Branch` canonical names:
+
+   * Go to **Add Column > Custom Column**.
    * Column Name: `StandardizedBranch`
-   * Rule setup:
-     * If `CostCenter_Branch` equals `Alex Branch` then `فرع الإسكندرية - سموحة`
-     * Else If `CostCenter_Branch` equals `سموحة` then `فرع الإسكندرية - سموحة`
-     * Else If `CostCenter_Branch` equals `فرع المعادي` then `فرع المعادي`
-     * Else If `CostCenter_Branch` equals `القاهرة - المعادي` then `فرع المعادي`
-     * Else If `CostCenter_Branch` equals `الجيزة - الدقي` then `فرع الجيزة - الدقي`
-     * Else If `CostCenter_Branch` equals `التجمع` then `فرع التجمع الخامس`
-     * Else If `CostCenter_Branch` equals `بورسعيد` then `فرع بورسعيد`
-     * Else `CostCenter_Branch`
-   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+   * **Formula (Advanced Functional M Pattern Matcher)**:
+     ```powerquery
+     let
+         Raw = Text.Trim(Text.From([CostCenter_Branch])),
+         // Pattern mapping rules: {Keyword, Canonical Dim_Branch Name}
+         Rules = {
+             {"Alex", "الإسكندرية - سموحة"},
+             {"سموح", "الإسكندرية - سموحة"},
+             {"معاد", "القاهرة - المعادي"},
+             {"دقي", "الجيزة - الدقي"},
+             {"الدقي", "الجيزة - الدقي"},
+             {"تجمع", "القاهرة - التجمع الخامس"},
+             {"بورسعيد", "بورسعيد - الشرق"},
+             {"منصور", "الدقهلية - المنصورة"},
+             {"طنطا", "الغربية - طنطا"},
+             {"أكتوبر", "الجيزة - 6 أكتوبر"},
+             {"اكتوبر", "الجيزة - 6 أكتوبر"},
+             {"زايد", "الجيزة - الشيخ زايد"},
+             {"أسيوط", "أسيوط - أسيوط الجديدة"},
+             {"اسيوط", "أسيوط - أسيوط الجديدة"},
+             {"دمياط", "دمياط - دمياط الجديدة"},
+             {"ذكية", "القاهرة - القرية الذكية"},
+             {"لوران", "الإسكندرية - لوران"},
+             {"مصر الجديدة", "القاهرة - مصر الجديدة"}
+         },
+         // Find the first rule where the raw branch contains the keyword
+         Match = List.First(
+             List.Select(Rules, each Text.Contains(Raw, _{0}, Comparer.OrdinalIgnoreCase)),
+             {null, Raw}
+         ){1}
+     in
+         Match
+     ```
+
+   * *(Alternative: Fast Conditional Expression)*:
+     ```powerquery
+     if Text.Contains([CostCenter_Branch], "Alex", Comparer.OrdinalIgnoreCase) or Text.Contains([CostCenter_Branch], "سموحة") then "الإسكندرية - سموحة"
+     else if Text.Contains([CostCenter_Branch], "معاد") then "القاهرة - المعادي"
+     else if Text.Contains([CostCenter_Branch], "دقي") then "الجيزة - الدقي"
+     else if Text.Contains([CostCenter_Branch], "تجمع") then "القاهرة - التجمع الخامس"
+     else if Text.Contains([CostCenter_Branch], "بورسعيد") then "بورسعيد - الشرق"
+     else [CostCenter_Branch]
+     ```
+
+   * Click **OK** $\to$ set column data type to **Text (`ABC`)**.
 4. **Generating Smart Integer Date Key for Quarter Dimension Alignment**:
    Because budgets are set quarterly, we map each quarter to its quarter-start date key (`20260101`, `20260401`, `20260701`, `20261001`):
    * Go to **Add Column > Custom Column**.
