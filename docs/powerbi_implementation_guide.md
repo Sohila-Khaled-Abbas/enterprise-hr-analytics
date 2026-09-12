@@ -477,11 +477,20 @@ This step guides you through connecting Power BI Desktop directly to Microsoft S
      * Else `RawBranch`
    * Click **OK**.
 4. **Dynamic Unpivoting via GUI**:
-   * Hold `Ctrl` and select: `FiscalYear`, `Department`, `StandardizedBranch`, `OvertimeAllowance_EGP`.
-   * Right-click any of the selected headers $\to$ click **Unpivot Other Columns**.
-   * Power BI collapses all quarterly columns into `Attribute` and `Value`.
+   > [!IMPORTANT]
+   > **Avoid Unpivoting OvertimeAllowance_EGP**:
+   > `OvertimeAllowance_EGP` is an **annual** department allowance, not a quarterly metric! If it gets unpivoted into `Attribute`, extracting index 1 will grab the letter **`v`** from `O-v-ertime...`, causing errors in `FiscalQuarter`.
+   > 
+   > **Recommended GUI Clickpath (Unpivot Only Selected Columns)**:
+   > * Click the first quarterly column header: **`Q1_Budget_EGP`**.
+   > * Hold `Shift` on your keyboard and click the last quarterly column: **`Q4_Headcount`** (this selects all 8 quarterly columns: `Q1_Budget_EGP` through `Q4_Headcount`).
+   > * Right-click any of the highlighted column headers $\to$ select **Unpivot Only Selected Columns**.
+   > * *(Alternative)*: If you prefer **Unpivot Other Columns**, make sure you select `FiscalYear`, `Department`, `StandardizedBranch`, **AND** hold `Ctrl` to also select `OvertimeAllowance_EGP` before clicking **Unpivot Other Columns**.
+   > 
+   > Power BI collapses *only* the 8 quarterly metrics into `Attribute` and `Value`, while keeping `FiscalYear`, `Department`, `StandardizedBranch`, and `OvertimeAllowance_EGP` as normal dimension columns.
+
 5. **Extracting Quarter & Metric via GUI**:
-   * Select `Attribute` $\to$ go to **Add Column > Extract > Text Range**. Starting index: `1`, length: `1`. Click **OK**. Rename to `FiscalQuarter` (Whole Number).
+   * Select `Attribute` $\to$ go to **Add Column > Extract > Text Range**. Starting index: `1`, length: `1`. Click **OK**. Rename to `FiscalQuarter` (Whole Number). *(It will now contain only `1`, `2`, `3`, `4`, with zero `'v'` errors!)*
    * Go to **Add Column > Conditional Column**. Name it `MetricType`.
    * Rule: If `Attribute` contains `Headcount` then `BudgetedHeadcount`, Else `AllocatedSalaryBudget_EGP`. Click **OK**.
 6. **Pivoting Metrics into Columnar Facts via GUI**:
