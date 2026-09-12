@@ -12,8 +12,15 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
-# Data Directories (ignore generated artifacts, keep folder structure)
+# Data Directories
+# Keep master seed source files, ignore generated and ephemeral artifacts
 data/raw/*
-data/processed/*
 !data/raw/.gitkeep
+!data/raw/employees_data_7000.txt
+!data/raw/hr_audit_events.csv
+!data/raw/finance_budget_2026.xlsx
+!data/raw/department_budget_plan.csv
+!data/raw/lms_certifications.csv
+
+data/processed/*
 !data/processed/.gitkeep
