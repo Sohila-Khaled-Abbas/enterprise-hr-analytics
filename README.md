@@ -64,6 +64,8 @@ The platform bridges the gap between transactional workforce records and executi
 
 Unlike a simple single-fact Star Schema, this enterprise model implements a **Kimball Galaxy Schema (Fact Constellation)** featuring **5 Conformed Dimensions** shared across **4 Specialized Fact Tables**:
 
+![Enterprise Project Lifecycle & Data Architecture](docs/assets/project_lifecycle_architecture.svg)
+
 ```mermaid
 erDiagram
     Dim_Employee ||--o{ Fact_WorkforceSnapshot : filters
@@ -273,6 +275,30 @@ Finance and HR planning departments typically maintain budgets and headcount for
    python scripts/ingestion/ingest_finance_plan.py
    ```
    *Unpivots wide columns via `pandas.melt()`, extracts `Quarter` and `MetricType`, pivots into columnar facts, and loads 168 normalized records into `raw.Finance_Budget_Plan`.*
+
+---
+
+## 🎓 Talent Development Ingestion: LMS & Certification Logs (CSV)
+
+The fifth enterprise data ingestion stream captures learning telemetry from an external Learning Management System (LMS). It tracks course completions, skill domains, scores, and certification costs for employees across the organization.
+
+### Real-World Modeling Friction Addressed
+* **Many-to-Many Relationships**: An employee can complete multiple certifications, and a single course is taken by hundreds of employees. Managed via `Dim_Course` and `Fact_TrainingCompletions` to prevent filter propagation errors.
+* **Repeated Attempts & Retakes**: Employees retake failed or low-score courses (score < 75). Deduplication logic distinguishes final passing scores from initial attempts.
+* **Upskilling ROI & Performance Correlation**: Attributing training investments by department and fiscal quarter enables measuring the direct correlation between training completions and annual performance rating velocity.
+
+### Execution Scripts
+1. **Generate Mock LMS Dataset**:
+   ```powershell
+   python scripts/utils/generate_lms_data.py
+   ```
+   *Generates `data/raw/lms_certifications.csv` (7,197 certification records strictly aligned with `EMP-10001` .. `EMP-17000`).*
+
+2. **Ingest into SQL Server `raw` Schema**:
+   ```powershell
+   python scripts/ingestion/ingest_lms_data.py
+   ```
+   *Loads 7,197 records into `raw.LMS_Certifications` in SQL Server.*
 
 ---
 

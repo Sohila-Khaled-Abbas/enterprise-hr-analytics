@@ -1,0 +1,26 @@
+table Dim_Department
+	lineageTag: ad3d796e-0f00-488a-b90b-c4b005b57842
+
+	column القسم
+		dataType: string
+		lineageTag: 20898a40-3e44-420b-bc4c-825ac944bedc
+		summarizeBy: none
+		sourceColumn: القسم
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Department = m
+		mode: import
+		queryGroup: Dimensions_Tables
+		source =
+				let
+				    Source = employees_data_7000,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"القسم"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

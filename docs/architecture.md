@@ -2,6 +2,8 @@
 
 This document details the architectural design and Kimball dimensional modeling principles implemented in the **Enterprise Human Capital & Operational Efficiency Diagnostics** platform.
 
+![Enterprise Project Lifecycle & Data Architecture](assets/project_lifecycle_architecture.svg)
+
 ---
 
 ## 1. Why a Galaxy Schema (Fact Constellation)?

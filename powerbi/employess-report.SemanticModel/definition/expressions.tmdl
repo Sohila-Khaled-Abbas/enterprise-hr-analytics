@@ -24,3 +24,16 @@ expression employees_data_7000 =
 
 	annotation PBI_ResultType = Table
 
+expression Exit_Attrition_Records =
+		let
+		  Source = Sql.Database("localhost", "EnterpriseHR_DWH"),
+		  #"Navigation 1" = Source{[Schema = "stg", Item = "Exit_Attrition_Records"]}[Data]
+		in
+		  #"Navigation 1"
+	lineageTag: ef368d6a-2881-4fef-84b6-a803a9eb6ae2
+	queryGroup: Raw_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

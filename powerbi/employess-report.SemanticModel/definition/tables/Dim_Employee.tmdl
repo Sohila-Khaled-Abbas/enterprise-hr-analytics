@@ -140,6 +140,38 @@ table Dim_Employee
 
 		annotation SummarizationSetBy = Automatic
 
+	column AgeBand
+		dataType: string
+		lineageTag: 3af9c108-526d-45c6-be37-160c618984b4
+		summarizeBy: none
+		sourceColumn: AgeBand
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalaryBand
+		dataType: string
+		lineageTag: 84fbf0e8-0673-4366-aa9f-30612d036446
+		summarizeBy: none
+		sourceColumn: SalaryBand
+
+		annotation SummarizationSetBy = Automatic
+
+	column PerformanceTier
+		dataType: string
+		lineageTag: 82b3f5e0-7321-4c26-8497-99091d924af1
+		summarizeBy: none
+		sourceColumn: PerformanceTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsActive
+		dataType: string
+		lineageTag: 3ef172b5-89de-43fc-a24c-6fe1ca80fe7a
+		summarizeBy: none
+		sourceColumn: IsActive
+
+		annotation SummarizationSetBy = Automatic
+
 	partition Dim_Employee = m
 		mode: import
 		queryGroup: Dimensions_Tables
@@ -149,9 +181,13 @@ table Dim_Employee
 				    #"Added EmployeeKey" = Table.AddIndexColumn(Source, "EmployeeKey", 1, 1, Int64.Type),
 				    #"Reordered Columns" = Table.ReorderColumns(#"Added EmployeeKey",{"EmployeeKey", "الاسم", "الرقم التعريفي", "السن", "الجنس", "المسمى الوظيفي", "القسم", "الفرع", "تاريخ التعيين", "الراتب الأساسي", "العملة", "نوع العقد", "تقييم الأداء السنوي", "الحالة الاجتماعية", "البريد الإلكتروني"}),
 				    #"Added TenureYears" = Table.AddColumn(#"Reordered Columns", "TenureYears", each Duration.TotalDays(DateTime.LocalNow() - DateTime.From([تاريخ التعيين])) / 365.25, Decimal.Type),
-				    #"Rounded Down" = Table.TransformColumns(#"Added TenureYears",{{"TenureYears", Number.RoundDown, Int64.Type}})
+				    #"Rounded Down" = Table.TransformColumns(#"Added TenureYears",{{"TenureYears", Number.RoundDown, Int64.Type}}),
+				    #"Added AgeBand" = Table.AddColumn(#"Rounded Down", "AgeBand", each if [السن] < 25 then "Gen Z (< 25)" else if [السن] < 35 then "Millennial (25–34)" else if [السن] < 45 then "Gen X (35–44)" else if [السن] < 55 then "Senior (45–54)" else "Pre-Retirement (55+)", type text),
+				    #"Added SalaryBand" = Table.AddColumn(#"Added AgeBand", "SalaryBand", each if [الراتب الأساسي] < 5000 then "Entry (< 5K)" else if [الراتب الأساسي] < 10000 then "Junior (5K–10K)" else if [الراتب الأساسي] < 20000 then "Mid-Level (10K–20K)" else if [الراتب الأساسي] < 35000 then "Senior (20K–35K)" else "Executive (35K+)", type text),
+				    #"Added PerformanceTier" = Table.AddColumn(#"Added SalaryBand", "PerformanceTier", each if [تقييم الأداء السنوي] < 2 then "🔴 Underperformer" else if [تقييم الأداء السنوي] < 3 then "🟡 Developing" else if [تقييم الأداء السنوي] < 4 then "🟢 Meets Expectations" else if [تقييم الأداء السنوي] < 4.5 then "🔵 High Performer" else "⭐ Exceptional (Top Talent)", type text),
+				    #"Added Custom" = Table.AddColumn(#"Added PerformanceTier", "IsActive", each true)
 				in
-				    #"Rounded Down"
+				    #"Added Custom"
 
 	annotation PBI_NavigationStepName = Navigation
 

@@ -259,6 +259,41 @@ def ingest_csv_to_table(
         return 0
 
 
+def ingest_staging_attrition(engine: Engine, truncate: bool = True) -> int:
+    """Ingests data/raw/exit_attrition_records.csv into stg.Exit_Attrition_Records."""
+    raw_dir = BASE_DIR / "data" / "raw"
+    csv_path = raw_dir / "exit_attrition_records.csv"
+    if not csv_path.exists():
+        logger.warning("   ⚠️  exit_attrition_records.csv not found in %s", raw_dir)
+        return 0
+
+    try:
+        df = pd.read_csv(csv_path, encoding="utf-8-sig")
+        for col in ["NoticeDate", "ExitDate"]:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce").dt.date
+
+        with engine.connect() as conn:
+            if truncate:
+                conn.execute(text("TRUNCATE TABLE stg.Exit_Attrition_Records"))
+                conn.commit()
+                logger.info("   🗑️  Truncated stg.Exit_Attrition_Records")
+
+        df.to_sql(
+            name="Exit_Attrition_Records",
+            schema="stg",
+            con=engine,
+            if_exists="append",
+            index=False,
+            chunksize=1000,
+        )
+        logger.info("   ✅ Ingested %s rows into stg.Exit_Attrition_Records", f"{len(df):,}")
+        return len(df)
+    except Exception as e:
+        logger.error("   ❌ Failed to ingest stg.Exit_Attrition_Records: %s", e)
+        return 0
+
+
 def run_post_ingestion_validation(engine: Engine) -> None:
     """Runs post-ingestion row count validation queries."""
     logger.info("\n" + "═" * 60)
@@ -266,6 +301,7 @@ def run_post_ingestion_validation(engine: Engine) -> None:
     logger.info("═" * 60)
 
     validation_queries = [
+        ("stg.Exit_Attrition_Records", "SELECT COUNT(*) FROM stg.Exit_Attrition_Records"),
         ("mart.Dim_Employee", "SELECT COUNT(*) FROM mart.Dim_Employee"),
         ("mart.Dim_Department", "SELECT COUNT(*) FROM mart.Dim_Department"),
         ("mart.Dim_Branch", "SELECT COUNT(*) FROM mart.Dim_Branch"),
@@ -349,9 +385,15 @@ def main(
         size_kb = filepath.stat().st_size / 1024
         logger.info("   📄 %-35s → %-35s (%.1f KB)", filename, target_table, size_kb)
 
-    if dry_run:
-        logger.info("\n🏁 Dry run complete. No data was loaded.")
-        return
+    total_rows = 0
+    tables_loaded = 0
+
+    # Step 2b: Ingest Staging Exit Attrition Audit Records
+    logger.info("\n📥 Step 2b: Ingesting stg.Exit_Attrition_Records...")
+    stg_rows = ingest_staging_attrition(engine, truncate=truncate)
+    if stg_rows > 0:
+        total_rows += stg_rows
+        tables_loaded += 1
 
     # Step 3: Ingest dimensions first (referential integrity order)
     logger.info("\n📥 Step 3: Ingesting conformed dimensions...")
@@ -362,8 +404,6 @@ def main(
         "Dim_Course.csv",
         "Dim_Employee.csv",
     ]
-    total_rows = 0
-    tables_loaded = 0
 
     for csv_name in dim_order:
         if csv_name in available_csvs:

@@ -1,0 +1,4 @@
+relationship AutoDetected_d99abb08-0992-4397-848e-b81a43dda662
+	fromColumn: Dim_Employee.القسم
+	toColumn: Dim_Department.القسم
+

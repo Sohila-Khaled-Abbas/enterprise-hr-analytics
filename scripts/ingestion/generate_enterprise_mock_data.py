@@ -173,44 +173,142 @@ def generate_attendance_badge_logs(employees: List[Dict[str, Any]], num_days: in
 
 
 def generate_exit_attrition_records(employees: List[Dict[str, Any]], num_exits: int = 350) -> List[Dict[str, Any]]:
-    """Generates HR Attrition & Exit Audit records sampled directly from the 7,000 master employees."""
-    print(f"[*] Generating {num_exits} HR Exit & Attrition Audit records based on employees_data_7000.txt...")
-    exit_records = []
-    exit_reasons = [
-        "Compensation & Market Rate",
-        "Career Growth",
-        "Direct Management",
-        "Relocation",
-        "Burnout & Overwork",
-        "Personal Reasons",
+    """
+    Generates HR Attrition & Exit Audit records strictly sampled from the 7,000 master employees,
+    grounded directly in the diagnostic criteria documented in docs/business_diagnostics.md:
+    1. Low performers (rating < 2.5) -> Involuntary terminations (Performance & Reorganization).
+    2. High performers (rating >= 3.8) with salary compression / below role median -> Voluntary resignations (Compensation / Growth).
+    3. Long-tenured employees (hired before 2021) -> Voluntary resignations (Burnout & Overwork).
+    4. Branch distance / contract friction -> Voluntary resignations (Relocation).
+    """
+    print(f"[*] Generating {num_exits} HR Exit & Attrition Audit records grounded on employees_data_7000.txt...")
+    import statistics
+    from collections import defaultdict
+
+    # Compute median salary per job role across the 7,000 master employees
+    role_salaries = defaultdict(list)
+    for e in employees:
+        role_salaries[e["المسمى الوظيفي"]].append(float(e["الراتب الأساسي"]))
+    role_medians = {r: statistics.median(s) for r, s in role_salaries.items()}
+
+    # Cohort 1: Underperformers (< 2.5 rating) -> Involuntary exits
+    underperformers = [e for e in employees if float(e["تقييم الأداء السنوي"]) < 2.5]
+    sample_under = random.sample(underperformers, min(65, len(underperformers)))
+
+    # Cohort 2: High performers with salary compression (< role median) -> Flight risk exits
+    compressed_high_performers = [
+        e for e in employees
+        if float(e["تقييم الأداء السنوي"]) >= 3.8
+        and float(e["الراتب الأساسي"]) < role_medians.get(e["المسمى الوظيفي"], 20000.0)
+        and e not in sample_under
     ]
-    separated_sample = random.sample(employees, min(num_exits, len(employees)))
+    sample_compressed = random.sample(compressed_high_performers, min(130, len(compressed_high_performers)))
 
-    for emp in separated_sample:
-        emp_id = emp["الرقم التعريفي"]
-        exit_type = "Voluntary" if random.random() < 0.78 else "Involuntary"
-        reason = random.choice(exit_reasons) if exit_type == "Voluntary" else "Performance & Reorganization"
+    # Cohort 3: Veteran employees (hired before 2021) -> Burnout & Overwork
+    veterans = [
+        e for e in employees
+        if e["تاريخ التعيين"] < "2021-01-01"
+        and e not in sample_under and e not in sample_compressed
+    ]
+    sample_veterans = random.sample(veterans, min(80, len(veterans)))
+
+    # Cohort 4: General pool for relocation and other voluntary exits
+    remaining_pool = [
+        e for e in employees
+        if e not in sample_under and e not in sample_compressed and e not in sample_veterans
+    ]
+    sample_other = random.sample(remaining_pool, num_exits - (len(sample_under) + len(sample_compressed) + len(sample_veterans)))
+
+    exit_records = []
+
+    # Process underperformers
+    for emp in sample_under:
         exit_date = datetime(2025, random.randint(1, 12), random.randint(1, 28))
-        notice_date = exit_date - timedelta(days=random.randint(14, 45))
-        rehire_eligible = (exit_type == "Voluntary" and reason != "Direct Management") or random.random() < 0.20
-
+        notice_date = exit_date - timedelta(days=random.randint(14, 30))
         exit_records.append({
-            "EmployeeID": emp_id,
+            "EmployeeID": emp["الرقم التعريفي"],
             "NoticeDate": notice_date.strftime("%Y-%m-%d"),
             "ExitDate": exit_date.strftime("%Y-%m-%d"),
-            "ExitType": exit_type,
-            "PrimaryExitReason": reason,
+            "ExitType": "Involuntary",
+            "PrimaryExitReason": "Performance & Reorganization",
             "LastPerformanceScore": float(emp["تقييم الأداء السنوي"]),
-            "RehireEligible": 1 if rehire_eligible else 0,
+            "RehireEligible": 0,
             "SeparationSalary": float(emp["الراتب الأساسي"]),
             "SeparationBranch": emp["الفرع"],
         })
+
+    # Process compressed high performers
+    for emp in sample_compressed:
+        exit_date = datetime(2025, random.randint(1, 12), random.randint(1, 28))
+        notice_date = exit_date - timedelta(days=random.randint(21, 45))
+        reason = random.choice(["Compensation & Market Rate", "Career Growth"])
+        exit_records.append({
+            "EmployeeID": emp["الرقم التعريفي"],
+            "NoticeDate": notice_date.strftime("%Y-%m-%d"),
+            "ExitDate": exit_date.strftime("%Y-%m-%d"),
+            "ExitType": "Voluntary",
+            "PrimaryExitReason": reason,
+            "LastPerformanceScore": float(emp["تقييم الأداء السنوي"]),
+            "RehireEligible": 1,
+            "SeparationSalary": float(emp["الراتب الأساسي"]),
+            "SeparationBranch": emp["الفرع"],
+        })
+
+    # Process veterans
+    for emp in sample_veterans:
+        exit_date = datetime(2025, random.randint(1, 12), random.randint(1, 28))
+        notice_date = exit_date - timedelta(days=random.randint(21, 45))
+        exit_records.append({
+            "EmployeeID": emp["الرقم التعريفي"],
+            "NoticeDate": notice_date.strftime("%Y-%m-%d"),
+            "ExitDate": exit_date.strftime("%Y-%m-%d"),
+            "ExitType": "Voluntary",
+            "PrimaryExitReason": "Burnout & Overwork",
+            "LastPerformanceScore": float(emp["تقييم الأداء السنوي"]),
+            "RehireEligible": 1,
+            "SeparationSalary": float(emp["الراتب الأساسي"]),
+            "SeparationBranch": emp["الفرع"],
+        })
+
+    # Process other exits
+    for emp in sample_other:
+        exit_date = datetime(2025, random.randint(1, 12), random.randint(1, 28))
+        notice_date = exit_date - timedelta(days=random.randint(14, 40))
+        reason = random.choice(["Relocation", "Direct Management", "Personal Reasons"])
+        rehire_ok = 1 if reason != "Direct Management" else 0
+        exit_records.append({
+            "EmployeeID": emp["الرقم التعريفي"],
+            "NoticeDate": notice_date.strftime("%Y-%m-%d"),
+            "ExitDate": exit_date.strftime("%Y-%m-%d"),
+            "ExitType": "Voluntary",
+            "PrimaryExitReason": reason,
+            "LastPerformanceScore": float(emp["تقييم الأداء السنوي"]),
+            "RehireEligible": rehire_ok,
+            "SeparationSalary": float(emp["الراتب الأساسي"]),
+            "SeparationBranch": emp["الفرع"],
+        })
+
+    # Shuffle to avoid ordered blocks
+    random.shuffle(exit_records)
+    print(f"[OK] Generated {len(exit_records)} diagnostic-grounded exit records.")
     return exit_records
 
 
-def generate_fpa_department_budgets() -> List[Dict[str, Any]]:
-    """Generates messy horizontal FP&A budgets with branch spelling variations for the 6 canonical depts."""
-    print("[*] Generating Messy Horizontal FP&A Budget records...")
+def generate_fpa_department_budgets(employees: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Generates messy horizontal FP&A budgets anchored directly on the actual employee counts
+    and average salary per (Department, Branch) from employees_data_7000.txt.
+    """
+    print("[*] Generating Messy Horizontal FP&A Budget records anchored on employees_data_7000.txt...")
+    from collections import defaultdict
+
+    dept_branch_counts = defaultdict(int)
+    dept_branch_salaries = defaultdict(list)
+    for e in employees:
+        key = (e["القسم"], e["الفرع"])
+        dept_branch_counts[key] += 1
+        dept_branch_salaries[key].append(float(e["الراتب الأساسي"]))
+
     budget_rows = []
     years = [2025, 2026]
     branch_variations = {
@@ -234,19 +332,27 @@ def generate_fpa_department_budgets() -> List[Dict[str, Any]]:
         for dept in CANONICAL_DEPARTMENTS:
             for canonical_branch, variations in branch_variations.items():
                 raw_branch = random.choice(variations)
-                base_hc = random.randint(30, 150)
-                base_salary_per_head = random.uniform(14000, 26000)
+                
+                # Use actual headcount and actual average salary from the 7,000 employees
+                key = (dept, canonical_branch)
+                actual_hc = dept_branch_counts.get(key, 50)
+                salaries = dept_branch_salaries.get(key, [18000.0])
+                avg_salary = sum(salaries) / len(salaries)
+
+                # Realistic FP&A planning baseline:
+                base_hc = actual_hc
+                base_salary_per_head = avg_salary
 
                 q1_hc = base_hc
-                q2_hc = base_hc + random.randint(-4, 8)
-                q3_hc = q2_hc + random.randint(-3, 10)
-                q4_hc = q3_hc + random.randint(-2, 12)
+                q2_hc = base_hc + random.randint(-1, 3)
+                q3_hc = q2_hc + random.randint(0, 4)
+                q4_hc = q3_hc + random.randint(0, 4)
 
                 q1_b = round(q1_hc * base_salary_per_head * 3, 2)
-                q2_b = round(q2_hc * base_salary_per_head * 3 * 1.03, 2)
-                q3_b = round(q3_hc * base_salary_per_head * 3 * 1.05, 2)
-                q4_b = round(q4_hc * base_salary_per_head * 3 * 1.07, 2)
-                ot_allowance = round(q1_b * 0.08, 2)
+                q2_b = round(q2_hc * base_salary_per_head * 3 * 1.02, 2)
+                q3_b = round(q3_hc * base_salary_per_head * 3 * 1.04, 2)
+                q4_b = round(q4_hc * base_salary_per_head * 3 * 1.06, 2)
+                ot_allowance = round(q1_b * 0.05, 2)
 
                 budget_rows.append({
                     "FiscalYear": year,
@@ -262,23 +368,50 @@ def generate_fpa_department_budgets() -> List[Dict[str, Any]]:
                     "Q4_Headcount": q4_hc,
                     "OvertimeAllowance_EGP": ot_allowance,
                 })
+    print(f"[OK] Generated {len(budget_rows)} realistic budget records grounded in master employee counts.")
     return budget_rows
 
 
 def generate_lms_course_completions(employees: List[Dict[str, Any]], num_attempts: int = 3500) -> List[Dict[str, Any]]:
-    """Generates transactional LMS completions with retakes sampled directly from the 7,000 master employees."""
-    print(f"[*] Generating {num_attempts} LMS Training & Certification attempts...")
+    """
+    Generates transactional LMS completions with retakes sampled from the 7,000 master employees,
+    targeting courses relevant to their actual department and job role.
+    """
+    print(f"[*] Generating {num_attempts} LMS Training & Certification attempts grounded on employees_data_7000.txt...")
+    dept_course_map = {
+        "تكنولوجيا المعلومات": ["CRS-TECH-01", "CRS-TECH-02", "CRS-TECH-03", "CRS-TECH-04"],
+        "الموارد البشرية": ["CRS-COMP-01", "CRS-LEAD-01", "CRS-SOFT-01"],
+        "الإدارة المالية": ["CRS-TECH-01", "CRS-TECH-02", "CRS-COMP-02"],
+        "التسويق والمبيعات": ["CRS-SOFT-02", "CRS-SOFT-01", "CRS-TECH-01"],
+        "خدمة العملاء والعمليات المساندة": ["CRS-SOFT-01", "CRS-LEAD-02", "CRS-COMP-01"],
+        "العمليات وسلاسل الإمداد": ["CRS-LEAD-02", "CRS-LEAD-01", "CRS-TECH-01"],
+    }
+    course_by_id = {c["CourseID"]: c for c in LMS_COURSES}
+
     attempts = []
     eligible_employees = random.sample(employees, min(2200, len(employees)))
 
     for _ in range(num_attempts):
         emp = random.choice(eligible_employees)
         emp_id = emp["الرقم التعريفي"]
-        course = random.choice(LMS_COURSES)
-        comp_date = datetime(2025, random.randint(1, 12), random.randint(1, 28))
+        dept = emp["القسم"]
+        available_cids = dept_course_map.get(dept, ["CRS-SOFT-01", "CRS-LEAD-01"])
+        course_id = random.choice(available_cids)
+        course = course_by_id.get(course_id, LMS_COURSES[0])
 
-        is_fail = random.random() < 0.20
-        score = round(random.uniform(42.0, 68.0), 1) if is_fail else round(random.uniform(70.0, 98.0), 1)
+        comp_date = datetime(2025, random.randint(1, 12), random.randint(1, 28))
+        perf = float(emp["تقييم الأداء السنوي"])
+
+        # High performers have higher pass rates
+        if perf >= 4.0:
+            is_fail = random.random() < 0.05
+            score = round(random.uniform(82.0, 98.0), 1) if not is_fail else round(random.uniform(62.0, 68.0), 1)
+        elif perf >= 3.0:
+            is_fail = random.random() < 0.18
+            score = round(random.uniform(72.0, 92.0), 1) if not is_fail else round(random.uniform(50.0, 68.0), 1)
+        else:
+            is_fail = random.random() < 0.45
+            score = round(random.uniform(70.0, 84.0), 1) if not is_fail else round(random.uniform(42.0, 68.0), 1)
 
         attempts.append({
             "EmployeeID": emp_id,
@@ -290,18 +423,20 @@ def generate_lms_course_completions(employees: List[Dict[str, Any]], num_attempt
             "CertificationCost_EGP": course["Cost"],
         })
 
-        if is_fail and random.random() < 0.65:
+        if is_fail and random.random() < 0.70:
             retake_date = comp_date + timedelta(days=random.randint(15, 60))
+            retake_score = round(random.uniform(75.0, 95.0), 1)
             attempts.append({
                 "EmployeeID": emp_id,
                 "CourseID": course["CourseID"],
                 "CourseName": course["CourseName"],
                 "SkillDomain": course["SkillDomain"],
                 "CompletionDate": retake_date.strftime("%Y-%m-%d"),
-                "Score": round(random.uniform(74.0, 96.0), 1),
+                "Score": retake_score,
                 "CertificationCost_EGP": course["Cost"] * 0.50,
             })
 
+    print(f"[OK] Generated {len(attempts)} LMS attempt records.")
     return attempts
 
 
@@ -333,7 +468,7 @@ def export_data():
     print(f"[OK] Saved Exit Audit records to {exit_csv_path}")
 
     # 4. FP&A Budgets
-    budgets = generate_fpa_department_budgets()
+    budgets = generate_fpa_department_budgets(employees)
     budget_csv_path = RAW_DATA_DIR / "fpa_department_budget_messy.csv"
     with open(budget_csv_path, mode="w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=list(budgets[0].keys()))

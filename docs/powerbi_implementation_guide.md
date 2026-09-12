@@ -245,10 +245,12 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
      1. In the left **Queries** pane, select **`Dim_Employee`**.
      2. In the **Home** ribbon, click **Merge Queries** (top ribbon).
      3. In the Merge dialog:
-        * Upper table preview: Click column **`كود الموظف`** (or `EmployeeID`).
-        * Lower dropdown: Select **`Exit_Attrition_Records`** $\to$ click column **`EmployeeID`**.
+        * **Upper table preview (Dim_Employee)**: Click the column header **الرقم التعريفي** (column 3, containing values like EMP-10001, EMP-10002...).
+          > [!WARNING]
+          > **Do NOT click EmployeeKey**: Column 1 (EmployeeKey) contains surrogate integer values (1, 2, 3...). If you select EmployeeKey, comparing integers against alphanumeric string IDs (EMP-12583) will result in **The selection matches 0 of 7000 rows from the first table**. You **must** select **الرقم التعريفي**.
+        * **Lower dropdown**: Select **Exit_Attrition_Records** $\to$ click column **EmployeeID**.
         * **Join Kind**: Select **Left Outer (all from first, matching from second)**.
-        * The dialog will report matching rows (e.g. 350 of 7,000 employees matched). Click **OK**.
+        * The dialog will confirm at the bottom: **The selection matches 350 of 7000 rows from the first table.** Click **OK**.
      4. Scroll to the far right of `Dim_Employee` and locate the new table column. Click the **Expand icon (`↔`)** at the right of the header:
         * Uncheck *(Select All Columns)* $\to$ check **only `ExitDate`**.
         * Uncheck *Use original column name as prefix*.
@@ -569,6 +571,53 @@ This step walks through importing this normalized planning table directly from S
    * Go to **Add Column > Conditional Column** as `IsPassed`: If `Score` $\ge 70$ then `1`, Else `0`.
    * Add Custom Column as `CompletionDateKey`: `Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate])`.
    * Add Index Column as `CompletionKey`.
+
+---
+
+### Step 2.5b: Ingesting Talent Development Telemetry directly from Microsoft SQL Server (`raw.LMS_Certifications`) via GUI
+
+When ingesting LMS certifications from Microsoft SQL Server instead of a flat CSV file, follow this native SQL Server import workflow:
+
+#### 1. Connecting to SQL Server:
+1. In Power Query Editor, go to **Home > New Source > SQL Server**.
+2. In the connection dialog:
+   * **Server**: `localhost\SQLEXPRESS` (or `.` or your machine name).
+   * **Database**: `EnterpriseHR_DWH`.
+   * **Data Connectivity mode**: **Import** $\to$ click **OK**.
+
+#### 2. Selecting `raw.LMS_Certifications` in the Navigator:
+1. Expand `EnterpriseHR_DWH` $\to$ expand the **`raw`** schema folder.
+2. Check the checkbox next to **`LMS_Certifications`** (`[raw].[LMS_Certifications]`).
+3. The preview displays 7,197 records with columns: `EmployeeID`, `CourseID`, `CourseName`, `SkillDomain`, `CompletionDate`, `Score`, `Status`, `Cost_EGP`.
+4. Click **OK** (or **Transform Data**).
+
+#### 3. Power Query Cleansing, Scoring & Keys via GUI:
+1. In the **Queries** pane, rename `LMS_Certifications` to **`Fact_LMS_Certifications_SQL`** (or `Fact_TrainingCompletions`).
+2. **Setting Data Types Visually**:
+   * Click icon in header `EmployeeID` $\to$ **Text (`ABC`)**.
+   * Click icon in header `CourseID` $\to$ **Text (`ABC`)**.
+   * Click icon in header `CourseName` $\to$ **Text (`ABC`)**.
+   * Click icon in header `SkillDomain` $\to$ **Text (`ABC`)**.
+   * Click icon in header `CompletionDate` $\to$ **Date (`📅`)**.
+   * Click icon in header `Score` $\to$ **Whole Number (`123`)**.
+   * Click icon in header `Status` $\to$ **Text (`ABC`)**.
+   * Click icon in header `Cost_EGP` $\to$ **Fixed Decimal Number (`$`)**.
+3. **Deriving Boolean Pass Flag (`IsPassed`)**:
+   * Go to **Add Column > Conditional Column**.
+   * Column Name: `IsPassed`
+   * Rule: If `Status` equals `Completed` then `1`, Else `0`.
+   * Click **OK** $\to$ set type to **Whole Number (`123`)**.
+4. **Generating Date Key for Galaxy Schema Joining**:
+   * Go to **Add Column > Custom Column**.
+   * Column Name: `CompletionDateKey`
+   * Formula:
+     ```powerquery
+     Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate])
+     ```
+   * Click **OK** $\to$ set type to **Whole Number (`123`)**.
+5. **Adding Surrogate Primary Key**:
+   * Go to **Add Column > Index Column > From 1**.
+   * Rename to `CompletionKey` $\to$ set type to **Whole Number (`123`)**.
 
 ---
 
