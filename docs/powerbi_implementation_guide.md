@@ -612,16 +612,72 @@ This step walks through importing this normalized planning table directly from S
 
 #### 4. Architectural Note: Handling Mixed Granularity in Power BI & DAX
 > [!IMPORTANT]
-> **Resolving Mixed Granularity (Quarterly Budget vs Daily HR Events)**:
-> - **The Problem**: `Fact_DepartmentBudget` is at the grain of `Department + Branch + Quarter`, whereas `Fact_DailyAttendance` is `Employee + Day`. Creating a direct relationship between them creates a toxic many-to-many relationship.
-> - **The Solution**: Connect `Fact_DepartmentBudget` exclusively to conformed dimensions (`Dim_Department` on `DepartmentName`, `Dim_Branch` on `StandardizedBranch`, and `Dim_Date` on `DateKey`).
-> - **DAX Variance Analysis (`TREATAS`)**: When comparing actual payroll from `Fact_WorkforceSnapshot` with budgeted salary, compute variance dynamically in DAX without model ambiguity:
+> **Resolving Mixed Granularity (Quarterly Budget vs Daily/Monthly HR Events)**:
+> - **The Problem**: `Fact_DepartmentBudget` is at the grain of `Department + Branch + Quarter`, whereas `Fact_DailyAttendance` is `Employee + Day` and `Fact_WorkforceSnapshot` is `Employee + Month`. Creating a direct relationship between them creates a toxic many-to-many ambiguity.
+> - **The Solution**: Connect `Fact_DepartmentBudget` exclusively to conformed dimensions (`Dim_Department` on `DepartmentName`, `Dim_Branch` on `StandardizedBranch`, and `Dim_Date` on `DateKey`). Never join fact tables directly to each other!
+> - **DAX Variance Analysis (Relative Measures Architecture)**: To compute budget vs actual variance without errors, create the base measures first, then derive the relative variance and burn-rate measures:
+>
+>   **1. Base Measure — Actual Monthly Payroll (EGP)**:
+>   *(If using `Fact_WorkforceSnapshot`)*:
+>   ```dax
+>   Actual Monthly Payroll EGP = 
+>   SUM('Fact_WorkforceSnapshot'[BaseSalary])
+>   ```
+>   *(Or if using `Dim_Employee`)*:
+>   ```dax
+>   Actual Monthly Payroll EGP = 
+>   SUM('Dim_Employee'[الراتب الأساسي])
+>   ```
+>
+>   **2. Base Measure — Allocated Monthly Budget (EGP)**:
+>   *(Budgets are quarterly, so divide quarterly budget by 3 for monthly comparison)*:
+>   ```dax
+>   Allocated Monthly Salary Budget EGP = 
+>   DIVIDE(SUM('Fact_DepartmentBudget'[AllocatedSalaryBudget_EGP]), 3, 0)
+>   ```
+>   *(Note: If your column was imported from SQL Server `raw.Finance_Budget_Plan`, replace `[AllocatedSalaryBudget_EGP]` with `[Budget_EGP]`)*.
+>
+>   **3. Relative Measure — Budget Variance (EGP)**:
 >   ```dax
 >   Budget Variance EGP = 
->   VAR ActualPayroll = [Total Actual Base Salary EGP]
->   VAR PlannedBudget = SUM('Fact_DepartmentBudget'[Budget_EGP])
+>   VAR ActualPayroll = [Actual Monthly Payroll EGP]
+>   VAR MonthlyBudget = [Allocated Monthly Salary Budget EGP]
 >   RETURN
->       ActualPayroll - PlannedBudget
+>       IF(
+>           NOT(ISBLANK(ActualPayroll)) && NOT(ISBLANK(MonthlyBudget)),
+>           ActualPayroll - MonthlyBudget,
+>           BLANK()
+>       )
+>   ```
+>
+>   **4. Relative Measure — Budget Variance %**:
+>   ```dax
+>   Budget Variance Pct = 
+>   DIVIDE([Budget Variance EGP], [Allocated Monthly Salary Budget EGP], BLANK())
+>   ```
+>
+>   **5. Relative Measure — Payroll Burn Rate %**:
+>   ```dax
+>   Payroll Burn Rate Pct = 
+>   DIVIDE([Actual Monthly Payroll EGP], [Allocated Monthly Salary Budget EGP], BLANK())
+>   ```
+>
+>   **6. Relative Measure — Headcount Variance (Actual vs Target)**:
+>   ```dax
+>   Headcount Variance = 
+>   VAR ActualHC = COUNTROWS('Dim_Employee')
+>   VAR TargetHC = SUM('Fact_DepartmentBudget'[BudgetedHeadcount])
+>   RETURN
+>       IF(NOT(ISBLANK(TargetHC)), ActualHC - TargetHC, BLANK())
+>   ```
+>
+>   *(Optional: Standalone All-In-One Formula if you prefer a single measure without precursor measures)*:
+>   ```dax
+>   Budget Variance EGP = 
+>   VAR ActualPayroll = SUM('Dim_Employee'[الراتب الأساسي])
+>   VAR MonthlyBudget = DIVIDE(SUM('Fact_DepartmentBudget'[AllocatedSalaryBudget_EGP]), 3, 0)
+>   RETURN
+>       IF(NOT(ISBLANK(ActualPayroll)) && NOT(ISBLANK(MonthlyBudget)), ActualPayroll - MonthlyBudget, BLANK())
 >   ```
 
 ---
