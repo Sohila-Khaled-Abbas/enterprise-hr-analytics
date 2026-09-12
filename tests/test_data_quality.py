@@ -206,8 +206,8 @@ def test_impute_attendance_shift():
 
 
 def test_standardize_branch_name():
-    assert standardize_branch_name("القاهرة - المعادي") == "فرع المعادي"
-    assert standardize_branch_name("المعادى") == "فرع المعادي"
-    assert standardize_branch_name("مدينة نصر - الرئيسي") == "فرع مدينة نصر"
-    assert standardize_branch_name("اسكندرية سموحة") == "فرع الإسكندرية - سموحة"
-    assert standardize_branch_name("التجمع") == "فرع التجمع الخامس"
+    assert standardize_branch_name("القاهرة - المعادي") == "القاهرة - المعادي"
+    assert standardize_branch_name("المعادى") == "القاهرة - المعادي"
+    assert standardize_branch_name("اسكندرية سموحة") == "الإسكندرية - سموحة"
+    assert standardize_branch_name("التجمع") == "القاهرة - التجمع الخامس"
+    assert standardize_branch_name("الدقي") == "الجيزة - الدقي"

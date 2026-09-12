@@ -110,13 +110,20 @@ def run_pipeline():
     dim_branch = []
     branch_name_to_key = {}
     regions_map = {
-        "فرع المعادي": ("Greater Cairo", "Cairo"),
-        "فرع مدينة نصر": ("Greater Cairo", "Cairo"),
-        "فرع التجمع الخامس": ("Greater Cairo", "New Cairo"),
-        "فرع المهندسين": ("Greater Cairo", "Giza"),
-        "فرع الإسكندرية - سموحة": ("Alexandria & North", "Alexandria"),
-        "فرع أسيوط": ("Upper Egypt", "Asyut"),
-        "فرع المنصورة": ("Delta", "Mansoura"),
+        "القاهرة - المعادي": ("Greater Cairo", "Cairo"),
+        "القاهرة - التجمع الخامس": ("Greater Cairo", "New Cairo"),
+        "القاهرة - مصر الجديدة": ("Greater Cairo", "Cairo"),
+        "القاهرة - القرية الذكية": ("Greater Cairo", "Giza"),
+        "الجيزة - الدقي": ("Greater Cairo", "Giza"),
+        "الجيزة - 6 أكتوبر": ("Greater Cairo", "6th of October"),
+        "الجيزة - الشيخ زايد": ("Greater Cairo", "Sheikh Zayed"),
+        "الإسكندرية - سموحة": ("Alexandria & North", "Alexandria"),
+        "الإسكندرية - لوران": ("Alexandria & North", "Alexandria"),
+        "الدقهلية - المنصورة": ("Delta", "Mansoura"),
+        "الغربية - طنطا": ("Delta", "Tanta"),
+        "دمياط - دمياط الجديدة": ("Delta", "Damietta"),
+        "بورسعيد - الشرق": ("Canal Zone", "Port Said"),
+        "أسيوط - أسيوط الجديدة": ("Upper Egypt", "Asyut"),
     }
     for idx, b_name in enumerate(unique_branches, start=1):
         branch_name_to_key[b_name] = idx
