@@ -662,22 +662,54 @@ This step walks through importing this normalized planning table directly from S
 >   DIVIDE([Actual Monthly Payroll EGP], [Allocated Monthly Salary Budget EGP], BLANK())
 >   ```
 >
->   **6. Relative Measure — Headcount Variance (Actual vs Target)**:
+>   **6. Base Measure — Budgeted Target Headcount**:
+>   *(Note: For SQL Server `raw.Finance_Budget_Plan`, the column is `[Headcount]`. If unpivoted from Excel, it was named `[BudgetedHeadcount]`)*:
+>   ```dax
+>   Budgeted Target Headcount = 
+>   SUM('Fact_DepartmentBudget'[Headcount])
+>   ```
+>
+>   **7. Base Measure — Actual Headcount**:
+>   ```dax
+>   Actual Headcount = 
+>   COUNTROWS('Dim_Employee')
+>   ```
+>
+>   **8. Relative Measure — Headcount Variance (Actual vs Target)**:
 >   ```dax
 >   Headcount Variance = 
->   VAR ActualHC = COUNTROWS('Dim_Employee')
->   VAR TargetHC = SUM('Fact_DepartmentBudget'[BudgetedHeadcount])
+>   VAR ActualHC = [Actual Headcount]
+>   VAR TargetHC = [Budgeted Target Headcount]
 >   RETURN
 >       IF(NOT(ISBLANK(TargetHC)), ActualHC - TargetHC, BLANK())
 >   ```
 >
->   *(Optional: Standalone All-In-One Formula if you prefer a single measure without precursor measures)*:
+>   **9. Relative Measure — Headcount Variance %**:
+>   ```dax
+>   Headcount Variance Pct = 
+>   DIVIDE([Headcount Variance], [Budgeted Target Headcount], BLANK())
+>   ```
+>
+>   **10. Relative Measure — Headcount Fulfillment Rate %**:
+>   ```dax
+>   Headcount Fulfillment Pct = 
+>   DIVIDE([Actual Headcount], [Budgeted Target Headcount], BLANK())
+>   ```
+>
+>   *(Optional: Standalone All-In-One Formulas if you prefer single measures without precursor measures)*:
 >   ```dax
 >   Budget Variance EGP = 
 >   VAR ActualPayroll = SUM('Dim_Employee'[الراتب الأساسي])
->   VAR MonthlyBudget = DIVIDE(SUM('Fact_DepartmentBudget'[AllocatedSalaryBudget_EGP]), 3, 0)
+>   VAR MonthlyBudget = DIVIDE(SUM('Fact_DepartmentBudget'[Budget_EGP]), 3, 0)
 >   RETURN
 >       IF(NOT(ISBLANK(ActualPayroll)) && NOT(ISBLANK(MonthlyBudget)), ActualPayroll - MonthlyBudget, BLANK())
+>   ```
+>   ```dax
+>   Headcount Variance = 
+>   VAR ActualHC = COUNTROWS('Dim_Employee')
+>   VAR TargetHC = SUM('Fact_DepartmentBudget'[Headcount])
+>   RETURN
+>       IF(NOT(ISBLANK(TargetHC)), ActualHC - TargetHC, BLANK())
 >   ```
 
 ---
