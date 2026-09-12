@@ -300,14 +300,41 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
 4. Go to **Add Column > Index Column > From 1**. Rename to `BranchKey`.
 5. Go to **Add Column > Custom Column**. Name it `BranchID` with expression:
    `"BR-" & Text.PadStart(Text.From([BranchKey]), 3, "0")`
-6. **Adding Geographic Metadata via Conditional Column GUI**:
-   * Go to **Add Column > Conditional Column**. Set column name to `Region`.
-   * Configure rules:
-     * If `الفرع` equals `فرع الإسكندرية - سموحة` then `Alexandria & North`
-     * Else If `الفرع` equals `فرع أسيوط` then `Upper Egypt`
-     * Else If `الفرع` equals `فرع المنصورة` then `Delta`
+6. **Adding Geographic Metadata (`Region`) via Conditional Column GUI**:
+   Your table contains exactly 14 distinct branches:
+   * **Alexandria**: `الإسكندرية - لوران`, `الإسكندرية - سموحة`
+   * **Delta & Canal Zone**: `الدقهلية - المنصورة`, `الغربية - طنطا`, `دمياط - دمياط الجديدة`, `بورسعيد - الشرق`
+   * **Upper Egypt**: `أسيوط - أسيوط الجديدة`
+   * **Greater Cairo (Cairo & Giza)**: `القاهرة - المعادي`, `القاهرة - التجمع الخامس`, `القاهرة - مصر الجديدة`, `القاهرة - القرية الذكية`, `الجيزة - 6 أكتوبر`, `الجيزة - الشيخ زايد`, `الجيزة - الدقي`
+
+   * Go to **Add Column > Conditional Column**.
+   * Set **New column name**: `Region`
+   * Set **Column Name**: `الفرع`
+   * Configure the dialog rules using either approach:
+
+     **Method A: Using "begins with" (Recommended - Fast & Clean)**:
+     * If `الفرع` **begins with** `الإسكندرية` then `Alexandria & North`
+     * Else If `الفرع` **begins with** `أسيوط` then `Upper Egypt`
+     * Else If `الفرع` **begins with** `الدقهلية` then `Delta`
+     * Else If `الفرع` **begins with** `الغربية` then `Delta`
+     * Else If `الفرع` **begins with** `دمياط` then `Delta`
+     * Else If `الفرع` **begins with** `بورسعيد` then `Canal Zone`
+     * Else `Greater Cairo` *(covers all 7 Cairo and Giza branches automatically)*
+
+     **Method B: Using exact "equals" matching your 14 rows**:
+     * If `الفرع` **equals** `الإسكندرية - لوران` then `Alexandria & North`
+     * Else If `الفرع` **equals** `الإسكندرية - سموحة` then `Alexandria & North`
+     * Else If `الفرع` **equals** `أسيوط - أسيوط الجديدة` then `Upper Egypt`
+     * Else If `الفرع` **equals** `الدقهلية - المنصورة` then `Delta`
+     * Else If `الفرع` **equals** `الغربية - طنطا` then `Delta`
+     * Else If `الفرع` **equals** `دمياط - دمياط الجديدة` then `Delta`
+     * Else If `الفرع` **equals** `بورسعيد - الشرق` then `Canal Zone`
      * Else `Greater Cairo`
-   * Click **OK**. Rename `الفرع` to `BranchName`.
+
+7. Click **OK**. Set the data type of `Region` to **Text**.
+8. Click the column header **`الفرع`** $\to$ right-click $\to$ select **Rename** $\to$ rename it to `BranchName`.
+9. *(Optional)* Add physical desk capacity for branch occupancy stress analytics:
+   * Go to **Add Column > Custom Column** $\to$ Name: `Capacity` $\to$ Formula: `250` $\to$ set type to **Whole Number (`123`)**.
 
 ---
 
