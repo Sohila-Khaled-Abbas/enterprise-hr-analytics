@@ -985,6 +985,71 @@ Before committing all queries to the Power BI Tabular Engine, verify that your d
 > 2. **Always Filter Downward Through Dimensions**: Slicers on `Dim_Department[DepartmentName]`, `Dim_Branch[Region]`, or `Dim_Date[FiscalQuarter]` propagate naturally to all 4 fact tables simultaneously.
 > 3. **Single Cross-Filter Direction (`→`)**: Keep all relationship cross-filtering set to **Single**. Bidirectional filtering introduces ambiguous filter paths and severe performance degradation on large datasets.
 
+---
+
+### ⚠️ Deep Dive: Resolving the "One to One (1:1) Both" Auto-Detection Trap
+
+When connecting `Fact_WorkforceSnapshot` to `Dim_Employee` on `EmployeeKey` in Power BI Desktop's **New Relationship** dialog, Power BI will frequently auto-detect:
+* **Cardinality**: `One to one (1:1)`
+* **Cross-filter direction**: `Both`
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ New relationship Dialog (Power BI Desktop)                                             │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ From table: [ Fact_WorkforceSnapshot ]  ->  Column: [ EmployeeKey ]                    │
+│ To table:   [ Dim_Employee           ]  ->  Column: [ EmployeeKey ]                    │
+│                                                                                        │
+│ Cardinality:            [ One to one (1:1)               ▼ ]  <-- ⚠️ ANTI-PATTERN      │
+│ Cross-filter direction: [ Both                           ▼ ]  <-- ⚠️ AMBIGUOUS FILTER  │
+│ [✔] Make this relationship active                                                      │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Why Does Power BI Auto-Detect `One to one (1:1)`?
+Power BI samples the distinct values of `EmployeeKey` in both tables:
+1. In `Dim_Employee`, each employee appears once (7,000 unique keys, `1` to `7000`).
+2. In the initial baseline snapshot of `Fact_WorkforceSnapshot`, there is currently **1 single monthly census cutoff** (`SnapshotDateKey = 20260228`). Thus, each employee also appears exactly once (7,000 unique keys).
+3. Because both sides of the join have unique keys in the sample, Power BI heuristically assumes this is a 1:1 relationship with bidirectional cross-filtering.
+
+#### Why `1:1 Both` is a Dangerous Modeling Anti-Pattern:
+1. **Breaks Future Scheduled Refreshes**: A **Periodic Snapshot Fact Table** by definition accumulates multiple periodic snapshots over time (e.g. Month 1, Month 2, Month 3). As soon as the next month's census is appended, `EmployeeKey` will have duplicate values in `Fact_WorkforceSnapshot`. A `1:1` relationship will **immediately crash your scheduled refresh** with:
+   > *"Column 'EmployeeKey' in Table 'Fact_WorkforceSnapshot' contains duplicate values, which is not allowed for the 'one' side of a one-to-one relationship."*
+2. **Bidirectional Filter Ambiguity (`Both`)**: `Both` cross-filtering allows filter propagation from the fact table back up into the dimension, and sideways into `Fact_DailyAttendance` and `Fact_DepartmentBudget`. This causes circular evaluation loops, inaccurate measure totals, and VertiPaq memory bloat.
+
+---
+
+#### Solution 1: Direct Override in the Relationship Dialog (Recommended & Standard)
+Power BI **always permits** defining a `Many to one (*:1)` relationship even if the "Many" table currently contains only distinct values:
+1. In the **New relationship** (or **Edit relationship**) dialog:
+   * Click the **Cardinality** dropdown $\to$ select **`Many to one (*:1)`** (with `Fact_WorkforceSnapshot` on the Many `*` side, and `Dim_Employee` on the One `1` side).
+   * Click the **Cross-filter direction** dropdown $\to$ select **`Single`** (filter propagates from `Dim_Employee` $\to$ `Fact_WorkforceSnapshot`).
+   * Ensure **Make this relationship active** is checked.
+   * Click **Save**.
+2. Power BI saves this explicitly in the tabular model (TMDL), guaranteeing that future monthly snapshots will ingest seamlessly without breaking.
+
+---
+
+#### Solution 2: Fixing It at the Source in Power Query GUI (Multi-Period Snapshot)
+If you want Power BI's automatic relationship engine to organically detect `Many to one (*:1)` out of the box, `Fact_WorkforceSnapshot` must contain records for **more than one reporting period** so that `EmployeeKey` naturally has duplicate occurrences across different dates:
+
+##### Step-by-Step Power Query GUI Clickpath:
+1. Open **Power Query Editor** (**Home > Transform Data**).
+2. In the **Queries** pane, locate `Fact_WorkforceSnapshot`.
+3. Right-click `Fact_WorkforceSnapshot` $\to$ select **Duplicate**.
+4. Rename the duplicated query to `Stg_Snapshot_PreviousMonth`.
+5. In `Stg_Snapshot_PreviousMonth`:
+   * Click the **Added Custom** step for `SnapshotDateKey` (or go to **Transform > Replace Values**).
+   * Change `SnapshotDateKey` from `20260228` to `20260131` (January 2026 cutoff).
+   * *(Optional)*: In `TenureMonths`, go to **Transform > Standard > Subtract** $\to$ enter `1`.
+6. Select the primary **`Fact_WorkforceSnapshot`** query.
+7. Go to **Home ribbon > Append Queries > Append Queries**.
+8. In the dialog, select `Stg_Snapshot_PreviousMonth` $\to$ click **OK**.
+9. `Fact_WorkforceSnapshot` now contains **14,000 records** (7,000 for Jan 2026 + 7,000 for Feb 2026). Each `EmployeeKey` appears twice across two distinct `SnapshotDateKey`s.
+10. In the **Queries** pane, right-click `Stg_Snapshot_PreviousMonth` $\to$ uncheck **Enable Load** (keeps it as an internal ETL staging step).
+11. Click **Home > Close & Apply**.
+12. When you drag `Fact_WorkforceSnapshot[EmployeeKey]` onto `Dim_Employee[EmployeeKey]`, Power BI detects multiple instances per employee and **automatically sets Cardinality to `Many to one (*:1)` and Cross-filter direction to `Single`**!
+
 #### Production M Code: `Fact_WorkforceSnapshot`
 ```powerquery
 let
