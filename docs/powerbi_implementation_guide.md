@@ -367,6 +367,27 @@ Open Power BI Desktop and click **Home > Transform Data** to launch Power Query 
    * Go to **Add Column > Custom Column**. Name it `AccessDateKey`.
    * Expression: `Date.Year([AccessDate]) * 10000 + Date.Month([AccessDate]) * 100 + Date.Day([AccessDate])`. Set type to **Whole Number**.
 10. Go to **Add Column > Index Column > From 1**. Name it `AttendanceKey`. Rename query to `Fact_DailyAttendance`.
+11. **Looking up Surrogate Foreign Key (`EmployeeKey`) via GUI Merge Queries (⭐ Kimball Standard)**:
+    > [!IMPORTANT]
+    > **Why `EmployeeKey` is Not in the Raw Attendance File**:
+    > `Fact_DailyAttendance` arrives from IoT badge readers with the natural text identifier **`EmployeeID`** (e.g. `EMP-10001` through `EMP-17000`), whereas `Dim_Employee` has both the natural identifier **`الرقم التعريفي`** and the integer surrogate primary key **`EmployeeKey`**. To connect them on `EmployeeKey` in Power BI Model View, look up `EmployeeKey` in Power Query via this 4-click GUI merge:
+    >
+    > 1. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+    > 2. In the top table (`Fact_DailyAttendance`), click the column header **`EmployeeID`**.
+    > 3. In the lower dropdown, select **`Dim_Employee`** $\to$ click the column header **`الرقم التعريفي`** (Arabic employee code).
+    > 4. Join Kind: **Left Outer (all from first, matching from second)** $\to$ notice the green checkmark: *"The selection matches all rows"* $\to$ click **OK**.
+    > 5. A new column named `Dim_Employee` with `[Table]` links appears on the far right. Click the **Expand icon (`↔`)** at the top right of the column header:
+    >    * **Uncheck** *(Select All Columns)*.
+    >    * **Check ONLY** **`EmployeeKey`**.
+    >    * **Uncheck** *Use original column name as prefix*.
+    >    * Click **OK**.
+    > 6. Click the data type icon in the new `EmployeeKey` column header $\to$ choose **Whole Number (`123`)**.
+    > 7. *(Optional)*: Drag `EmployeeKey` to the left next to `AttendanceKey` or `EmployeeID`.
+
+12. **(Optional) Looking up / Deriving `BranchKey` via GUI**:
+    * If connecting `Fact_DailyAttendance` directly to `Dim_Branch` on physical access location:
+      * **Method A (Arithmetic from `BuildingID`)**: Go to **Add Column > Custom Column** $\to$ Name: `BranchKey` $\to$ Expression: `if Text.StartsWith([BuildingID], "BLD-") then Value.FromText(Text.End([BuildingID], 3)) else null` $\to$ set type to **Whole Number (`123`)**. *(Maps `BLD-001` through `BLD-014` to integer branch keys 1 through 14)*.
+      * **Method B (Employee Assigned Home Branch)**: In the Step 11 Merge with `Dim_Employee`, check both **`EmployeeKey`** and **`الفرع`** $\to$ then merge with `Dim_Branch` on `الفرع = BranchName` to expand `BranchKey`.
 
 ---
 
@@ -449,6 +470,16 @@ This step guides you through connecting Power BI Desktop directly to Microsoft S
      Date.Year([AccessDate]) * 10000 + Date.Month([AccessDate]) * 100 + Date.Day([AccessDate])
      ```
    * Click **OK** $\to$ set type to **Whole Number (`123`)**.
+8. **Looking up Surrogate Foreign Key (`EmployeeKey`) via GUI Merge Queries**:
+   * In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+   * Top table (`Fact_Badge_Access_Logs_SQL` / `Fact_DailyAttendance`): click header **`EmployeeID`**.
+   * Lower table dropdown: select **`Dim_Employee`** $\to$ click header **`الرقم التعريفي`**.
+   * Join Kind: **Left Outer** $\to$ click **OK**.
+   * In the new `Dim_Employee` column, click the **Expand icon (`↔`)**:
+     * Check ONLY **`EmployeeKey`**.
+     * Uncheck *Use original column name as prefix*.
+     * Click **OK**.
+   * Set the data type of `EmployeeKey` to **Whole Number (`123`)**.
 
 > [!TIP]
 > **Query Folding Advantage**: Because this query connects directly to Microsoft SQL Server via `Sql.Database()`, transformations like column selection and type casting are automatically translated into optimized T-SQL statements executed on the SQL Server instance, accelerating Power BI data refreshes and minimizing memory usage.
@@ -1088,6 +1119,49 @@ Before committing all queries to the Power BI Tabular Engine, verify that your d
 > 1. **Never Create Direct Fact-to-Fact Relationships**: Joining `Fact_DailyAttendance` directly to `Fact_WorkforceSnapshot` or `Fact_DepartmentBudget` creates a toxic Many-to-Many circular path resulting in double-counting and VertiPaq memory exhaustion.
 > 2. **Always Filter Downward Through Dimensions**: Slicers on `Dim_Department[DepartmentName]`, `Dim_Branch[Region]`, or `Dim_Date[FiscalQuarter]` propagate naturally to all 4 fact tables simultaneously.
 > 3. **Single Cross-Filter Direction (`→`)**: Keep all relationship cross-filtering set to **Single**. Bidirectional filtering introduces ambiguous filter paths and severe performance degradation on large datasets.
+
+---
+
+### ⚠️ Deep Dive: Resolving Missing `EmployeeKey` in `Fact_DailyAttendance` via GUI
+
+When establishing the relationship between `Fact_DailyAttendance` and `Dim_Employee` in Power BI Desktop **Model View**, you may find that you cannot locate **`EmployeeKey`** inside `Fact_DailyAttendance`.
+
+**Why this occurs**: The raw IoT badge event logs arrive with the business string key **`EmployeeID`** (e.g. `EMP-10001` .. `EMP-17000`), whereas the numeric surrogate key **`EmployeeKey`** (integers `1` through `7000`) was generated as an index inside `Dim_Employee`.
+
+You have two simple ways to resolve this in the Power BI GUI:
+
+#### Method A: Add `EmployeeKey` via Power Query GUI Merge (Recommended Kimball Standard ⭐)
+This keeps your Galaxy Schema pure with integer surrogate keys across all relationships:
+1. In Power BI Desktop, click **Home > Transform Data** to open Power Query Editor.
+2. In the left **Queries** pane, select **`Fact_DailyAttendance`** (or `Fact_Badge_Access_Logs_SQL`).
+3. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+4. In the **Merge** dialog window:
+   * Select **`Fact_DailyAttendance`** (top table) $\to$ click the **`EmployeeID`** column header.
+   * Select **`Dim_Employee`** (bottom dropdown) $\to$ click the **`الرقم التعريفي`** column header (which holds `EMP-10001` .. `EMP-17000`).
+   * **Join Kind**: **Left Outer (all from first, matching from second)**.
+   * The status indicator at the bottom will confirm: *"The selection matches all rows from the first table"*.
+   * Click **OK**.
+5. In the table preview, scroll to the far right $\to$ locate the new column named **`Dim_Employee`** containing `[Table]` links.
+6. Click the **Expand Column icon (`↔`)** at the top right of the `Dim_Employee` header:
+   * **Uncheck** *(Select All Columns)*.
+   * **Check ONLY** **`EmployeeKey`**.
+   * **Uncheck** *Use original column name as prefix*.
+   * Click **OK**.
+7. Click the data type icon next to the new `EmployeeKey` header $\to$ select **Whole Number (`123`)**.
+8. *(Optional)*: If you also want to relate to `Dim_Branch`, you can derive `BranchKey` using **Add Column > Custom Column**:
+   `if Text.StartsWith([BuildingID], "BLD-") then Value.FromText(Text.End([BuildingID], 3)) else null` (set type to **Whole Number (`123`)**).
+9. Click **Home > Close & Apply**.
+10. Switch to Power BI Desktop **Model View**:
+    * Drag **`Fact_DailyAttendance[EmployeeKey]`** onto **`Dim_Employee[EmployeeKey]`**.
+    * Power BI creates a clean **Many-to-One (`*:1`)** relationship with **Single** cross-filter direction!
+
+#### Method B: Direct Relationship on Natural Keys in Model View (Zero Power Query Steps Needed)
+If you prefer not to add an extra merge step in Power Query:
+1. Switch to Power BI Desktop **Model View**.
+2. Locate the **`Fact_DailyAttendance`** table card and the **`Dim_Employee`** table card.
+3. Drag **`Fact_DailyAttendance[EmployeeID]`** directly onto **`Dim_Employee[الرقم التعريفي]`**.
+4. Because each employee code appears exactly once in `Dim_Employee` (7,000 unique rows), Power BI will automatically create a valid **Many-to-One (`*:1`)** relationship with **Single** cross-filter direction (`Fact_DailyAttendance` $\to$ `Dim_Employee`).
+5. All DAX measures and dimension slicers (`Dim_Employee[القسم]`, `Dim_Employee[الفرع]`, `Dim_Employee[AgeBand]`) will filter attendance records seamlessly!
 
 ---
 
