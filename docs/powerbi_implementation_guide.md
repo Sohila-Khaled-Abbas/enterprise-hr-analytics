@@ -937,17 +937,59 @@ When building the data mart directly inside Power BI without relying on pre-proc
          Number.IntegerDivide(Duration.TotalDays(SnapshotDate - HireDate), 30.4375)
      ```
    * Set type to **Whole Number (`123`)**.
-7. **Clean Up Helper Column & Add Surrogate PK**:
+7. **Look up Surrogate Foreign Keys (`DepartmentKey` & `BranchKey`) via GUI Merge**:
+   > [!NOTE]
+   > Because `Fact_WorkforceSnapshot` was referenced from `Dim_Employee`, it initially contains the raw Arabic department and branch text names (`القسم` and `الفرع`) rather than integer keys. To establish integer relationships with `Dim_Department` and `Dim_Branch`, perform these two quick GUI merges:
+
+   * **A. Looking up `DepartmentKey` from `Dim_Department`**:
+     1. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+     2. In the top table (`Fact_WorkforceSnapshot`), click the header **`القسم`**.
+     3. In the dropdown below, select **`Dim_Department`** $\to$ click the header **`DepartmentName`** (or `القسم`).
+     4. Join Kind: **Left Outer (all from first, matching from second)** $\to$ click **OK**.
+     5. A new column `Dim_Department` with `[Table]` links appears on the far right. Click the **Expand icon (`↔`)** at the top right of the header:
+        * Uncheck *(Select All Columns)* $\to$ check only **`DepartmentKey`**.
+        * Uncheck *Use original column name as prefix*.
+        * Click **OK**.
+     6. Set the data type of `DepartmentKey` to **Whole Number (`123`)**.
+
+   * **B. Looking up `BranchKey` from `Dim_Branch`**:
+     1. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+     2. In `Fact_WorkforceSnapshot`, click the header **`الفرع`**.
+     3. In the dropdown below, select **`Dim_Branch`** $\to$ click the header **`BranchName`** (or `الفرع`).
+     4. Join Kind: **Left Outer** $\to$ click **OK**.
+     5. In the new `Dim_Branch` column header, click the **Expand icon (`↔`)**:
+        * Check only **`BranchKey`**.
+        * Uncheck *Use original column name as prefix*.
+        * Click **OK**.
+     6. Set the data type of `BranchKey` to **Whole Number (`123`)**.
+     7. *(Optional Clean-Up)*: Select headers **`القسم`** and **`الفرع`** $\to$ right-click $\to$ select **Remove** (their dimensions now provide these names).
+
+8. **Clean Up Helper Column & Add Surrogate PK**:
    * Right-click the `MonthOffset` column header $\to$ select **Remove**.
    * Go to **Add Column > Index Column > From 1**. Rename to `SnapshotKey`. Drag `SnapshotKey` to the far left $\to$ set type to **Whole Number (`123`)**.
-8. **Verify Column Data Types**:
+9. **Verify Column Data Types**:
+   * `SnapshotKey`: **Whole Number (`123`)**
+   * `SnapshotDateKey`: **Whole Number (`123`)**
+   * `EmployeeKey`: **Whole Number (`123`)**
+   * `DepartmentKey`: **Whole Number (`123`)**
+   * `BranchKey`: **Whole Number (`123`)**
    * `BaseSalary` (`الراتب الأساسي`): **Fixed Decimal Number (`$`)**
    * `AnnualPerformanceRating` (`تقييم الأداء السنوي`): **Decimal Number (`1.2`)**
    * `EmploymentStatus`: **Text (`ABC`)**
-9. Click **Home > Close & Apply**.
-10. In Power BI Desktop **Model View**, drag `Fact_WorkforceSnapshot[EmployeeKey]` onto `Dim_Employee[EmployeeKey]`:
-    * Power BI detects 21,000 records on the snapshot side and 7,000 on the dimension side.
-    * **Cardinality automatically locks to `Many to one (*:1)`** and **Cross-filter direction locks to `Single`**!
+10. Click **Home > Close & Apply**.
+11. In Power BI Desktop **Model View**, establish the Galaxy Schema relationships:
+    * Drag `Fact_WorkforceSnapshot[EmployeeKey]` $\to$ `Dim_Employee[EmployeeKey]` (`Many-to-One (*:1)`, Single)
+    * Drag `Fact_WorkforceSnapshot[DepartmentKey]` $\to$ `Dim_Department[DepartmentKey]` (`Many-to-One (*:1)`, Single)
+    * Drag `Fact_WorkforceSnapshot[BranchKey]` $\to$ `Dim_Branch[BranchKey]` (`Many-to-One (*:1)`, Single)
+    * Drag `Fact_WorkforceSnapshot[SnapshotDateKey]` $\to$ `Dim_Date[DateKey]` (`Many-to-One (*:1)`, Single)
+
+> [!TIP]
+> **Alternative: Relating Directly on Natural Text Keys (Zero Merge Required)**:
+> If you prefer not to perform the merges in Power Query and want to keep your existing columns:
+> * You can connect directly in the **Model View** using the text columns:
+>   * `Fact_WorkforceSnapshot[القسم]` $\to$ `Dim_Department[DepartmentName]` (`Many-to-One (*:1)`, Single)
+>   * `Fact_WorkforceSnapshot[الفرع]` $\to$ `Dim_Branch[BranchName]` (`Many-to-One (*:1)`, Single)
+> * Both `DepartmentName` and `BranchName` are unique in their respective dimension tables, so Power BI creates valid `Many-to-One (*:1)` relationships directly without any errors. However, adding `DepartmentKey` and `BranchKey` via Merge Queries is the Kimball enterprise standard.
 
 > [!TIP]
 > **What if You Prefer Only a Single Month's Snapshot?**
