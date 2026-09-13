@@ -873,34 +873,53 @@ Click the data type icon in each column header and verify:
 * `IsSalaryCompressed`: **Whole Number (`123`)** *(Boolean flag: `1` if tenured employee suffers wage compression)*
 * `EmploymentStatus`: **Text (`ABC`)** *(`Active`, `OnLeave`, or `Separated`)*
 
-#### 3. Alternative GUI Method: Deriving `Fact_WorkforceSnapshot` from `Dim_Employee` Reference Query
-If building directly inside Power BI without pre-processed CSVs:
-1. In the **Queries** pane, right-click `Dim_Employee` $\to$ select **Reference**. Rename query to `Fact_WorkforceSnapshot_Derived`.
-2. **Select Relevant Analytical Columns**:
-   * Click **Choose Columns** in the **Home** ribbon.
-   * Check: `EmployeeKey`, `الرقم التعريفي`, `القسم`, `الفرع`, `الراتب الأساسي`, `تقييم الأداء السنوي`, `تاريخ التعيين`, `EmploymentStatus`.
-3. **Add Dynamic Snapshot Date Key (`SnapshotDateKey`)**:
-   * Go to **Add Column > Custom Column**. Name: `SnapshotDateKey`.
-   * **Dynamic Formula (Auto-computes the latest closed month-end reporting cutoff)**:
+#### 3. Recommended GUI Method: Deriving `Fact_WorkforceSnapshot` from `Dim_Employee` Reference Query
+
+When building the data mart directly inside Power BI without relying on pre-processed CSVs or direct SQL marts, deriving `Fact_WorkforceSnapshot` via a **Reference Query** from `Dim_Employee` is the standard enterprise design pattern.
+
+> [!IMPORTANT]
+> **Why Reference Queries Initially Trigger the "One-to-One (1:1) Both" Trap**:
+> When you right-click `Dim_Employee` and select **Reference**, the new query inherits the exact same 7,000 employee rows. If you leave it with only 1 snapshot cutoff date, both tables have identical 7,000 `EmployeeKey`s, causing Power BI to mistakenly default to `One to one (1:1)` with bidirectional `Both` filtering.
+> 
+> By adding dynamic **Multi-Period Snapshot Expansion** (Steps 3 & 4 below), each employee dynamically receives 3 rolling monthly snapshot records (21,000 rows total). This guarantees that Power BI's relationship engine **automatically and permanently detects Cardinality as `Many to one (*:1)` and Cross-filter direction as `Single`** with zero chance of refresh failure!
+
+##### Step-by-Step GUI Clickpath:
+1. In the **Queries** pane, right-click `Dim_Employee` $\to$ select **Reference**.
+2. Rename the new query to **`Fact_WorkforceSnapshot`**.
+3. **Select Relevant Analytical & Metric Columns**:
+   * Go to **Home ribbon > Choose Columns**.
+   * Select: `EmployeeKey`, `الرقم التعريفي`, `القسم`, `الفرع`, `الراتب الأساسي`, `تقييم الأداء السنوي`, `تاريخ التعيين`, `EmploymentStatus`.
+   * Click **OK**.
+4. **Generate Dynamic Multi-Period Snapshot Horizons (`{0..2}`)**:
+   * Go to **Add Column > Custom Column**.
+   * **Column Name**: `MonthOffset`
+   * **Formula**:
+     ```powerquery
+     {0..2}
+     ```
+     *(Generates a dynamic in-memory list: `0` = current closed month, `1` = 1 month prior, `2` = 2 months prior).*
+   * Click **OK**.
+   * In the `MonthOffset` column header, click the **Expand icon (`↔`)** $\to$ select **Expand to New Rows**.
+   * The query dynamically expands from 7,000 rows to **21,000 rows**!
+5. **Add Dynamic `SnapshotDateKey` (Anchored to `MonthOffset`)**:
+   * Go to **Add Column > Custom Column**.
+   * **Column Name**: `SnapshotDateKey`
+   * **Dynamic Formula**:
      ```powerquery
      let
          Today = DateTime.Date(DateTime.LocalNow()),
-         Cutoff = Date.EndOfMonth(Date.AddMonths(Today, -1))
+         SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset]))
      in
-         Date.Year(Cutoff) * 10000 + Date.Month(Cutoff) * 100 + Date.Day(Cutoff)
-     ```
-     *(Alternative single-line expression)*:
-     ```powerquery
-     Date.Year(Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1))) * 10000 + Date.Month(Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1))) * 100 + Date.Day(Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)))
+         Date.Year(SnapshotDate) * 10000 + Date.Month(SnapshotDate) * 100 + Date.Day(SnapshotDate)
      ```
    * Set type to **Whole Number (`123`)**.
-
-4. **Calculate Dynamic Tenure in Years & Months (Anchored to Dynamic Snapshot Date)**:
+6. **Calculate Dynamic Tenure in Years & Months (Anchored to Snapshot Date)**:
    * Go to **Add Column > Custom Column**. Name: `TenureYears`.
    * **Dynamic Formula**:
      ```powerquery
      let
-         SnapshotDate = Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)),
+         Today = DateTime.Date(DateTime.LocalNow()),
+         SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset])),
          HireDate = DateTime.Date([تاريخ التعيين])
      in
          Number.Round(Duration.TotalDays(SnapshotDate - HireDate) / 365.25, 2)
@@ -911,16 +930,28 @@ If building directly inside Power BI without pre-processed CSVs:
    * **Dynamic Formula**:
      ```powerquery
      let
-         SnapshotDate = Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)),
+         Today = DateTime.Date(DateTime.LocalNow()),
+         SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset])),
          HireDate = DateTime.Date([تاريخ التعيين])
      in
          Number.IntegerDivide(Duration.TotalDays(SnapshotDate - HireDate), 30.4375)
      ```
    * Set type to **Whole Number (`123`)**.
+7. **Clean Up Helper Column & Add Surrogate PK**:
+   * Right-click the `MonthOffset` column header $\to$ select **Remove**.
+   * Go to **Add Column > Index Column > From 1**. Rename to `SnapshotKey`. Drag `SnapshotKey` to the far left $\to$ set type to **Whole Number (`123`)**.
+8. **Verify Column Data Types**:
+   * `BaseSalary` (`الراتب الأساسي`): **Fixed Decimal Number (`$`)**
+   * `AnnualPerformanceRating` (`تقييم الأداء السنوي`): **Decimal Number (`1.2`)**
+   * `EmploymentStatus`: **Text (`ABC`)**
+9. Click **Home > Close & Apply**.
+10. In Power BI Desktop **Model View**, drag `Fact_WorkforceSnapshot[EmployeeKey]` onto `Dim_Employee[EmployeeKey]`:
+    * Power BI detects 21,000 records on the snapshot side and 7,000 on the dimension side.
+    * **Cardinality automatically locks to `Many to one (*:1)`** and **Cross-filter direction locks to `Single`**!
 
-5. **Add Surrogate Primary Key**:
-   * Go to **Add Column > Index Column > From 1**. Rename to `SnapshotKey`.
-   * Drag `SnapshotKey` to the far left.
+> [!TIP]
+> **What if You Prefer Only a Single Month's Snapshot?**
+> If you prefer not to expand across multiple months and keep exactly 7,000 rows, skip Step 4 (`MonthOffset`). When creating the relationship in Power BI Desktop's **New Relationship** dialog, simply click the **Cardinality** dropdown $\to$ select **`Many to one (*:1)`**, and set **Cross-filter direction** $\to$ **`Single`**. Power BI fully supports this and will never revert.
 
 ---
 
