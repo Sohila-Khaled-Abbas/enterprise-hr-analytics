@@ -832,9 +832,188 @@ in
     #"Added IsCurrentYear"
 ```
 
-Click **Home > Close & Apply** to commit all tables to the tabular model!
+---
+
+### Step 2.7: Ingesting Periodic Workforce Snapshot (`Fact_WorkforceSnapshot`) via GUI
+
+#### Architectural Context: The Periodic Snapshot Fact Table
+In Kimball dimensional architecture, human capital analytics requires distinguishing between:
+1. **Transaction Fact Tables** (`Fact_DailyAttendance`, `Fact_TrainingCompletions`): Record discrete, instantaneous events (badge swipes, exam completions).
+2. **Accumulating Snapshot Fact Tables** (`Fact_DepartmentBudget`): Track finite planning horizons with quarterly milestones.
+3. **Periodic Snapshot Fact Tables (`Fact_WorkforceSnapshot`)**: Capture point-in-time states of all active entities at regular reporting intervals (e.g., monthly census cutoff).
+
+`Fact_WorkforceSnapshot` forms the analytical spine for:
+* **Diagnostic 1 (Salary Compression & Flight Risk Index)**: Quantifies wage inversion (tenured employees earning below newly hired peers in the same job role).
+* **Diagnostic 3 (Ghost Worker Audits)**: Serves as the authoritative payroll denominator to cross-reference against physical turnstile entries in `Fact_DailyAttendance`.
+* **Diagnostic 5 (Survivorship Bias & Attrition Velocity)**: Enables cohort tracking of performance ratings before employees resign.
+* **Diagnostic 6 (Equal Pay & Compensation Parity)**: Computes percentile distributions and wage parity across organizational levels.
+
+* **Grain**: Exactly 1 row per employee per monthly snapshot period (`EmployeeKey` + `SnapshotDateKey`).
+* **Source Path**: `data/processed/Fact_WorkforceSnapshot.csv`.
+
+#### 1. Ingesting `Fact_WorkforceSnapshot.csv` via Power Query Ribbon:
+1. In Power Query Editor, go to the **Home** ribbon tab.
+2. Click **New Source > Text/CSV** $\to$ navigate to `data/processed/Fact_WorkforceSnapshot.csv` $\to$ click **Open**.
+3. In the preview dialog, ensure **File Origin** is set to `65001: Unicode (UTF-8)` and **Delimiter** is `Comma`.
+4. Click **OK** (or **Transform Data**).
+5. In the **Queries** pane, rename the query to **`Fact_WorkforceSnapshot`**.
+
+#### 2. Visual Data Type Casting via Column Headers:
+Click the data type icon in each column header and verify:
+* `SnapshotKey`: **Whole Number (`123`)** *(Surrogate Primary Key)*
+* `SnapshotDateKey`: **Whole Number (`123`)** *(FK to `Dim_Date.DateKey`)*
+* `EmployeeKey`: **Whole Number (`123`)** *(FK to `Dim_Employee.EmployeeKey`)*
+* `DepartmentKey`: **Whole Number (`123`)** *(FK to `Dim_Department.DepartmentKey`)*
+* `BranchKey`: **Whole Number (`123`)** *(FK to `Dim_Branch.BranchKey`)*
+* `BaseSalary`: **Fixed Decimal Number (`$`)** *(Monthly compensation in EGP)*
+* `AnnualPerformanceRating`: **Decimal Number (`1.2`)** *(Appraisal score: 1.00 to 5.00)*
+* `TenureMonths`: **Whole Number (`123`)** *(Cumulative service in whole months)*
+* `TenureYears`: **Decimal Number (`1.2`)** *(Exact decimal tenure, e.g. 3.42)*
+* `SalaryPercentileInRole`: **Decimal Number (`1.2`)** *(Percentile rank: 0.0000 to 1.0000)*
+* `IsSalaryCompressed`: **Whole Number (`123`)** *(Boolean flag: `1` if tenured employee suffers wage compression)*
+* `EmploymentStatus`: **Text (`ABC`)** *(`Active`, `OnLeave`, or `Separated`)*
+
+#### 3. Alternative GUI Method: Deriving `Fact_WorkforceSnapshot` from `Dim_Employee` Reference Query
+If building directly inside Power BI without pre-processed CSVs:
+1. In the **Queries** pane, right-click `Dim_Employee` $\to$ select **Reference**. Rename query to `Fact_WorkforceSnapshot_Derived`.
+2. **Select Relevant Analytical Columns**:
+   * Click **Choose Columns** in the **Home** ribbon.
+   * Check: `EmployeeKey`, `الرقم التعريفي`, `القسم`, `الفرع`, `الراتب الأساسي`, `تقييم الأداء السنوي`, `تاريخ التعيين`, `EmploymentStatus`.
+3. **Add Snapshot Date Key**:
+   * Go to **Add Column > Custom Column**. Name: `SnapshotDateKey`.
+   * Expression: `20260228` (or current monthly cutoff). Set type to **Whole Number**.
+4. **Calculate Tenure in Years & Months**:
+   * Go to **Add Column > Custom Column**. Name: `TenureYears`.
+   * Formula: `Number.Round(Duration.TotalDays(#date(2026, 2, 28) - DateTime.Date([تاريخ التعيين])) / 365.25, 2)`. Set type to **Decimal Number**.
+   * Go to **Add Column > Custom Column**. Name: `TenureMonths`.
+   * Formula: `Number.IntegerDivide(Duration.TotalDays(#date(2026, 2, 28) - DateTime.Date([تاريخ التعيين])), 30.4375)`. Set type to **Whole Number**.
+5. **Add Surrogate Primary Key**:
+   * Go to **Add Column > Index Column > From 1**. Rename to `SnapshotKey`.
+   * Drag `SnapshotKey` to the far left.
 
 ---
+
+### Step 2.7b: Enterprise SQL Server Ingestion — Ingesting `mart.Fact_WorkforceSnapshot` & `mart.Fact_Employee_SCD2` via GUI
+
+In enterprise deployments backed by Microsoft SQL Server (`EnterpriseHR_DWH`), the data warehouse maintains both periodic monthly snapshots and full historical change records (SCD Type 2):
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ SQL Server Database Connection Dialog                                                 │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Server:   [ localhost                                                      ]           │
+│ Database: [ EnterpriseHR_DWH                                               ]           │
+│ Data Connectivity mode: (•) Import   ( ) DirectQuery                                   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Connecting to SQL Server:
+1. Go to **Home > New Source > SQL Server**.
+2. Server: `localhost` (or `.` or `localhost\SQLEXPRESS`). Database: `EnterpriseHR_DWH`. Mode: **Import**.
+3. Authentication: **Windows > Use my current credentials** $\to$ click **Connect**.
+
+#### 2. Selecting the Workforce Mart Tables in the Navigator:
+1. Expand `EnterpriseHR_DWH` $\to$ expand the **`mart`** schema folder.
+2. Check the box for **`Fact_WorkforceSnapshot`** (7,000 monthly employee census records).
+3. *(Optional for Career Lifecycle Diagnostics)*: Check **`Fact_Employee_SCD2`** (12,392 temporal audit events tracking promotions, transfers, and compensation changes from `stg.Stg_HR_Audit`).
+4. Click **OK** (or **Transform Data**).
+
+#### 3. Power Query Cleansing & Optimization:
+1. In `Fact_WorkforceSnapshot`, verify column data types matching the schema contract.
+2. Ensure **Query Folding** is preserved by confirming the native SQL query indicator in the **Applied Steps** pane.
+3. If using `Fact_Employee_SCD2`:
+   * Set `ValidFrom` and `ValidTo` to **Date (`📅`)**.
+   * Set `Salary_EGP` to **Fixed Decimal Number (`$`)**.
+   * Set `IsCurrent` to **Whole Number (`123`)**.
+
+---
+
+### Step 2.8: The Complete Kimball Galaxy Constellation Model Topology
+
+Before committing all queries to the Power BI Tabular Engine, verify that your data model strictly implements the Kimball Fact Constellation architecture. The dimensional model comprises **5 Conformed Dimensions** sharing relationships across **4 Galaxy Fact Tables**:
+
+```
+                                  ┌───────────────────┐
+                                  │   Dim_Department  │
+                                  │   (DepartmentKey) │
+                                  └─────────┬─────────┘
+                                            │
+               ┌────────────────────────────┼────────────────────────────┐
+               │ 1:*                        │ 1:*                        │ 1:*
+               ▼                            ▼                            ▼
+   ┌───────────────────────┐    ┌───────────────────────┐    ┌───────────────────────┐
+   │ Fact_WorkforceSnapshot│    │ Fact_DepartmentBudget │    │  Dim_Employee (SCD-2) │
+   │   (Monthly Snapshot)  │    │   (Quarterly FP&A)    │    │     (EmployeeKey)     │
+   └───────────┬───────────┘    └───────────┬───────────┘    └───────────┬───────────┘
+               │ 1:*                        │ 1:*                        │ 1:*
+               │                            │             ┌──────────────┼──────────────┐
+               │                            │             │              │              │
+               ▼                            ▼             ▼              ▼              ▼
+   ┌───────────────────────┐    ┌──────────────────────────────────┐   ┌───────────────────────┐
+   │       Dim_Date        │◄───┤      Fact_DailyAttendance        │   │Fact_TrainingCompletion│
+   │       (DateKey)       │    │           (Daily IoT)            │   │    (LMS Attempts)     │
+   └───────────▲───────────┘    └─────────────────▲────────────────┘   └───────────┬───────────┘
+               │                                  │                                │ 1:*
+               │ 1:*                              │ 1:*                            ▼
+               │                        ┌─────────┴─────────┐            ┌───────────────────┐
+               └────────────────────────┤     Dim_Branch    │            │    Dim_Course     │
+                                        │    (BranchKey)    │            │    (CourseKey)    │
+                                        └───────────────────┘            └───────────────────┘
+```
+
+#### Galaxy Schema Referential Integrity Matrix:
+
+| Relationship Source (Fact Table) | Foreign Key Column | Dimension Target Table | Primary Key Column | Cardinality | Cross-Filter Direction | Business Grain |
+| :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| **`Fact_WorkforceSnapshot`** | `EmployeeKey` | `Dim_Employee` | `EmployeeKey` | Many-to-One (`*:1`) | Single | 1 row per Employee per Month |
+| **`Fact_WorkforceSnapshot`** | `DepartmentKey` | `Dim_Department` | `DepartmentKey` | Many-to-One (`*:1`) | Single | Monthly department snapshot |
+| **`Fact_WorkforceSnapshot`** | `BranchKey` | `Dim_Branch` | `BranchKey` | Many-to-One (`*:1`) | Single | Monthly branch census |
+| **`Fact_WorkforceSnapshot`** | `SnapshotDateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Monthly snapshot cutoff date |
+| **`Fact_DailyAttendance`** | `EmployeeKey` | `Dim_Employee` | `EmployeeKey` | Many-to-One (`*:1`) | Single | 1 row per Employee per Day |
+| **`Fact_DailyAttendance`** | `BranchKey` | `Dim_Branch` | `BranchKey` | Many-to-One (`*:1`) | Single | Physical access facility |
+| **`Fact_DailyAttendance`** | `AccessDateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Calendar access date |
+| **`Fact_DepartmentBudget`** | `DepartmentKey` | `Dim_Department` | `DepartmentKey` | Many-to-One (`*:1`) | Single | 1 row per Dept per Branch per Quarter |
+| **`Fact_DepartmentBudget`** | `BranchKey` | `Dim_Branch` | `BranchKey` | Many-to-One (`*:1`) | Single | Regional branch allocation |
+| **`Fact_DepartmentBudget`** | `DateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Quarter commencement date |
+| **`Fact_TrainingCompletions`** | `EmployeeKey` | `Dim_Employee` | `EmployeeKey` | Many-to-One (`*:1`) | Single | 1 row per Course attempt |
+| **`Fact_TrainingCompletions`** | `CourseKey` | `Dim_Course` | `CourseKey` | Many-to-One (`*:1`) | Single | Course catalog entity |
+| **`Fact_TrainingCompletions`** | `CompletionDateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Examination completion date |
+
+> [!CAUTION]
+> **Kimball Galaxy Cardinality Rules**:
+> 1. **Never Create Direct Fact-to-Fact Relationships**: Joining `Fact_DailyAttendance` directly to `Fact_WorkforceSnapshot` or `Fact_DepartmentBudget` creates a toxic Many-to-Many circular path resulting in double-counting and VertiPaq memory exhaustion.
+> 2. **Always Filter Downward Through Dimensions**: Slicers on `Dim_Department[DepartmentName]`, `Dim_Branch[Region]`, or `Dim_Date[FiscalQuarter]` propagate naturally to all 4 fact tables simultaneously.
+> 3. **Single Cross-Filter Direction (`→`)**: Keep all relationship cross-filtering set to **Single**. Bidirectional filtering introduces ambiguous filter paths and severe performance degradation on large datasets.
+
+#### Production M Code: `Fact_WorkforceSnapshot`
+```powerquery
+let
+    // 1. Ingest processed monthly workforce snapshot
+    Source = Csv.Document(File.Contents(Text.BeforeDelimiter(Extension.Contents(""), "powerbi") & "data/processed/Fact_WorkforceSnapshot.csv"), [Delimiter=",", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    
+    // 2. Set strict enterprise types
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"SnapshotKey", Int64.Type},
+        {"SnapshotDateKey", Int64.Type},
+        {"EmployeeKey", Int64.Type},
+        {"DepartmentKey", Int64.Type},
+        {"BranchKey", Int64.Type},
+        {"BaseSalary", Currency.Type},
+        {"AnnualPerformanceRating", type number},
+        {"TenureMonths", Int64.Type},
+        {"TenureYears", type number},
+        {"SalaryPercentileInRole", type number},
+        {"IsSalaryCompressed", Int64.Type},
+        {"EmploymentStatus", type text}
+    })
+in
+    #"Changed Type"
+```
+
+---
+
+Click **Home > Close & Apply** in Power Query Editor to commit all 5 Conformed Dimensions and 4 Galaxy Fact Tables to the tabular model!
 
 ## 🛠️ Module 3: Advanced Semantic Model Engineering & TMDL Scripting Masterclass
 
