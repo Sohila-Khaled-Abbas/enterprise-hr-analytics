@@ -879,14 +879,45 @@ If building directly inside Power BI without pre-processed CSVs:
 2. **Select Relevant Analytical Columns**:
    * Click **Choose Columns** in the **Home** ribbon.
    * Check: `EmployeeKey`, `الرقم التعريفي`, `القسم`, `الفرع`, `الراتب الأساسي`, `تقييم الأداء السنوي`, `تاريخ التعيين`, `EmploymentStatus`.
-3. **Add Snapshot Date Key**:
+3. **Add Dynamic Snapshot Date Key (`SnapshotDateKey`)**:
    * Go to **Add Column > Custom Column**. Name: `SnapshotDateKey`.
-   * Expression: `20260228` (or current monthly cutoff). Set type to **Whole Number**.
-4. **Calculate Tenure in Years & Months**:
+   * **Dynamic Formula (Auto-computes the latest closed month-end reporting cutoff)**:
+     ```powerquery
+     let
+         Today = DateTime.Date(DateTime.LocalNow()),
+         Cutoff = Date.EndOfMonth(Date.AddMonths(Today, -1))
+     in
+         Date.Year(Cutoff) * 10000 + Date.Month(Cutoff) * 100 + Date.Day(Cutoff)
+     ```
+     *(Alternative single-line expression)*:
+     ```powerquery
+     Date.Year(Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1))) * 10000 + Date.Month(Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1))) * 100 + Date.Day(Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)))
+     ```
+   * Set type to **Whole Number (`123`)**.
+
+4. **Calculate Dynamic Tenure in Years & Months (Anchored to Dynamic Snapshot Date)**:
    * Go to **Add Column > Custom Column**. Name: `TenureYears`.
-   * Formula: `Number.Round(Duration.TotalDays(#date(2026, 2, 28) - DateTime.Date([تاريخ التعيين])) / 365.25, 2)`. Set type to **Decimal Number**.
+   * **Dynamic Formula**:
+     ```powerquery
+     let
+         SnapshotDate = Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)),
+         HireDate = DateTime.Date([تاريخ التعيين])
+     in
+         Number.Round(Duration.TotalDays(SnapshotDate - HireDate) / 365.25, 2)
+     ```
+   * Set type to **Decimal Number (`1.2`)**.
+
    * Go to **Add Column > Custom Column**. Name: `TenureMonths`.
-   * Formula: `Number.IntegerDivide(Duration.TotalDays(#date(2026, 2, 28) - DateTime.Date([تاريخ التعيين])), 30.4375)`. Set type to **Whole Number**.
+   * **Dynamic Formula**:
+     ```powerquery
+     let
+         SnapshotDate = Date.EndOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)),
+         HireDate = DateTime.Date([تاريخ التعيين])
+     in
+         Number.IntegerDivide(Duration.TotalDays(SnapshotDate - HireDate), 30.4375)
+     ```
+   * Set type to **Whole Number (`123`)**.
+
 5. **Add Surrogate Primary Key**:
    * Go to **Add Column > Index Column > From 1**. Rename to `SnapshotKey`.
    * Drag `SnapshotKey` to the far left.
