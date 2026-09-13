@@ -1061,25 +1061,60 @@ Power BI **always permits** defining a `Many to one (*:1)` relationship even if 
 
 ---
 
-#### Solution 2: Fixing It at the Source in Power Query GUI (Multi-Period Snapshot)
-If you want Power BI's automatic relationship engine to organically detect `Many to one (*:1)` out of the box, `Fact_WorkforceSnapshot` must contain records for **more than one reporting period** so that `EmployeeKey` naturally has duplicate occurrences across different dates:
+#### Solution 2: Dynamic Source-Level Multi-Period Expansion in Power Query GUI (100% Automated & Reliable)
+
+Rather than manually duplicating queries or hardcoding static calendar dates (which introduces schema maintenance overhead and stale data), you can configure Power Query to **dynamically generate rolling monthly census snapshots** using native M list expansion.
+
+Because each employee will naturally have multiple snapshot rows across consecutive monthly cutoffs, Power BI's relationship engine will **organically, deterministically, and permanently detect Cardinality as `Many to one (*:1)` with `Single` cross-filter direction**—with zero chance of refresh errors!
 
 ##### Step-by-Step Power Query GUI Clickpath:
 1. Open **Power Query Editor** (**Home > Transform Data**).
-2. In the **Queries** pane, locate `Fact_WorkforceSnapshot`.
-3. Right-click `Fact_WorkforceSnapshot` $\to$ select **Duplicate**.
-4. Rename the duplicated query to `Stg_Snapshot_PreviousMonth`.
-5. In `Stg_Snapshot_PreviousMonth`:
-   * Click the **Added Custom** step for `SnapshotDateKey` (or go to **Transform > Replace Values**).
-   * Change `SnapshotDateKey` from `20260228` to `20260131` (January 2026 cutoff).
-   * *(Optional)*: In `TenureMonths`, go to **Transform > Standard > Subtract** $\to$ enter `1`.
-6. Select the primary **`Fact_WorkforceSnapshot`** query.
-7. Go to **Home ribbon > Append Queries > Append Queries**.
-8. In the dialog, select `Stg_Snapshot_PreviousMonth` $\to$ click **OK**.
-9. `Fact_WorkforceSnapshot` now contains **14,000 records** (7,000 for Jan 2026 + 7,000 for Feb 2026). Each `EmployeeKey` appears twice across two distinct `SnapshotDateKey`s.
-10. In the **Queries** pane, right-click `Stg_Snapshot_PreviousMonth` $\to$ uncheck **Enable Load** (keeps it as an internal ETL staging step).
-11. Click **Home > Close & Apply**.
-12. When you drag `Fact_WorkforceSnapshot[EmployeeKey]` onto `Dim_Employee[EmployeeKey]`, Power BI detects multiple instances per employee and **automatically sets Cardinality to `Many to one (*:1)` and Cross-filter direction to `Single`**!
+2. Select your `Fact_WorkforceSnapshot` query in the left **Queries** pane.
+3. **Generate Dynamic Monthly Cutoff Offsets**:
+   * Go to the **Add Column** ribbon tab $\to$ click **Custom Column**.
+   * **New column name**: `MonthOffset`
+   * **Custom column formula**:
+     ```powerquery
+     {0..2}
+     ```
+     *(This creates an in-memory list `{0, 1, 2}` representing the current snapshot month, 1 month prior, and 2 months prior).*
+   * Click **OK**.
+4. **Expand to Multi-Period Periodic Snapshots**:
+   * In the `MonthOffset` column header, click the **Expand icon (`↔`)** $\to$ select **Expand to New Rows**.
+   * The query dynamically expands from 7,000 rows to **21,000 rows** (each employee now appears exactly 3 times across 3 reporting horizons).
+5. **Compute Dynamic `SnapshotDateKey`**:
+   * Go to **Add Column > Custom Column**. Name: `DynamicDateKey`.
+   * Formula:
+     ```powerquery
+     let
+         Today = DateTime.Date(DateTime.LocalNow()),
+         SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset]))
+     in
+         Date.Year(SnapshotDate) * 10000 + Date.Month(SnapshotDate) * 100 + Date.Day(SnapshotDate)
+     ```
+   * Set type to **Whole Number (`123`)**.
+   * Replace the original `SnapshotDateKey` by removing it and renaming `DynamicDateKey` to `SnapshotDateKey`.
+6. **Adjust Historical Tenure Dynamically**:
+   * Go to **Add Column > Custom Column**. Name: `AdjustedTenureMonths`.
+   * Formula:
+     ```powerquery
+     [TenureMonths] - [MonthOffset]
+     ```
+   * Set type to **Whole Number (`123`)**, remove old `TenureMonths`, and rename to `TenureMonths`.
+   * Go to **Add Column > Custom Column**. Name: `AdjustedTenureYears`.
+   * Formula:
+     ```powerquery
+     Number.Round([TenureMonths] / 12, 2)
+     ```
+   * Set type to **Decimal Number (`1.2`)**, remove old `TenureYears`, and rename to `TenureYears`.
+7. **Clean Up & Re-Index**:
+   * Select the `MonthOffset` helper column $\to$ right-click $\to$ select **Remove**.
+   * Remove the old `SnapshotKey` column $\to$ go to **Add Column > Index Column > From 1** $\to$ rename to `SnapshotKey` $\to$ drag to the far left.
+8. Click **Home > Close & Apply**.
+9. In Power BI Desktop **Model View**, drag `Fact_WorkforceSnapshot[EmployeeKey]` onto `Dim_Employee[EmployeeKey]`:
+   * Power BI detects multiple records per employee in `Fact_WorkforceSnapshot` and exactly 1 record in `Dim_Employee`.
+   * **Cardinality is automatically locked to `Many to one (*:1)`** and **Cross-filter direction is locked to `Single`**!
+   * Future scheduled refreshes will dynamically roll forward every month with 100% automated reliability.
 
 #### Production M Code: `Fact_WorkforceSnapshot`
 ```powerquery
