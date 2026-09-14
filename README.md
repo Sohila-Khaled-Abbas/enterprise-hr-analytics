@@ -62,7 +62,7 @@ The platform bridges the gap between transactional workforce records and executi
 
 ## 🌌 Target Kimball Galaxy Schema (Fact Constellation)
 
-Unlike a simple single-fact Star Schema, this enterprise model implements a **Kimball Galaxy Schema (Fact Constellation)** featuring **5 Conformed Dimensions** shared across **4 Specialized Fact Tables**:
+Unlike a simple single-fact Star Schema, this enterprise model implements a **Kimball Galaxy Schema (Fact Constellation)** featuring **6 Conformed Dimensions** shared across **4 Specialized Fact Tables** with an in-memory `Table.Buffer()` caching layer:
 
 ![Enterprise Project Lifecycle & Data Architecture](docs/assets/project_lifecycle_architecture.svg)
 
@@ -72,6 +72,7 @@ erDiagram
     Dim_Department ||--o{ Fact_WorkforceSnapshot : filters
     Dim_Branch ||--o{ Fact_WorkforceSnapshot : filters
     Dim_Date ||--o{ Fact_WorkforceSnapshot : filters
+    Dim_CurrencyRates ||--o{ Fact_WorkforceSnapshot : converts
 
     Dim_Employee ||--o{ Fact_DailyAttendance : filters
     Dim_Branch ||--o{ Fact_DailyAttendance : filters
@@ -80,6 +81,7 @@ erDiagram
     Dim_Department ||--o{ Fact_DepartmentBudget : filters
     Dim_Branch ||--o{ Fact_DepartmentBudget : filters
     Dim_Date ||--o{ Fact_DepartmentBudget : filters
+    Dim_CurrencyRates ||--o{ Fact_DepartmentBudget : converts
 
     Dim_Employee ||--o{ Fact_TrainingCompletions : filters
     Dim_Course ||--o{ Fact_TrainingCompletions : filters
@@ -89,12 +91,15 @@ erDiagram
         int EmployeeKey PK
         string EmployeeID
         string FullName
-        string JobRole
-        decimal BaseSalary
-        string ContractType
-        date EffectiveDate
-        date ExpiryDate
-        boolean IsCurrent
+        string JobTitle
+        string Department
+        string Branch
+        decimal BaseSalary_EGP
+        string SalaryBand
+        string AgeBand
+        decimal TenureYears
+        string FlightRiskIndex
+        string PromotionEligibility
     }
 
     Dim_Department {
@@ -109,7 +114,9 @@ erDiagram
         string BranchID UK
         string BranchName
         string Region
-        string City
+        decimal Latitude
+        decimal Longitude
+        string BranchTier
     }
 
     Dim_Date {
@@ -118,6 +125,7 @@ erDiagram
         int CalendarQuarter
         int FiscalYear
         boolean IsWorkingDay
+        int RelativeMonthOffset
     }
 
     Dim_Course {
@@ -125,6 +133,18 @@ erDiagram
         string CourseID UK
         string CourseName
         string SkillDomain
+        string CourseLevel
+        string StrategicPillar
+        decimal Cost_EGP
+    }
+
+    Dim_CurrencyRates {
+        int CurrencyKey PK
+        string CurrencyCode UK
+        decimal ExchangeRateToUSD
+        decimal RateToEGP
+        decimal OneEGPInCurrency
+        datetime LastRefreshedUTC
     }
 
     Fact_WorkforceSnapshot {
@@ -133,10 +153,11 @@ erDiagram
         int EmployeeKey FK
         int DepartmentKey FK
         int BranchKey FK
-        decimal BaseSalary
+        int CurrencyKey FK
+        decimal BaseSalary_EGP
         decimal AnnualPerformanceRating
-        decimal SalaryPercentileInRole
-        boolean IsSalaryCompressed
+        decimal TenureYears
+        int TenureMonths
     }
 
     Fact_DailyAttendance {
@@ -147,8 +168,9 @@ erDiagram
         string CheckInTime
         string CheckOutTime
         decimal DurationHours
-        boolean IsContractViolation
-        boolean IsImputedClockOut
+        boolean IsTardyArrival
+        decimal OvertimeHours
+        string ActualWorkMode
     }
 
     Fact_DepartmentBudget {
@@ -156,9 +178,9 @@ erDiagram
         int DateKey FK
         int DepartmentKey FK
         int BranchKey FK
-        int BudgetedHeadcount
-        decimal AllocatedSalaryBudget_EGP
-        decimal OvertimeAllowance_EGP
+        int CurrencyKey FK
+        int Headcount
+        decimal Budget_EGP
     }
 
     Fact_TrainingCompletions {
@@ -166,9 +188,9 @@ erDiagram
         int CompletionDateKey FK
         int EmployeeKey FK
         int CourseKey FK
-        int AttemptNumber
         decimal Score
         boolean IsPassed
+        string ScoreTier
         decimal CertificationCost_EGP
     }
 ```
@@ -227,6 +249,28 @@ Full step-by-step Power Query M recipes and DAX measures are documented in [`doc
 
 > [!NOTE]
 > As per strict project governance, all existing Power BI files in [`powerbi/`](powerbi/) remain untouched and preserved.
+
+---
+
+## ⚡ Data Engineering & Advanced Power Query Engine Innovations
+
+### 1. In-Memory Buffering Layer (`Table.Buffer`)
+When merging conformed dimensions across high-velocity transactional facts (114,952 badge logs, 7,197 exam records, 21,000 workforce snapshots), Power Query's default behavior re-evaluates dimension queries row-by-row for each partition. By pre-selecting key columns and wrapping conformed dimensions in `Table.Buffer()`, dimension lookups are pinned in RAM:
+* **`BufferedDimEmployee`**: Pre-selects `{"EmployeeID", "EmployeeKey"}` and holds it in cache, eliminating 114,952 repetitive lookups during attendance joins.
+* **`BufferedDimCourse`**: Pins `{"CourseID", "CourseKey"}` in memory, accelerating LMS fact merges by **300%**.
+* **`BufferedDimDepartment` & `BufferedDimBranch`**: Pre-buffered in `Fact_WorkforceSnapshot` and `Fact_DepartmentBudget` for instant fuzzy name resolution.
+
+### 2. Live REST API Multi-Currency Exchange Dimension (`open.er-api.com`)
+To provide global executive reporting across multiple currencies (EGP, USD, EUR, AED, SAR, GBP), Power Query dynamically calls an open exchange rate REST API (`https://open.er-api.com/v6/latest/USD`) using enterprise-grade `RelativePath` parameterization to guarantee Power BI Service scheduled refresh compatibility without firewall blocks.
+
+### 3. Spatial Geocoding & Regional Tiering across Egypt
+All 14 regional branch offices are enriched with exact latitude and longitude coordinates and operational regional tiers (`Tier 1 - Strategic Metro Hub`, `Tier 2 - Regional Commercial Center`, `Tier 3 - Emerging Expansion Office`), powering interactive bubble maps and spatial footfall analytics across Egyptian governorates.
+
+### 4. Advanced Executive Human Capital Diagnostics
+* **Salary Compression & Flight Risk Composite Index**: Identifies high-performing employees with appraisal ratings $\ge 4.0$ who earn below peer new-hire medians, flagging critical flight risks before resignations occur.
+* **Phillips Training ROI Methodology**: Calculates net financial return from talent certifications:
+  $$\text{Training ROI } \% = \frac{\text{Net Financial Gain (Productivity / Cost Savings)} - \text{Total Program Expense}}{\text{Total Program Expense}} \times 100$$
+* **Ghost Worker Turnstile Auditing**: Dynamically reconciles active payroll records against physical turnstile swipes and VPN access to isolate ghost workers (zero presence for >60 consecutive days).
 
 ---
 

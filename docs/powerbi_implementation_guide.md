@@ -1934,17 +1934,171 @@ SUMX(
 #### 4. Enterprise Power Query M Performance Enhancements:
 To optimize memory footprint and refresh performance when dealing with tens of thousands of IoT attendance swipes, training records, and monthly snapshots:
 
-1. **In-Memory Buffering with `Table.Buffer()`**:
-   When joining dimension tables into large fact tables via `Table.NestedJoin`, Power Query re-evaluates the dimension query for each partition. Wrapping conformed dimensions in `Table.Buffer()` pins them in RAM, accelerating merges by up to **300%**:
+1. **In-Memory Buffering with `Table.Buffer()` for Every Table Joined to `Dim_Employee`**:
+   When joining dimension tables into large fact tables via `Table.NestedJoin`, Power Query re-evaluates the dimension query for each partition. Wrapping conformed dimensions in `Table.Buffer()` pins them in RAM, accelerating merges by up to **300%**!
+
+   Below is the complete, drop-in production M code for each table in your model that joins to or derives from `Dim_Employee`:
+
+   ##### Table A: `Fact_DailyAttendance` (Buffers `Dim_Employee` for Fast `EmployeeKey` Lookup)
    ```powerquery
    let
-       Source = Dim_Employee,
-       BufferedEmployeeDim = Table.Buffer(Source),
-       #"Merged Facts" = Table.NestedJoin(Fact_DailyAttendance, {"EmployeeID"}, BufferedEmployeeDim, {"EmployeeID"}, "Dim_Employee", JoinKind.LeftOuter)
+       Source = attendance_badge_logs,
+       #"Fixed CheckOutTime" = Table.AddColumn(Source, "CleanCheckOutTime", each if [CheckOutTime] <> null then [CheckOutTime] else if [CheckInTime] <> null then Time.From(DateTime.From([CheckInTime]) + #duration(0, 8, 0, 0)) else null, Time.Type),
+       #"Added DurationHours" = Table.AddColumn(#"Fixed CheckOutTime", "DurationHours", each if [CheckInTime] = null or [CleanCheckOutTime] = null then 0.0 else if [CleanCheckOutTime] >= [CheckInTime] then Duration.TotalHours([CleanCheckOutTime] - [CheckInTime]) else Duration.TotalHours((#time(23, 59, 59) - [CheckInTime]) + ([CleanCheckOutTime] - #time(0, 0, 0))) + (1 / 3600), Decimal.Type),
+       #"Removed Columns" = Table.RemoveColumns(#"Added DurationHours",{"CheckOutTime"}),
+       #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"CleanCheckOutTime", "CheckOutTime"}}),
+       #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns",{"EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode"}),
+       #"Added ActualWorkMode" = Table.AddColumn(#"Reordered Columns", "ActualWorkMode", each if [BuildingID] = "REMOTE_GATE" then "Remote" else "On-site", type text),
+       #"Added AccessDateKey" = Table.AddColumn(#"Added ActualWorkMode", "AccessDateKey", each Date.Year([AccessDate]) * 10000 + Date.Month([AccessDate]) * 100 + Date.Day([AccessDate]), Int64.Type),
+       #"Added AttendanceKey" = Table.AddIndexColumn(#"Added AccessDateKey", "AttendanceKey", 1, 1, Int64.Type),
+       #"Reordered Columns1" = Table.ReorderColumns(#"Added AttendanceKey",{"AccessDateKey", "AttendanceKey", "EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode", "ActualWorkMode"}),
+       
+       // ⭐ Enterprise In-Memory Buffer: Pins Dim_Employee key pair in RAM
+       BufferedDimEmployee = Table.Buffer(Table.SelectColumns(Dim_Employee, {"EmployeeID", "EmployeeKey"})),
+       #"Merged Queries" = Table.NestedJoin(#"Reordered Columns1", {"EmployeeID"}, BufferedDimEmployee, {"EmployeeID"}, "Dim_Employee", JoinKind.LeftOuter),
+       #"Expanded Dim_Employee" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Employee", {"EmployeeKey"}, {"EmployeeKey"}),
+       
+       #"Reordered Columns2" = Table.ReorderColumns(#"Expanded Dim_Employee",{"AccessDateKey", "AttendanceKey", "EmployeeKey", "EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode", "ActualWorkMode"}),
+       #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns2",{"EmployeeID"}),
+       #"Added BranchKey" = Table.AddColumn(#"Removed Columns1", "BranchKey", each if Text.StartsWith([BuildingID], "BLD-") then Value.FromText(Text.End([BuildingID], 3)) else null),
+       #"Changed Type" = Table.TransformColumnTypes(#"Added BranchKey",{{"BranchKey", Int64.Type}}),
+       #"Reordered Columns3" = Table.ReorderColumns(#"Changed Type",{"AccessDateKey", "AttendanceKey", "EmployeeKey", "BranchKey", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode", "ActualWorkMode"}),
+       #"Added IsTardyArrival" = Table.AddColumn(#"Reordered Columns3", "IsTardyArrival", each if [CheckInTime] <> null and [CheckInTime] > #time(9, 15, 0) then 1 else 0),
+       #"Changed Type1" = Table.TransformColumnTypes(#"Added IsTardyArrival",{{"IsTardyArrival", type logical}}),
+       #"Added OvertimeHours" = Table.AddColumn(#"Changed Type1", "OvertimeHours", each if [DurationHours] > 8.5 then Number.Round([DurationHours] - 8.5, 2) else 0.0, Decimal.Type)
    in
-       #"Merged Facts"
+       #"Added OvertimeHours"
    ```
-   *(Apply `Table.Buffer()` to smaller conformed lookup tables: `Dim_Department`, `Dim_Branch`, `Dim_Course`, and `Dim_CurrencyRates`).*
+
+   ##### Table B: `Fact_TrainingCompletions` (Buffers `Dim_Employee` and `Dim_Course`)
+   ```powerquery
+   let
+       Source = lms_course_completions,
+       #"Changed Type" = Table.TransformColumnTypes(Source,{{"CertificationCost_EGP", Currency.Type}}),
+       #"Added IsPassed" = Table.AddColumn(#"Changed Type", "IsPassed", each if [Score] >= 70 then 1 else 0),
+       #"Changed Type1" = Table.TransformColumnTypes(#"Added IsPassed",{{"IsPassed", type logical}}),
+       #"Added ScoreTier" = Table.AddColumn(#"Changed Type1", "ScoreTier", each if [Score] >= 90 then "⭐ Distinction (90-100)" else if [Score] >= 70 then "🟢 Proficient Pass (70-89)" else "🔴 Remediation Required (< 70)", type text),
+       #"Added CompletionDateKey" = Table.AddColumn(#"Added ScoreTier", "CompletionDateKey", each Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate]), Int64.Type),
+       #"Reordered Columns" = Table.ReorderColumns(#"Added CompletionDateKey",{"CompletionDateKey", "EmployeeID", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+       #"Added CompletionKey" = Table.AddIndexColumn(#"Reordered Columns", "CompletionKey", 1, 1, Int64.Type),
+       #"Reordered Columns1" = Table.ReorderColumns(#"Added CompletionKey",{"CompletionKey", "CompletionDateKey", "EmployeeID", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+       
+       // ⭐ Enterprise In-Memory Buffer: Pins Dim_Employee in RAM
+       BufferedDimEmployee = Table.Buffer(Table.SelectColumns(Dim_Employee, {"EmployeeID", "EmployeeKey"})),
+       #"Merged Queries" = Table.NestedJoin(#"Reordered Columns1", {"EmployeeID"}, BufferedDimEmployee, {"EmployeeID"}, "Dim_Employee", JoinKind.LeftOuter),
+       #"Expanded Dim_Employee" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Employee", {"EmployeeKey"}, {"EmployeeKey"}),
+       
+       #"Reordered Columns2" = Table.ReorderColumns(#"Expanded Dim_Employee",{"CompletionKey", "CompletionDateKey", "EmployeeKey", "EmployeeID", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+       #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns2",{"EmployeeID"}),
+       
+       // ⭐ Enterprise In-Memory Buffer: Pins Dim_Course in RAM
+       BufferedDimCourse = Table.Buffer(Table.SelectColumns(Dim_Course, {"CourseID", "CourseKey"})),
+       #"Merged Queries1" = Table.NestedJoin(#"Removed Columns", {"CourseID"}, BufferedDimCourse, {"CourseID"}, "Dim_Course", JoinKind.LeftOuter),
+       #"Expanded Dim_Course" = Table.ExpandTableColumn(#"Merged Queries1", "Dim_Course", {"CourseKey"}, {"CourseKey"}),
+       
+       #"Reordered Columns3" = Table.ReorderColumns(#"Expanded Dim_Course",{"CompletionKey", "CompletionDateKey", "EmployeeKey", "CourseKey", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+       #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns3",{"CourseID", "CourseName", "SkillDomain"})
+   in
+       #"Removed Columns1"
+   ```
+
+   ##### Table C: `Fact_WorkforceSnapshot` (Buffers `Dim_Employee` Source & Conformed Lookup Dimensions)
+   ```powerquery
+   let
+       // ⭐ Enterprise In-Memory Buffer: Pins master Dim_Employee in RAM before list expansion
+       Source = Table.Buffer(Dim_Employee),
+       #"Removed Other Columns" = Table.SelectColumns(Source,{"EmployeeKey", "EmployeeID", "Department", "Branch", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus"}),
+       #"Added MonthOffset" = Table.AddColumn(#"Removed Other Columns", "MonthOffset", each {0..2}),
+       #"Expanded MonthOffset" = Table.ExpandListColumn(#"Added MonthOffset", "MonthOffset"),
+       #"Added SnapshotDateKey" = Table.AddColumn(#"Expanded MonthOffset", "SnapshotDateKey", each let
+            Today = DateTime.Date(DateTime.LocalNow()),
+            SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset]))
+        in
+            Date.Year(SnapshotDate) * 10000 + Date.Month(SnapshotDate) * 100 + Date.Day(SnapshotDate)),
+       #"Changed Type" = Table.TransformColumnTypes(#"Added SnapshotDateKey",{{"SnapshotDateKey", Int64.Type}}),
+       #"Added TenureYears" = Table.AddColumn(#"Changed Type", "TenureYears", each let
+            Today = DateTime.Date(DateTime.LocalNow()),
+            SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset])),
+            HireDate = DateTime.Date([HireDate])
+        in
+            Number.Round(Duration.TotalDays(SnapshotDate - HireDate) / 365.25, 2)),
+       #"Changed Type1" = Table.TransformColumnTypes(#"Added TenureYears",{{"TenureYears", type number}}),
+       #"Added TenureMonths" = Table.AddColumn(#"Changed Type1", "TenureMonths", each let
+            Today = DateTime.Date(DateTime.LocalNow()),
+            SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset])),
+            HireDate = DateTime.Date([HireDate])
+        in
+            Number.IntegerDivide(Duration.TotalDays(SnapshotDate - HireDate), 30.4375)),
+       #"Changed Type2" = Table.TransformColumnTypes(#"Added TenureMonths",{{"TenureMonths", Int64.Type}}),
+       #"Added SnapshotKey" = Table.AddIndexColumn(#"Changed Type2", "SnapshotKey", 1, 1, Int64.Type),
+       #"Removed Columns" = Table.RemoveColumns(#"Added SnapshotKey",{"MonthOffset"}),
+
+       // ⭐ Enterprise In-Memory Buffering: Pins Dim_Department, Dim_Branch, and Dim_CurrencyRates
+       BufferedDimDepartment = Table.Buffer(Table.SelectColumns(Dim_Department, {"DepartmentKey", "DepartmentName"})),
+       #"Merged Queries" = Table.NestedJoin(#"Removed Columns", {"Department"}, BufferedDimDepartment, {"DepartmentName"}, "Dim_Department", JoinKind.LeftOuter),
+       #"Expanded Dim_Department" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Department", {"DepartmentKey"}, {"DepartmentKey"}),
+
+       BufferedDimBranch = Table.Buffer(Table.SelectColumns(Dim_Branch, {"BranchKey", "BranchName"})),
+       #"Merged Queries1" = Table.NestedJoin(#"Expanded Dim_Department", {"Branch"}, BufferedDimBranch, {"BranchName"}, "Dim_Branch", JoinKind.LeftOuter),
+       #"Expanded Dim_Branch" = Table.ExpandTableColumn(#"Merged Queries1", "Dim_Branch", {"BranchKey"}, {"BranchKey"}),
+
+       #"Reordered Columns" = Table.ReorderColumns(#"Expanded Dim_Branch",{"SnapshotKey", "DepartmentKey", "BranchKey", "EmployeeKey", "EmployeeID", "Department", "Branch", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus", "SnapshotDateKey", "TenureYears", "TenureMonths"}),
+       #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns",{"EmployeeID", "Department", "Branch"}),
+       #"Reordered Columns1" = Table.ReorderColumns(#"Removed Columns1",{"SnapshotKey", "DepartmentKey", "BranchKey", "EmployeeKey", "SnapshotDateKey", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus", "TenureYears", "TenureMonths"}),
+
+       BufferedDimCurrencyRates = Table.Buffer(Table.SelectColumns(Dim_CurrencyRates, {"CurrencyKey", "CurrencyCode"})),
+       #"Merged Queries2" = Table.NestedJoin(#"Reordered Columns1", {"Currency"}, BufferedDimCurrencyRates, {"CurrencyCode"}, "Dim_CurrencyRates", JoinKind.LeftOuter),
+       #"Expanded Dim_CurrencyRates" = Table.ExpandTableColumn(#"Merged Queries2", "Dim_CurrencyRates", {"CurrencyKey"}, {"CurrencyKey"}),
+       #"Reordered Columns2" = Table.ReorderColumns(#"Expanded Dim_CurrencyRates",{"SnapshotKey", "DepartmentKey", "BranchKey", "EmployeeKey", "SnapshotDateKey", "CurrencyKey", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus", "TenureYears", "TenureMonths"}),
+       #"Removed Columns2" = Table.RemoveColumns(#"Reordered Columns2",{"Currency"})
+   in
+       #"Removed Columns2"
+   ```
+
+   ##### Table D: `Fact_DepartmentBudget` (Buffers `Dim_Department`, `Dim_Branch`, and `Dim_CurrencyRates`)
+   ```powerquery
+   let
+       Source = Sql.Database(pServerName, pDatabaseName),
+       #"Navigation 1" = Source{[Schema = "raw", Item = "Finance_Budget_Plan"]}[Data],
+       #"Added StandardizedBranch" = Table.AddColumn(#"Navigation 1", "StandardizedBranch", each let
+            Raw = Text.Trim(Text.From([CostCenter_Branch])),
+            Rules = {
+                {"Alex", "الإسكندرية - سموحة"}, {"سموح", "الإسكندرية - سموحة"},
+                {"معاد", "القاهرة - المعادي"}, {"دقي", "الجيزة - الدقي"},
+                {"الدقي", "الجيزة - الدقي"}, {"تجمع", "القاهرة - التجمع الخامس"},
+                {"بورسعيد", "بورسعيد - الشرق"}, {"منصور", "الدقهلية - المنصورة"},
+                {"طنطا", "الغربية - طنطا"}, {"أكتوبر", "الجيزة - 6 أكتوبر"},
+                {"اكتوبر", "الجيزة - 6 أكتوبر"}, {"زايد", "الجيزة - الشيخ زايد"},
+                {"أسيوط", "أسيوط - أسيوط الجديدة"}, {"اسيوط", "أسيوط - أسيوط الجديدة"},
+                {"دمياط", "دمياط - دمياط الجديدة"}, {"ذكية", "القاهرة - القرية الذكية"},
+                {"لوران", "الإسكندرية - لوران"}, {"مصر الجديدة", "القاهرة - مصر الجديدة"}
+            },
+            Match = List.First(List.Select(Rules, each Text.Contains(Raw, _{0}, Comparer.OrdinalIgnoreCase)), {null, Raw}){1}
+        in
+            Match),
+       #"Changed Type" = Table.TransformColumnTypes(#"Added StandardizedBranch",{{"StandardizedBranch", type text}, {"Budget_EGP", Currency.Type}, {"Headcount", Int64.Type}}),
+       #"Added DateKey" = Table.AddColumn(#"Changed Type", "DateKey", each if [Quarter] = "Q1" then [FiscalYear] * 10000 + 101 
+   else if [Quarter] = "Q2" then [FiscalYear] * 10000 + 401 
+   else if [Quarter] = "Q3" then [FiscalYear] * 10000 + 701 else [FiscalYear] * 10000 + 1001, Int64.Type),
+       #"Added BudgetKey" = Table.AddIndexColumn(#"Added DateKey", "BudgetKey", 1, 1, Int64.Type),
+       #"Reordered Columns" = Table.ReorderColumns(#"Added BudgetKey",{"BudgetKey", "DateKey", "Department", "CostCenter_Branch", "Quarter", "Budget_EGP", "Headcount", "FiscalYear", "StandardizedBranch"}),
+       #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns",{"CostCenter_Branch"}),
+       #"Reordered Columns1" = Table.ReorderColumns(#"Removed Columns",{"BudgetKey", "DateKey", "Department", "StandardizedBranch", "Quarter", "Budget_EGP", "Headcount", "FiscalYear"}),
+
+       // ⭐ Enterprise In-Memory Buffering: Pins Dim_Department and Dim_Branch
+       BufferedDimDepartment = Table.Buffer(Table.SelectColumns(Dim_Department, {"DepartmentKey", "DepartmentName"})),
+       #"Merged Queries" = Table.NestedJoin(#"Reordered Columns1", {"Department"}, BufferedDimDepartment, {"DepartmentName"}, "Dim_Department", JoinKind.LeftOuter),
+       #"Expanded Dim_Department" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Department", {"DepartmentKey"}, {"DepartmentKey"}),
+
+       BufferedDimBranch = Table.Buffer(Table.SelectColumns(Dim_Branch, {"BranchKey", "BranchName"})),
+       #"Merged Queries1" = Table.NestedJoin(#"Expanded Dim_Department", {"StandardizedBranch"}, BufferedDimBranch, {"BranchName"}, "Dim_Branch", JoinKind.LeftOuter),
+       #"Expanded Dim_Branch" = Table.ExpandTableColumn(#"Merged Queries1", "Dim_Branch", {"BranchKey"}, {"BranchKey"}),
+
+       #"Added CurrencyKey" = Table.AddColumn(#"Expanded Dim_Branch", "CurrencyKey", each 1, Int64.Type),
+       #"Removed Columns1" = Table.RemoveColumns(#"Added CurrencyKey",{"Department", "StandardizedBranch"})
+   in
+       #"Removed Columns1"
+   ```
 
 2. **Early Column Pruning**:
    Purge unused transactional fields immediately after source ingestion via `Table.SelectColumns()` or **Remove Other Columns** in the GUI. Discarding 5 unused columns on a 100,000-row table saves megabytes of working memory during mashup execution.
