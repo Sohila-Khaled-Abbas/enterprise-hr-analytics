@@ -1,0 +1,136 @@
+table Fact_DepartmentBudget
+	lineageTag: aed16be8-f19e-4761-a7d5-d4f7ecfb3b96
+
+	column BudgetKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e161803-cd79-436b-9883-c7a942ae9f64
+		summarizeBy: count
+		sourceColumn: BudgetKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: e6976cc7-b1ee-4947-a4c8-d77ebb6f2ea1
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: string
+		lineageTag: abf0b59f-0b26-42fe-b37d-ae0b2becdf0f
+		summarizeBy: none
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column Budget_EGP
+		dataType: decimal
+		formatString: "AED"#,0.###############;-"AED"#,0.###############;"AED"#,0.###############
+		lineageTag: 76698a52-ce97-4360-addd-9da8dfb985e1
+		summarizeBy: sum
+		sourceColumn: Budget_EGP
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AE"}
+
+	column Headcount
+		dataType: int64
+		formatString: 0
+		lineageTag: 514142d3-ec09-4422-ad88-e0962c95446d
+		summarizeBy: sum
+		sourceColumn: Headcount
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear
+		dataType: int64
+		formatString: 0
+		lineageTag: e7e6f329-d144-4972-aeae-0ccb20c94183
+		summarizeBy: sum
+		sourceColumn: FiscalYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 7a98477f-6506-43dc-813a-e5d65d7a8434
+		summarizeBy: none
+		sourceColumn: BranchKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 4e7396ee-7fec-4d11-9945-8f9106820173
+		summarizeBy: count
+		sourceColumn: DepartmentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: fdfbab2a-88bd-4e20-8f35-ecaac32043bb
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fact_DepartmentBudget = m
+		mode: import
+		queryGroup: Fact_Tables
+		source = ```
+				let
+				       Source = Sql.Database(pServerName, pDatabaseName),
+				       #"Navigation 1" = Source{[Schema = "raw", Item = "Finance_Budget_Plan"]}[Data],
+				       #"Added StandardizedBranch" = Table.AddColumn(#"Navigation 1", "StandardizedBranch", each let
+				            Raw = Text.Trim(Text.From([CostCenter_Branch])),
+				            Rules = {
+				                {"Alex", "الإسكندرية - سموحة"}, {"سموح", "الإسكندرية - سموحة"},
+				                {"معاد", "القاهرة - المعادي"}, {"دقي", "الجيزة - الدقي"},
+				                {"الدقي", "الجيزة - الدقي"}, {"تجمع", "القاهرة - التجمع الخامس"},
+				                {"بورسعيد", "بورسعيد - الشرق"}, {"منصور", "الدقهلية - المنصورة"},
+				                {"طنطا", "الغربية - طنطا"}, {"أكتوبر", "الجيزة - 6 أكتوبر"},
+				                {"اكتوبر", "الجيزة - 6 أكتوبر"}, {"زايد", "الجيزة - الشيخ زايد"},
+				                {"أسيوط", "أسيوط - أسيوط الجديدة"}, {"اسيوط", "أسيوط - أسيوط الجديدة"},
+				                {"دمياط", "دمياط - دمياط الجديدة"}, {"ذكية", "القاهرة - القرية الذكية"},
+				                {"لوران", "الإسكندرية - لوران"}, {"مصر الجديدة", "القاهرة - مصر الجديدة"}
+				            },
+				            Match = List.First(List.Select(Rules, each Text.Contains(Raw, _{0}, Comparer.OrdinalIgnoreCase)), {null, Raw}){1}
+				        in
+				            Match),
+				       #"Changed Type" = Table.TransformColumnTypes(#"Added StandardizedBranch",{{"StandardizedBranch", type text}, {"Budget_EGP", Currency.Type}, {"Headcount", Int64.Type}}),
+				       #"Added DateKey" = Table.AddColumn(#"Changed Type", "DateKey", each if [Quarter] = "Q1" then [FiscalYear] * 10000 + 101 
+				   else if [Quarter] = "Q2" then [FiscalYear] * 10000 + 401 
+				   else if [Quarter] = "Q3" then [FiscalYear] * 10000 + 701 else [FiscalYear] * 10000 + 1001, Int64.Type),
+				       #"Added BudgetKey" = Table.AddIndexColumn(#"Added DateKey", "BudgetKey", 1, 1, Int64.Type),
+				       #"Reordered Columns" = Table.ReorderColumns(#"Added BudgetKey",{"BudgetKey", "DateKey", "Department", "CostCenter_Branch", "Quarter", "Budget_EGP", "Headcount", "FiscalYear", "StandardizedBranch"}),
+				       #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns",{"CostCenter_Branch"}),
+				       #"Reordered Columns1" = Table.ReorderColumns(#"Removed Columns",{"BudgetKey", "DateKey", "Department", "StandardizedBranch", "Quarter", "Budget_EGP", "Headcount", "FiscalYear"}),
+				
+				       // ⭐ Enterprise In-Memory Buffering: Pins Dim_Department and Dim_Branch
+				       BufferedDimDepartment = Table.Buffer(Table.SelectColumns(Dim_Department, {"DepartmentKey", "DepartmentName"})),
+				       #"Merged Queries" = Table.NestedJoin(#"Reordered Columns1", {"Department"}, BufferedDimDepartment, {"DepartmentName"}, "Dim_Department", JoinKind.LeftOuter),
+				       #"Expanded Dim_Department" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Department", {"DepartmentKey"}, {"DepartmentKey"}),
+				
+				       BufferedDimBranch = Table.Buffer(Table.SelectColumns(Dim_Branch, {"BranchKey", "BranchName"})),
+				       #"Merged Queries1" = Table.NestedJoin(#"Expanded Dim_Department", {"StandardizedBranch"}, BufferedDimBranch, {"BranchName"}, "Dim_Branch", JoinKind.LeftOuter),
+				       #"Expanded Dim_Branch" = Table.ExpandTableColumn(#"Merged Queries1", "Dim_Branch", {"BranchKey"}, {"BranchKey"}),
+				
+				       #"Added CurrencyKey" = Table.AddColumn(#"Expanded Dim_Branch", "CurrencyKey", each 1, Int64.Type),
+				       #"Removed Columns1" = Table.RemoveColumns(#"Added CurrencyKey",{"Department", "StandardizedBranch"})
+				   in
+				       #"Removed Columns1"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

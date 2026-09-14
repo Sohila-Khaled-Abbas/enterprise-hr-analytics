@@ -1,0 +1,173 @@
+table Dim_Course
+	lineageTag: 57b0657d-c131-4750-9738-dd08b5bbfda1
+
+	column CourseKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 9402b07e-5525-41d6-9219-520b144af58c
+		summarizeBy: none
+		sourceColumn: CourseKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CourseID
+		dataType: string
+		lineageTag: 77c176b5-911a-4f4a-a128-9df8e46282e2
+		summarizeBy: none
+		sourceColumn: CourseID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CourseName
+		dataType: string
+		lineageTag: 32b505de-4702-427f-b5e3-889031a5deab
+		summarizeBy: none
+		sourceColumn: CourseName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Score
+		dataType: double
+		lineageTag: 3c2583db-b6d4-4672-8045-4fb3cde13e29
+		summarizeBy: none
+		sourceColumn: Score
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column SkillDomain
+		dataType: string
+		lineageTag: 4beeb04f-3fbc-4658-bb48-f8601fe62312
+		summarizeBy: none
+		sourceColumn: SkillDomain
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsPassed
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: b87b3015-1994-4ade-8e6a-adb40e528020
+		summarizeBy: none
+		sourceColumn: IsPassed
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompletionKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 7fd39013-cfb1-40c0-a08e-8448478c5e5f
+		summarizeBy: none
+		sourceColumn: CompletionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompletionDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: bb8e29c3-0742-4cc3-b15d-423c78ed75fc
+		summarizeBy: none
+		sourceColumn: CompletionDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CourseLevel
+		dataType: string
+		lineageTag: 2037c4e5-d105-4c09-856c-e1ea634db22a
+		summarizeBy: none
+		sourceColumn: CourseLevel
+
+		annotation SummarizationSetBy = Automatic
+
+	column StrategicPillar
+		dataType: string
+		lineageTag: 3b6a1a46-bfd9-432c-a7a0-a97f51bce3a8
+		summarizeBy: none
+		sourceColumn: StrategicPillar
+
+		annotation SummarizationSetBy = Automatic
+
+	column CertifyingVendor
+		dataType: string
+		lineageTag: d7d8cc8d-eb5c-48e3-a8d6-878fcfc3dd24
+		summarizeBy: none
+		sourceColumn: CertifyingVendor
+
+		annotation SummarizationSetBy = Automatic
+
+	column CPD_Credits
+		dataType: int64
+		formatString: 0
+		lineageTag: 6479f0c2-0dab-425f-bc7a-3eab2fd3a3ae
+		summarizeBy: none
+		sourceColumn: CPD_Credits
+
+		annotation SummarizationSetBy = Automatic
+
+	column PassingScoreThreshold
+		dataType: int64
+		formatString: 0
+		lineageTag: 86d0eb6b-035a-4b65-94ed-52ef604ae361
+		summarizeBy: none
+		sourceColumn: PassingScoreThreshold
+
+		annotation SummarizationSetBy = Automatic
+
+	column ValidityPeriodMonths
+		dataType: int64
+		formatString: 0
+		lineageTag: 5cc0f7a4-e6fa-4d37-b37d-0769dfabf0c7
+		summarizeBy: none
+		sourceColumn: ValidityPeriodMonths
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeliveryModality
+		dataType: string
+		lineageTag: 7c9fca81-0a9e-4b44-b8f7-39d2147d6efb
+		summarizeBy: none
+		sourceColumn: DeliveryModality
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Course = m
+		mode: import
+		queryGroup: Dimensions_Tables
+		source =
+				let
+				    Source = TrainingCompletions,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns", {"CourseID"}),
+				    #"Added CourseKey" = Table.AddIndexColumn(#"Removed Duplicates", "CourseKey", 1, 1, Int64.Type),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added CourseKey",{"CourseKey", "CourseID", "CourseName", "SkillDomain"}),
+				    #"Added IsPassed" = Table.AddColumn(#"Reordered Columns", "IsPassed", each if [Score] >= 70 then 1 else 0, type logical),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added IsPassed",{{"IsPassed", type logical}}),
+				    #"Added CompletionDateKey" = Table.AddColumn(#"Changed Type", "CompletionDateKey", each Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate]), Int64.Type),
+				    #"Reordered Columns1" = Table.ReorderColumns(#"Added CompletionDateKey",{"CompletionDateKey", "CourseKey", "CourseID", "CourseName", "CompletionDate", "Score", "SkillDomain", "IsPassed"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns1",{"CompletionDate"}),
+				    #"Added CompletionKey" = Table.AddIndexColumn(#"Removed Columns", "CompletionKey", 1, 1, Int64.Type),
+				    #"Reordered Columns2" = Table.ReorderColumns(#"Added CompletionKey",{"CompletionKey", "CompletionDateKey", "CourseKey", "CourseID", "CourseName", "Score", "SkillDomain", "IsPassed"}),
+				    #"Added CourseLevel" = Table.AddColumn(#"Reordered Columns2", "CourseLevel", each if List.Contains({"CRS-COMP-01", "CRS-COMP-02", "CRS-SOFT-02"}, [CourseID]) then "Level 1"
+				     else if List.Contains({"CRS-TECH-01", "CRS-TECH-02", "CRS-TECH-03", "CRS-SOFT-01"}, [CourseID]) then "Level 2"
+				     else "Level 3", type text),
+				    #"Added StrategicPillar" = Table.AddColumn(#"Added CourseLevel", "StrategicPillar", each if [SkillDomain] = "Tech" then "Digital, Cloud & Data Modernization" else if [SkillDomain] = "Leadership" then "People Leadership & Operational Excellence" else if [SkillDomain] = "Compliance" then "Enterprise Governance & Cyber Defense" else "Executive Communications & Storytelling", type text),
+				    #"Added CertifyingVendor" = Table.AddColumn(#"Added StrategicPillar", "CertifyingVendor", each if [CourseID] = "CRS-TECH-01" then "Microsoft Learn"
+				     else if [CourseID] = "CRS-TECH-02" then "Snowflake & Microsoft"
+				     else if [CourseID] = "CRS-TECH-03" then "Python Institute & Databricks"
+				     else if [CourseID] = "CRS-TECH-04" then "AWS & CompTIA"
+				     else if [CourseID] = "CRS-LEAD-01" then "Harvard ManageMentor"
+				     else if [CourseID] = "CRS-LEAD-02" then "Six Sigma Global Institute"
+				     else if [CourseID] = "CRS-COMP-01" then "Ministry of Manpower Egypt"
+				     else if [CourseID] = "CRS-COMP-02" then "IAPP European Privacy Board"
+				     else "Corporate Talent Academy", type text),
+				    #"Added Custom" = Table.AddColumn(#"Added CertifyingVendor", "CPD_Credits", each if [CourseLevel] = "Level 3" then 40 else if [CourseLevel] = "Level 2" then 24 else 16, Int64.Type),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "PassingScoreThreshold", each "70", Int64.Type),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "ValidityPeriodMonths", each if [SkillDomain] = "Compliance" then 12 else 24, Int64.Type),
+				    #"Added Conditional Column" = Table.AddColumn(#"Added Custom2", "DeliveryModality", each if [SkillDomain] = "Tech" then "Virtual Lab & Hands-on Sandbox" else if [SkillDomain] = "Leadership" then "Executive Workshop & Cohort" else "Self-Paced E-Learning", type text)
+				in
+				    #"Added Conditional Column"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

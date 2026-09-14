@@ -1,0 +1,11 @@
+CourseKey,CourseID,CourseName,SkillDomain,CourseLevel,AccreditationBody,DurationHours,Cost_EGP,PassingThreshold,ExpectedSalaryDelta_Pct
+1,CRS-101,Cloud Foundations & Azure Fundamentals,Cloud Architecture,Level 1 (Foundational),Microsoft Learn,24,4500.0,70,0.06
+2,CRS-102,Python for Enterprise Data Analytics,Data & AI Engineering,Level 1 (Foundational),Python Institute,32,5200.0,70,0.07
+3,CRS-103,Agile Scrum & Client Consulting Practices,Leadership & Strategy,Level 1 (Foundational),Scrum.org,16,3800.0,75,0.05
+4,CRS-201,AWS Solutions Architect Associate,Cloud Architecture,Level 2 (Intermediate),Amazon Web Services,48,9500.0,72,0.12
+5,CRS-202,Databricks & PySpark Lakehouse Engineering,Data & AI Engineering,Level 2 (Intermediate),Databricks Academy,60,12500.0,70,0.15
+6,CRS-203,CI/CD Automation with Docker & GitHub Actions,DevOps & SRE,Level 2 (Intermediate),Linux Foundation,40,8200.0,70,0.1
+7,CRS-204,Full-Stack Next.js & Microservices Architecture,Software Engineering,Level 2 (Intermediate),Vercel / Node.js Org,45,8900.0,70,0.11
+8,CRS-301,Kubernetes Administration (CKA) & Mesh Engineering,DevOps & SRE,Level 3 (Advanced),Cloud Native Computing Foundation,75,18000.0,75,0.2
+9,CRS-302,Enterprise Data Governance & Fabric Solution Architecture,Data & AI Engineering,Level 3 (Advanced),Microsoft Fabric Alliance,65,16500.0,75,0.18
+10,CRS-303,Zero-Trust Cybersecurity & DevSecOps Leadership,Cybersecurity,Level 3 (Advanced),ISC2 / CISSP Partner,80,22000.0,80,0.22

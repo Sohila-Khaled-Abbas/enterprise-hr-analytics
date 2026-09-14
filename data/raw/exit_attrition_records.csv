@@ -1,0 +1,351 @@
+﻿EmployeeID,NoticeDate,ExitDate,ExitType,PrimaryExitReason,LastPerformanceScore,RehireEligible,SeparationSalary,SeparationBranch
+EMP-14882,2025-09-01,2025-09-27,Voluntary,Career Growth,4.1,1,11500.0,الجيزة - الشيخ زايد
+EMP-14884,2025-04-10,2025-05-12,Voluntary,Compensation & Market Rate,4.1,1,17000.0,بورسعيد - الشرق
+EMP-15048,2025-09-27,2025-11-03,Voluntary,Career Growth,4.6,1,8500.0,الجيزة - 6 أكتوبر
+EMP-13895,2025-11-27,2025-12-20,Voluntary,Direct Management,4.4,0,23500.0,دمياط - دمياط الجديدة
+EMP-10910,2025-02-05,2025-02-28,Voluntary,Personal Reasons,4.2,1,15000.0,القاهرة - مصر الجديدة
+EMP-12681,2025-02-12,2025-03-08,Voluntary,Burnout & Overwork,4.1,1,31000.0,القاهرة - مصر الجديدة
+EMP-11711,2025-11-20,2025-12-21,Voluntary,Direct Management,3.0,0,22500.0,الدقهلية - المنصورة
+EMP-13309,2025-09-17,2025-10-11,Voluntary,Burnout & Overwork,3.7,1,33500.0,أسيوط - أسيوط الجديدة
+EMP-10449,2025-09-06,2025-10-16,Voluntary,Personal Reasons,3.3,1,12500.0,القاهرة - المعادي
+EMP-13527,2024-12-23,2025-01-14,Voluntary,Career Growth,4.5,1,9000.0,القاهرة - القرية الذكية
+EMP-10204,2025-09-04,2025-10-16,Voluntary,Career Growth,4.5,1,27500.0,أسيوط - أسيوط الجديدة
+EMP-12950,2025-11-16,2025-12-05,Voluntary,Personal Reasons,3.2,1,27000.0,الغربية - طنطا
+EMP-14844,2025-08-25,2025-09-21,Voluntary,Career Growth,4.0,1,8500.0,دمياط - دمياط الجديدة
+EMP-12069,2025-06-01,2025-07-10,Voluntary,Burnout & Overwork,3.1,1,15500.0,القاهرة - التجمع الخامس
+EMP-13609,2025-01-22,2025-02-27,Voluntary,Burnout & Overwork,5.0,1,26500.0,الجيزة - 6 أكتوبر
+EMP-14124,2025-03-19,2025-04-03,Voluntary,Relocation,3.1,1,22000.0,الإسكندرية - سموحة
+EMP-16434,2025-11-06,2025-12-10,Voluntary,Burnout & Overwork,3.0,1,13500.0,القاهرة - القرية الذكية
+EMP-15115,2025-05-03,2025-06-01,Voluntary,Burnout & Overwork,3.5,1,14500.0,الإسكندرية - سموحة
+EMP-16232,2025-07-20,2025-09-03,Voluntary,Burnout & Overwork,3.7,1,31000.0,الجيزة - الدقي
+EMP-14999,2025-05-13,2025-06-19,Voluntary,Career Growth,4.1,1,29500.0,الدقهلية - المنصورة
+EMP-10493,2024-12-08,2025-01-05,Voluntary,Personal Reasons,3.8,1,17500.0,الإسكندرية - لوران
+EMP-10871,2025-02-08,2025-03-03,Voluntary,Personal Reasons,3.3,1,22000.0,الغربية - طنطا
+EMP-15659,2025-01-01,2025-02-08,Voluntary,Personal Reasons,3.8,1,26000.0,الجيزة - 6 أكتوبر
+EMP-15908,2024-12-18,2025-01-27,Voluntary,Compensation & Market Rate,3.9,1,11000.0,الجيزة - 6 أكتوبر
+EMP-12478,2025-04-04,2025-05-14,Voluntary,Compensation & Market Rate,3.9,1,13000.0,الدقهلية - المنصورة
+EMP-12810,2024-11-24,2025-01-04,Voluntary,Burnout & Overwork,3.3,1,16500.0,بورسعيد - الشرق
+EMP-13224,2025-07-26,2025-09-05,Voluntary,Burnout & Overwork,3.5,1,19000.0,أسيوط - أسيوط الجديدة
+EMP-10714,2024-12-24,2025-01-25,Voluntary,Burnout & Overwork,4.4,1,28000.0,دمياط - دمياط الجديدة
+EMP-10566,2025-11-17,2025-12-08,Voluntary,Burnout & Overwork,3.2,1,21500.0,الغربية - طنطا
+EMP-13066,2025-04-12,2025-05-04,Voluntary,Burnout & Overwork,2.8,1,21500.0,أسيوط - أسيوط الجديدة
+EMP-13973,2025-07-11,2025-08-13,Voluntary,Burnout & Overwork,4.3,1,45000.0,القاهرة - القرية الذكية
+EMP-12127,2025-03-14,2025-04-19,Voluntary,Burnout & Overwork,4.3,1,28500.0,بورسعيد - الشرق
+EMP-14854,2025-05-05,2025-06-17,Voluntary,Career Growth,3.8,1,13000.0,الإسكندرية - سموحة
+EMP-16761,2025-05-10,2025-06-07,Voluntary,Compensation & Market Rate,4.0,1,18500.0,القاهرة - القرية الذكية
+EMP-14831,2025-03-17,2025-04-24,Voluntary,Direct Management,4.8,0,27500.0,الجيزة - 6 أكتوبر
+EMP-12869,2025-11-16,2025-12-10,Voluntary,Direct Management,3.3,0,14500.0,الدقهلية - المنصورة
+EMP-15827,2025-03-10,2025-04-22,Voluntary,Burnout & Overwork,3.5,1,18500.0,أسيوط - أسيوط الجديدة
+EMP-11278,2025-04-13,2025-05-20,Voluntary,Relocation,3.8,1,49500.0,الجيزة - الشيخ زايد
+EMP-14621,2025-05-29,2025-06-17,Voluntary,Personal Reasons,3.8,1,17500.0,دمياط - دمياط الجديدة
+EMP-11030,2025-10-08,2025-11-11,Voluntary,Career Growth,4.4,1,16500.0,الغربية - طنطا
+EMP-13900,2025-10-27,2025-11-24,Voluntary,Direct Management,3.4,0,32000.0,القاهرة - القرية الذكية
+EMP-11879,2025-11-17,2025-12-27,Voluntary,Relocation,4.7,1,41500.0,الجيزة - 6 أكتوبر
+EMP-14618,2025-10-23,2025-12-02,Voluntary,Personal Reasons,3.7,1,14000.0,الغربية - طنطا
+EMP-10442,2025-06-14,2025-07-04,Voluntary,Personal Reasons,5.0,1,37500.0,الجيزة - 6 أكتوبر
+EMP-15603,2025-07-20,2025-08-23,Voluntary,Compensation & Market Rate,5.0,1,13500.0,الدقهلية - المنصورة
+EMP-14486,2025-09-26,2025-10-25,Voluntary,Burnout & Overwork,4.2,1,25500.0,الإسكندرية - لوران
+EMP-13879,2025-11-20,2025-12-27,Voluntary,Direct Management,4.0,0,21500.0,القاهرة - مصر الجديدة
+EMP-10772,2025-06-07,2025-07-21,Voluntary,Compensation & Market Rate,4.0,1,21500.0,الغربية - طنطا
+EMP-10471,2025-07-19,2025-08-12,Voluntary,Personal Reasons,4.9,1,16000.0,القاهرة - القرية الذكية
+EMP-10891,2025-03-16,2025-04-18,Voluntary,Compensation & Market Rate,4.7,1,12000.0,الإسكندرية - سموحة
+EMP-13376,2025-01-22,2025-02-21,Voluntary,Direct Management,4.7,0,23000.0,الجيزة - الدقي
+EMP-10194,2025-02-09,2025-03-21,Voluntary,Compensation & Market Rate,4.0,1,18000.0,الدقهلية - المنصورة
+EMP-13441,2025-09-27,2025-11-03,Voluntary,Relocation,4.5,1,33500.0,الإسكندرية - لوران
+EMP-10748,2025-03-09,2025-04-09,Voluntary,Career Growth,3.8,1,18000.0,الدقهلية - المنصورة
+EMP-14774,2025-01-10,2025-02-15,Voluntary,Burnout & Overwork,3.8,1,14500.0,الدقهلية - المنصورة
+EMP-10269,2025-01-24,2025-02-27,Voluntary,Career Growth,4.4,1,15000.0,الإسكندرية - لوران
+EMP-10755,2025-06-03,2025-07-03,Voluntary,Personal Reasons,3.7,1,21500.0,الدقهلية - المنصورة
+EMP-12744,2025-11-24,2025-12-15,Voluntary,Burnout & Overwork,4.5,1,16000.0,الجيزة - الشيخ زايد
+EMP-11361,2025-11-09,2025-12-17,Voluntary,Career Growth,4.2,1,11500.0,الدقهلية - المنصورة
+EMP-16327,2024-12-04,2025-01-16,Voluntary,Compensation & Market Rate,3.8,1,12000.0,القاهرة - مصر الجديدة
+EMP-16051,2025-05-04,2025-06-14,Voluntary,Career Growth,4.6,1,36500.0,بورسعيد - الشرق
+EMP-11025,2025-09-23,2025-11-07,Voluntary,Burnout & Overwork,4.9,1,23500.0,القاهرة - التجمع الخامس
+EMP-16078,2025-06-24,2025-07-16,Voluntary,Direct Management,3.7,0,25500.0,القاهرة - التجمع الخامس
+EMP-14852,2025-11-08,2025-12-19,Voluntary,Compensation & Market Rate,4.3,1,19500.0,القاهرة - مصر الجديدة
+EMP-14207,2025-08-02,2025-08-26,Voluntary,Burnout & Overwork,4.5,1,11500.0,الدقهلية - المنصورة
+EMP-14041,2025-02-27,2025-03-20,Voluntary,Relocation,4.1,1,27000.0,دمياط - دمياط الجديدة
+EMP-15086,2025-08-12,2025-09-16,Voluntary,Relocation,5.0,1,18000.0,القاهرة - مصر الجديدة
+EMP-12227,2025-10-29,2025-11-21,Voluntary,Burnout & Overwork,3.8,1,27000.0,أسيوط - أسيوط الجديدة
+EMP-15923,2025-02-20,2025-03-25,Voluntary,Compensation & Market Rate,4.4,1,15000.0,الدقهلية - المنصورة
+EMP-16056,2025-03-09,2025-03-25,Voluntary,Relocation,4.6,1,14500.0,بورسعيد - الشرق
+EMP-12589,2025-06-03,2025-07-02,Voluntary,Direct Management,2.8,0,18500.0,الغربية - طنطا
+EMP-16782,2025-03-27,2025-05-02,Voluntary,Career Growth,4.8,1,33500.0,أسيوط - أسيوط الجديدة
+EMP-12609,2025-05-11,2025-06-10,Voluntary,Career Growth,4.3,1,12000.0,الغربية - طنطا
+EMP-12048,2024-12-22,2025-01-15,Voluntary,Compensation & Market Rate,4.9,1,25500.0,دمياط - دمياط الجديدة
+EMP-16227,2025-11-28,2025-12-21,Voluntary,Direct Management,4.0,0,21000.0,القاهرة - مصر الجديدة
+EMP-14625,2025-08-25,2025-10-03,Voluntary,Career Growth,4.3,1,14000.0,القاهرة - التجمع الخامس
+EMP-12636,2025-12-02,2025-12-28,Voluntary,Relocation,3.0,1,15500.0,بورسعيد - الشرق
+EMP-13223,2025-11-14,2025-12-08,Voluntary,Career Growth,4.6,1,15000.0,القاهرة - مصر الجديدة
+EMP-15823,2025-02-15,2025-03-04,Voluntary,Personal Reasons,4.4,1,34500.0,القاهرة - القرية الذكية
+EMP-11578,2025-06-18,2025-07-09,Voluntary,Compensation & Market Rate,4.9,1,14000.0,القاهرة - المعادي
+EMP-15071,2025-02-10,2025-02-24,Voluntary,Direct Management,3.2,0,26000.0,القاهرة - المعادي
+EMP-15188,2025-03-05,2025-04-03,Voluntary,Career Growth,4.2,1,11000.0,القاهرة - التجمع الخامس
+EMP-15496,2025-11-10,2025-12-02,Voluntary,Direct Management,4.5,0,11500.0,الإسكندرية - لوران
+EMP-15992,2025-10-09,2025-11-23,Voluntary,Burnout & Overwork,3.8,1,14500.0,الإسكندرية - لوران
+EMP-11283,2025-10-11,2025-11-22,Voluntary,Compensation & Market Rate,4.9,1,13000.0,الجيزة - 6 أكتوبر
+EMP-12090,2025-04-27,2025-05-22,Voluntary,Compensation & Market Rate,4.3,1,29000.0,أسيوط - أسيوط الجديدة
+EMP-15762,2025-08-29,2025-09-21,Voluntary,Career Growth,4.5,1,16000.0,الإسكندرية - سموحة
+EMP-15350,2025-10-03,2025-11-03,Voluntary,Direct Management,4.2,0,20500.0,القاهرة - المعادي
+EMP-10515,2025-08-03,2025-09-03,Voluntary,Career Growth,3.8,1,12000.0,القاهرة - مصر الجديدة
+EMP-12453,2025-03-06,2025-04-15,Voluntary,Direct Management,3.0,0,24500.0,الجيزة - الشيخ زايد
+EMP-16861,2025-03-27,2025-04-26,Voluntary,Direct Management,4.3,0,34000.0,الجيزة - 6 أكتوبر
+EMP-12698,2025-02-14,2025-03-22,Voluntary,Career Growth,4.4,1,32000.0,القاهرة - مصر الجديدة
+EMP-10120,2024-12-19,2025-01-11,Voluntary,Direct Management,3.7,0,25000.0,الجيزة - الدقي
+EMP-13209,2025-06-20,2025-07-23,Voluntary,Career Growth,5.0,1,22000.0,الإسكندرية - لوران
+EMP-11810,2025-07-15,2025-08-09,Voluntary,Relocation,3.1,1,20000.0,الجيزة - الدقي
+EMP-11288,2025-01-29,2025-03-08,Voluntary,Compensation & Market Rate,4.9,1,22000.0,الجيزة - الشيخ زايد
+EMP-12663,2025-08-24,2025-09-24,Voluntary,Career Growth,5.0,1,17000.0,القاهرة - التجمع الخامس
+EMP-14657,2025-02-25,2025-04-07,Voluntary,Compensation & Market Rate,4.7,1,15500.0,الجيزة - الدقي
+EMP-10819,2025-05-18,2025-06-12,Voluntary,Relocation,3.0,1,23000.0,بورسعيد - الشرق
+EMP-16237,2025-01-05,2025-02-11,Voluntary,Career Growth,5.0,1,13000.0,دمياط - دمياط الجديدة
+EMP-11000,2024-11-24,2025-01-02,Voluntary,Personal Reasons,4.4,1,21500.0,الدقهلية - المنصورة
+EMP-13215,2025-06-09,2025-07-16,Voluntary,Personal Reasons,3.0,1,24000.0,أسيوط - أسيوط الجديدة
+EMP-12256,2025-04-02,2025-04-25,Voluntary,Direct Management,4.6,0,23500.0,القاهرة - مصر الجديدة
+EMP-16095,2025-05-28,2025-06-14,Voluntary,Relocation,4.0,1,13000.0,الإسكندرية - لوران
+EMP-15456,2025-01-15,2025-02-25,Voluntary,Burnout & Overwork,4.2,1,24000.0,القاهرة - التجمع الخامس
+EMP-15747,2025-09-15,2025-10-16,Voluntary,Burnout & Overwork,3.7,1,20500.0,الجيزة - الشيخ زايد
+EMP-11933,2025-06-04,2025-07-01,Voluntary,Relocation,3.3,1,28500.0,القاهرة - مصر الجديدة
+EMP-12847,2025-11-10,2025-12-12,Voluntary,Compensation & Market Rate,4.8,1,13000.0,الدقهلية - المنصورة
+EMP-14054,2025-05-24,2025-06-08,Voluntary,Relocation,3.4,1,21000.0,الجيزة - الشيخ زايد
+EMP-11086,2025-10-27,2025-11-10,Voluntary,Direct Management,3.3,0,41000.0,الجيزة - 6 أكتوبر
+EMP-14247,2024-12-16,2025-01-07,Voluntary,Burnout & Overwork,4.7,1,12000.0,دمياط - دمياط الجديدة
+EMP-12523,2025-09-26,2025-10-12,Voluntary,Relocation,4.8,1,18500.0,الإسكندرية - سموحة
+EMP-14888,2025-10-24,2025-11-19,Voluntary,Career Growth,3.9,1,14500.0,الدقهلية - المنصورة
+EMP-14803,2024-12-18,2025-01-03,Voluntary,Personal Reasons,4.9,1,20500.0,دمياط - دمياط الجديدة
+EMP-16284,2025-08-05,2025-09-02,Voluntary,Burnout & Overwork,4.6,1,13500.0,أسيوط - أسيوط الجديدة
+EMP-12642,2024-12-08,2025-01-15,Voluntary,Compensation & Market Rate,4.9,1,14500.0,القاهرة - المعادي
+EMP-10038,2024-12-21,2025-01-23,Voluntary,Burnout & Overwork,2.9,1,15500.0,بورسعيد - الشرق
+EMP-13238,2024-12-11,2025-01-01,Voluntary,Relocation,3.4,1,22000.0,دمياط - دمياط الجديدة
+EMP-13452,2025-09-11,2025-10-02,Voluntary,Compensation & Market Rate,4.3,1,12000.0,القاهرة - القرية الذكية
+EMP-11184,2025-04-29,2025-05-16,Voluntary,Direct Management,3.7,0,22500.0,القاهرة - مصر الجديدة
+EMP-16791,2024-12-27,2025-01-19,Voluntary,Burnout & Overwork,3.5,1,15500.0,القاهرة - التجمع الخامس
+EMP-10813,2025-03-12,2025-04-09,Voluntary,Direct Management,4.5,0,17000.0,القاهرة - التجمع الخامس
+EMP-16999,2025-02-15,2025-03-14,Voluntary,Direct Management,4.5,0,12500.0,الجيزة - 6 أكتوبر
+EMP-14239,2025-07-16,2025-08-17,Voluntary,Personal Reasons,5.0,1,21500.0,الإسكندرية - لوران
+EMP-13377,2025-10-26,2025-12-05,Voluntary,Career Growth,5.0,1,15000.0,دمياط - دمياط الجديدة
+EMP-11134,2025-07-01,2025-07-26,Voluntary,Career Growth,4.5,1,25000.0,الإسكندرية - سموحة
+EMP-11923,2025-05-10,2025-06-16,Voluntary,Burnout & Overwork,4.1,1,20000.0,الجيزة - الشيخ زايد
+EMP-15519,2025-03-30,2025-04-25,Voluntary,Burnout & Overwork,4.6,1,18500.0,دمياط - دمياط الجديدة
+EMP-10788,2025-01-23,2025-02-19,Voluntary,Relocation,5.0,1,19500.0,الإسكندرية - لوران
+EMP-11609,2025-04-02,2025-04-23,Voluntary,Burnout & Overwork,4.9,1,11000.0,القاهرة - القرية الذكية
+EMP-10825,2025-04-16,2025-05-25,Voluntary,Burnout & Overwork,4.6,1,14500.0,القاهرة - التجمع الخامس
+EMP-13827,2025-03-31,2025-04-27,Voluntary,Compensation & Market Rate,4.5,1,20000.0,القاهرة - التجمع الخامس
+EMP-13790,2024-12-07,2025-01-05,Voluntary,Career Growth,4.0,1,13000.0,القاهرة - القرية الذكية
+EMP-10183,2025-06-07,2025-07-01,Voluntary,Compensation & Market Rate,4.9,1,14000.0,الجيزة - 6 أكتوبر
+EMP-16273,2025-11-06,2025-12-12,Voluntary,Relocation,3.0,1,38500.0,القاهرة - المعادي
+EMP-11375,2025-08-16,2025-09-20,Voluntary,Burnout & Overwork,3.6,1,20000.0,الإسكندرية - لوران
+EMP-14889,2024-12-19,2025-01-12,Voluntary,Burnout & Overwork,3.9,1,23000.0,القاهرة - المعادي
+EMP-10226,2025-02-04,2025-03-08,Voluntary,Burnout & Overwork,4.9,1,26000.0,الدقهلية - المنصورة
+EMP-10937,2025-09-27,2025-10-19,Voluntary,Relocation,4.8,1,28500.0,بورسعيد - الشرق
+EMP-13913,2025-02-01,2025-03-13,Voluntary,Career Growth,3.8,1,11000.0,القاهرة - التجمع الخامس
+EMP-13409,2025-06-01,2025-07-06,Voluntary,Direct Management,3.1,0,22000.0,الجيزة - الدقي
+EMP-12553,2025-06-16,2025-07-24,Voluntary,Burnout & Overwork,3.1,1,23000.0,الجيزة - 6 أكتوبر
+EMP-12800,2025-07-22,2025-08-16,Voluntary,Compensation & Market Rate,4.0,1,28500.0,القاهرة - القرية الذكية
+EMP-16584,2025-03-24,2025-05-05,Voluntary,Career Growth,4.9,1,25500.0,الجيزة - الدقي
+EMP-11241,2025-09-04,2025-10-13,Voluntary,Direct Management,4.3,0,17500.0,بورسعيد - الشرق
+EMP-13509,2025-03-29,2025-05-13,Voluntary,Compensation & Market Rate,3.9,1,18500.0,الغربية - طنطا
+EMP-13465,2025-01-28,2025-03-06,Voluntary,Burnout & Overwork,5.0,1,21000.0,الإسكندرية - لوران
+EMP-10975,2025-04-10,2025-05-02,Voluntary,Personal Reasons,4.7,1,11500.0,القاهرة - مصر الجديدة
+EMP-14955,2025-03-26,2025-04-14,Voluntary,Direct Management,3.2,0,27500.0,القاهرة - التجمع الخامس
+EMP-14904,2025-06-11,2025-07-09,Voluntary,Burnout & Overwork,2.9,1,13000.0,أسيوط - أسيوط الجديدة
+EMP-14893,2025-01-29,2025-02-21,Voluntary,Burnout & Overwork,3.6,1,10500.0,القاهرة - التجمع الخامس
+EMP-15170,2024-12-30,2025-02-05,Voluntary,Career Growth,4.5,1,14500.0,أسيوط - أسيوط الجديدة
+EMP-11994,2025-01-23,2025-02-06,Voluntary,Direct Management,3.0,0,24500.0,الجيزة - الدقي
+EMP-12736,2025-05-11,2025-06-12,Voluntary,Compensation & Market Rate,4.7,1,10000.0,الجيزة - 6 أكتوبر
+EMP-13800,2025-03-01,2025-03-23,Voluntary,Compensation & Market Rate,4.1,1,20500.0,الإسكندرية - لوران
+EMP-12795,2025-02-27,2025-03-22,Voluntary,Compensation & Market Rate,4.1,1,28500.0,الجيزة - الدقي
+EMP-10817,2025-07-29,2025-08-24,Voluntary,Career Growth,4.8,1,30000.0,القاهرة - مصر الجديدة
+EMP-14728,2025-05-24,2025-06-24,Voluntary,Direct Management,4.9,0,29500.0,القاهرة - مصر الجديدة
+EMP-10631,2025-02-14,2025-03-08,Voluntary,Burnout & Overwork,3.7,1,27500.0,القاهرة - التجمع الخامس
+EMP-15989,2025-03-18,2025-05-02,Voluntary,Burnout & Overwork,2.8,1,25000.0,الجيزة - الشيخ زايد
+EMP-10508,2024-12-20,2025-01-20,Voluntary,Relocation,3.4,1,12500.0,القاهرة - التجمع الخامس
+EMP-11460,2025-10-12,2025-11-08,Voluntary,Direct Management,4.8,0,16500.0,الجيزة - الشيخ زايد
+EMP-16631,2025-05-13,2025-06-16,Voluntary,Relocation,4.6,1,19000.0,القاهرة - مصر الجديدة
+EMP-16419,2025-05-30,2025-07-12,Voluntary,Burnout & Overwork,4.4,1,16500.0,أسيوط - أسيوط الجديدة
+EMP-10151,2025-11-06,2025-12-09,Voluntary,Career Growth,3.8,1,10500.0,القاهرة - التجمع الخامس
+EMP-16136,2025-07-27,2025-08-28,Voluntary,Personal Reasons,3.2,1,20500.0,الإسكندرية - لوران
+EMP-15739,2025-04-20,2025-06-03,Voluntary,Burnout & Overwork,3.9,1,16500.0,القاهرة - التجمع الخامس
+EMP-16121,2025-04-18,2025-05-15,Voluntary,Direct Management,4.7,0,18500.0,الإسكندرية - سموحة
+EMP-11784,2025-02-18,2025-03-07,Voluntary,Direct Management,3.1,0,16000.0,الدقهلية - المنصورة
+EMP-12841,2025-08-29,2025-10-07,Voluntary,Direct Management,4.5,0,11500.0,القاهرة - المعادي
+EMP-12369,2025-08-25,2025-09-25,Voluntary,Personal Reasons,4.4,1,19500.0,الإسكندرية - لوران
+EMP-14786,2025-10-11,2025-11-25,Voluntary,Burnout & Overwork,5.0,1,12500.0,الإسكندرية - سموحة
+EMP-10750,2025-11-21,2025-12-12,Voluntary,Career Growth,4.5,1,12500.0,القاهرة - مصر الجديدة
+EMP-10585,2025-02-26,2025-04-02,Voluntary,Burnout & Overwork,3.5,1,20500.0,بورسعيد - الشرق
+EMP-13477,2025-02-11,2025-03-05,Voluntary,Compensation & Market Rate,4.6,1,14000.0,الجيزة - الشيخ زايد
+EMP-16925,2025-09-07,2025-10-12,Voluntary,Career Growth,4.4,1,36000.0,القاهرة - المعادي
+EMP-11811,2025-01-23,2025-02-27,Voluntary,Compensation & Market Rate,4.4,1,15500.0,القاهرة - القرية الذكية
+EMP-11063,2025-09-13,2025-10-22,Voluntary,Career Growth,3.8,1,12500.0,القاهرة - مصر الجديدة
+EMP-11611,2025-05-10,2025-06-15,Voluntary,Relocation,4.4,1,39500.0,الغربية - طنطا
+EMP-15842,2025-02-13,2025-03-12,Voluntary,Burnout & Overwork,4.8,1,40500.0,الإسكندرية - سموحة
+EMP-16013,2025-02-19,2025-03-24,Voluntary,Burnout & Overwork,3.6,1,20500.0,القاهرة - القرية الذكية
+EMP-10164,2025-03-19,2025-04-24,Voluntary,Compensation & Market Rate,5.0,1,16500.0,الجيزة - الدقي
+EMP-10933,2025-10-08,2025-11-17,Voluntary,Personal Reasons,4.8,1,21000.0,أسيوط - أسيوط الجديدة
+EMP-16218,2025-01-13,2025-02-16,Voluntary,Personal Reasons,4.4,1,17500.0,بورسعيد - الشرق
+EMP-13661,2025-05-15,2025-06-14,Voluntary,Personal Reasons,3.6,1,22500.0,الإسكندرية - لوران
+EMP-12130,2025-11-17,2025-12-18,Voluntary,Career Growth,4.5,1,16000.0,الإسكندرية - سموحة
+EMP-13759,2025-06-20,2025-07-18,Voluntary,Relocation,3.0,1,14500.0,الغربية - طنطا
+EMP-16813,2025-06-08,2025-07-18,Voluntary,Personal Reasons,3.8,1,17000.0,الجيزة - الدقي
+EMP-14552,2025-08-04,2025-08-27,Voluntary,Direct Management,4.9,0,18000.0,الإسكندرية - لوران
+EMP-16255,2025-09-07,2025-10-18,Voluntary,Compensation & Market Rate,4.0,1,16500.0,الدقهلية - المنصورة
+EMP-12591,2025-03-10,2025-04-15,Voluntary,Burnout & Overwork,4.1,1,19000.0,أسيوط - أسيوط الجديدة
+EMP-12450,2025-01-19,2025-02-27,Voluntary,Direct Management,4.5,0,20500.0,الدقهلية - المنصورة
+EMP-14546,2025-05-10,2025-06-05,Voluntary,Burnout & Overwork,4.9,1,36500.0,دمياط - دمياط الجديدة
+EMP-16349,2025-04-04,2025-04-27,Voluntary,Burnout & Overwork,2.9,1,14500.0,القاهرة - التجمع الخامس
+EMP-14198,2025-01-25,2025-03-09,Voluntary,Burnout & Overwork,3.4,1,13500.0,الجيزة - 6 أكتوبر
+EMP-14949,2025-10-31,2025-12-09,Voluntary,Compensation & Market Rate,3.8,1,12000.0,الإسكندرية - لوران
+EMP-15512,2024-12-21,2025-01-25,Voluntary,Career Growth,4.2,1,11000.0,الجيزة - 6 أكتوبر
+EMP-14189,2025-02-04,2025-03-12,Voluntary,Compensation & Market Rate,4.1,1,22500.0,الإسكندرية - سموحة
+EMP-10511,2025-07-10,2025-08-17,Voluntary,Career Growth,3.8,1,10500.0,أسيوط - أسيوط الجديدة
+EMP-11038,2025-01-22,2025-02-10,Voluntary,Relocation,3.3,1,39500.0,القاهرة - التجمع الخامس
+EMP-16123,2024-12-04,2025-01-11,Voluntary,Burnout & Overwork,4.8,1,17500.0,أسيوط - أسيوط الجديدة
+EMP-11236,2025-08-06,2025-08-27,Voluntary,Compensation & Market Rate,3.8,1,23000.0,الدقهلية - المنصورة
+EMP-14388,2025-04-26,2025-06-08,Voluntary,Compensation & Market Rate,5.0,1,13500.0,القاهرة - المعادي
+EMP-10464,2025-09-24,2025-10-12,Voluntary,Relocation,3.9,1,25500.0,الإسكندرية - لوران
+EMP-12671,2025-07-05,2025-07-20,Voluntary,Relocation,3.5,1,11500.0,القاهرة - التجمع الخامس
+EMP-12512,2025-05-31,2025-06-20,Voluntary,Direct Management,4.6,0,43500.0,الجيزة - الشيخ زايد
+EMP-16626,2025-04-03,2025-05-03,Voluntary,Relocation,3.9,1,17500.0,القاهرة - التجمع الخامس
+EMP-14167,2025-11-15,2025-12-04,Voluntary,Direct Management,2.9,0,20000.0,الجيزة - 6 أكتوبر
+EMP-14459,2025-10-13,2025-11-07,Voluntary,Career Growth,4.8,1,28000.0,القاهرة - التجمع الخامس
+EMP-12690,2025-11-01,2025-12-05,Voluntary,Relocation,3.4,1,11000.0,القاهرة - القرية الذكية
+EMP-16608,2024-12-30,2025-02-01,Voluntary,Relocation,3.2,1,20500.0,الجيزة - الشيخ زايد
+EMP-10477,2025-09-06,2025-10-04,Voluntary,Direct Management,4.8,0,26000.0,القاهرة - المعادي
+EMP-12728,2025-02-28,2025-03-28,Voluntary,Career Growth,4.2,1,32500.0,الإسكندرية - لوران
+EMP-13202,2025-01-07,2025-02-10,Voluntary,Career Growth,4.7,1,12000.0,الجيزة - الشيخ زايد
+EMP-15754,2025-08-21,2025-09-16,Voluntary,Burnout & Overwork,4.8,1,38000.0,الإسكندرية - لوران
+EMP-14521,2025-11-23,2025-12-17,Voluntary,Personal Reasons,4.0,1,23000.0,بورسعيد - الشرق
+EMP-13110,2025-07-15,2025-08-07,Voluntary,Personal Reasons,5.0,1,15000.0,الجيزة - الشيخ زايد
+EMP-10291,2025-11-04,2025-12-13,Voluntary,Career Growth,3.8,1,15500.0,دمياط - دمياط الجديدة
+EMP-11336,2025-10-09,2025-11-15,Voluntary,Personal Reasons,3.4,1,15000.0,الجيزة - الدقي
+EMP-11996,2025-10-27,2025-12-03,Voluntary,Direct Management,3.7,0,17000.0,القاهرة - المعادي
+EMP-12507,2025-08-29,2025-10-13,Voluntary,Burnout & Overwork,3.3,1,38000.0,الجيزة - 6 أكتوبر
+EMP-10230,2025-02-03,2025-03-07,Voluntary,Compensation & Market Rate,4.7,1,25000.0,الغربية - طنطا
+EMP-15428,2024-12-13,2025-01-04,Voluntary,Burnout & Overwork,4.3,1,13500.0,الجيزة - 6 أكتوبر
+EMP-16699,2025-08-27,2025-09-17,Voluntary,Direct Management,3.5,0,13000.0,الجيزة - 6 أكتوبر
+EMP-10763,2025-05-26,2025-06-25,Voluntary,Career Growth,3.8,1,12000.0,الإسكندرية - لوران
+EMP-14706,2025-02-27,2025-04-13,Voluntary,Burnout & Overwork,3.5,1,13500.0,القاهرة - التجمع الخامس
+EMP-15677,2025-10-16,2025-11-22,Voluntary,Burnout & Overwork,2.9,1,24000.0,الإسكندرية - سموحة
+EMP-13158,2025-07-31,2025-08-18,Voluntary,Direct Management,4.6,0,19500.0,الجيزة - الدقي
+EMP-12056,2025-04-02,2025-05-03,Voluntary,Burnout & Overwork,4.5,1,31500.0,الدقهلية - المنصورة
+EMP-16509,2025-07-10,2025-08-08,Voluntary,Relocation,3.5,1,17500.0,القاهرة - القرية الذكية
+EMP-13154,2025-10-31,2025-11-24,Voluntary,Burnout & Overwork,3.4,1,14500.0,الإسكندرية - سموحة
+EMP-12554,2025-10-22,2025-11-11,Voluntary,Relocation,5.0,1,20000.0,القاهرة - المعادي
+EMP-11418,2025-10-16,2025-11-11,Voluntary,Relocation,3.2,1,21500.0,الجيزة - الشيخ زايد
+EMP-15103,2024-12-24,2025-01-19,Voluntary,Career Growth,4.4,1,10000.0,الغربية - طنطا
+EMP-10318,2025-10-20,2025-11-26,Voluntary,Personal Reasons,3.0,1,22500.0,الجيزة - الدقي
+EMP-16729,2025-01-07,2025-02-04,Voluntary,Burnout & Overwork,4.8,1,19500.0,الغربية - طنطا
+EMP-15814,2025-04-01,2025-05-09,Voluntary,Relocation,3.0,1,14500.0,الغربية - طنطا
+EMP-10375,2024-12-18,2025-01-09,Voluntary,Direct Management,3.1,0,14500.0,الجيزة - 6 أكتوبر
+EMP-10317,2025-07-13,2025-08-11,Voluntary,Compensation & Market Rate,4.6,1,16500.0,دمياط - دمياط الجديدة
+EMP-13520,2025-07-08,2025-08-21,Voluntary,Compensation & Market Rate,3.8,1,15000.0,الدقهلية - المنصورة
+EMP-16437,2025-09-14,2025-10-28,Voluntary,Career Growth,4.2,1,15000.0,الجيزة - الدقي
+EMP-10771,2025-10-25,2025-12-03,Voluntary,Direct Management,2.9,0,21500.0,دمياط - دمياط الجديدة
+EMP-13386,2025-03-25,2025-04-20,Voluntary,Direct Management,5.0,0,18000.0,بورسعيد - الشرق
+EMP-11794,2025-09-07,2025-10-17,Voluntary,Career Growth,3.9,1,14000.0,القاهرة - المعادي
+EMP-11311,2025-03-13,2025-04-15,Voluntary,Direct Management,4.8,0,28500.0,الإسكندرية - لوران
+EMP-11613,2025-11-10,2025-12-17,Voluntary,Career Growth,4.0,1,15000.0,الجيزة - 6 أكتوبر
+EMP-15012,2025-11-05,2025-12-08,Voluntary,Direct Management,3.1,0,34500.0,الدقهلية - المنصورة
+EMP-15418,2025-05-01,2025-06-08,Voluntary,Burnout & Overwork,3.2,1,21000.0,القاهرة - التجمع الخامس
+EMP-14171,2025-11-10,2025-11-25,Voluntary,Relocation,3.2,1,16500.0,الجيزة - الدقي
+EMP-16892,2025-10-13,2025-11-07,Voluntary,Relocation,2.9,1,16500.0,الدقهلية - المنصورة
+EMP-12664,2025-01-03,2025-02-12,Voluntary,Compensation & Market Rate,4.1,1,12500.0,أسيوط - أسيوط الجديدة
+EMP-14346,2025-10-27,2025-11-21,Voluntary,Career Growth,4.8,1,17000.0,الإسكندرية - لوران
+EMP-12467,2025-09-05,2025-10-19,Voluntary,Career Growth,4.1,1,22500.0,القاهرة - القرية الذكية
+EMP-16946,2024-12-11,2025-01-02,Voluntary,Compensation & Market Rate,4.0,1,17500.0,أسيوط - أسيوط الجديدة
+EMP-16675,2025-11-24,2025-12-18,Voluntary,Compensation & Market Rate,4.4,1,18000.0,دمياط - دمياط الجديدة
+EMP-11541,2025-02-18,2025-03-11,Voluntary,Direct Management,3.8,0,21500.0,الجيزة - 6 أكتوبر
+EMP-11110,2025-10-07,2025-11-07,Voluntary,Career Growth,4.0,1,16000.0,بورسعيد - الشرق
+EMP-14833,2024-12-17,2025-01-20,Voluntary,Burnout & Overwork,4.5,1,22000.0,بورسعيد - الشرق
+EMP-11082,2025-06-05,2025-06-21,Voluntary,Direct Management,2.9,0,39000.0,أسيوط - أسيوط الجديدة
+EMP-10769,2024-12-16,2025-01-08,Voluntary,Compensation & Market Rate,5.0,1,15000.0,الجيزة - الدقي
+EMP-13546,2025-07-09,2025-08-21,Voluntary,Career Growth,3.9,1,24500.0,دمياط - دمياط الجديدة
+EMP-11524,2025-05-16,2025-06-18,Voluntary,Burnout & Overwork,4.9,1,23000.0,أسيوط - أسيوط الجديدة
+EMP-14483,2025-12-01,2025-12-20,Voluntary,Direct Management,3.4,0,19500.0,الجيزة - الشيخ زايد
+EMP-12375,2025-05-22,2025-06-27,Voluntary,Career Growth,4.9,1,12000.0,بورسعيد - الشرق
+EMP-15466,2025-10-31,2025-12-14,Voluntary,Career Growth,4.7,1,11000.0,الإسكندرية - سموحة
+EMP-12966,2025-10-23,2025-11-23,Voluntary,Compensation & Market Rate,4.1,1,12500.0,القاهرة - مصر الجديدة
+EMP-13510,2025-05-26,2025-07-10,Voluntary,Compensation & Market Rate,4.4,1,24500.0,بورسعيد - الشرق
+EMP-14976,2025-09-29,2025-11-01,Voluntary,Burnout & Overwork,4.1,1,14000.0,الدقهلية - المنصورة
+EMP-12487,2025-07-30,2025-08-17,Voluntary,Relocation,3.0,1,41000.0,الجيزة - 6 أكتوبر
+EMP-15911,2025-09-14,2025-10-26,Voluntary,Career Growth,4.5,1,15000.0,الدقهلية - المنصورة
+EMP-10760,2025-02-02,2025-03-05,Voluntary,Relocation,3.2,1,17000.0,الجيزة - الدقي
+EMP-12911,2025-08-15,2025-09-18,Voluntary,Compensation & Market Rate,4.8,1,12500.0,الغربية - طنطا
+EMP-10621,2025-04-27,2025-05-24,Voluntary,Burnout & Overwork,3.9,1,12000.0,الجيزة - الشيخ زايد
+EMP-10483,2025-05-23,2025-07-03,Voluntary,Burnout & Overwork,3.0,1,27500.0,القاهرة - القرية الذكية
+EMP-14892,2025-01-17,2025-02-20,Voluntary,Burnout & Overwork,3.4,1,26000.0,الجيزة - 6 أكتوبر
+EMP-11821,2025-09-12,2025-09-28,Voluntary,Personal Reasons,3.2,1,42000.0,أسيوط - أسيوط الجديدة
+EMP-11513,2025-09-18,2025-10-20,Voluntary,Burnout & Overwork,4.9,1,24500.0,بورسعيد - الشرق
+EMP-16049,2025-02-03,2025-03-02,Voluntary,Direct Management,3.8,0,21500.0,القاهرة - القرية الذكية
+EMP-13815,2024-12-21,2025-01-11,Voluntary,Career Growth,3.9,1,17500.0,أسيوط - أسيوط الجديدة
+EMP-15061,2025-03-08,2025-04-17,Voluntary,Career Growth,4.5,1,23000.0,الإسكندرية - لوران
+EMP-12424,2025-04-20,2025-05-24,Voluntary,Burnout & Overwork,3.2,1,37500.0,أسيوط - أسيوط الجديدة
+EMP-13019,2025-03-31,2025-04-20,Voluntary,Personal Reasons,4.7,1,39000.0,الغربية - طنطا
+EMP-15269,2025-11-07,2025-12-10,Voluntary,Personal Reasons,4.1,1,10000.0,الجيزة - الدقي
+EMP-13333,2025-09-09,2025-10-17,Voluntary,Compensation & Market Rate,3.8,1,30500.0,القاهرة - التجمع الخامس
+EMP-14328,2025-11-20,2025-12-10,Voluntary,Personal Reasons,4.5,1,16500.0,القاهرة - التجمع الخامس
+EMP-10153,2025-08-12,2025-09-05,Voluntary,Direct Management,4.9,0,25500.0,الجيزة - الشيخ زايد
+EMP-10327,2025-06-23,2025-07-15,Voluntary,Personal Reasons,2.9,1,36500.0,القاهرة - المعادي
+EMP-12246,2025-04-16,2025-05-26,Voluntary,Compensation & Market Rate,4.1,1,14500.0,بورسعيد - الشرق
+EMP-12268,2025-06-11,2025-07-08,Voluntary,Compensation & Market Rate,4.9,1,14000.0,دمياط - دمياط الجديدة
+EMP-16310,2025-06-15,2025-07-07,Voluntary,Compensation & Market Rate,4.1,1,15500.0,القاهرة - مصر الجديدة
+EMP-16374,2025-05-17,2025-06-26,Voluntary,Compensation & Market Rate,4.3,1,15500.0,الجيزة - الشيخ زايد
+EMP-14049,2025-09-19,2025-10-24,Voluntary,Career Growth,4.2,1,26500.0,الإسكندرية - لوران
+EMP-16526,2025-02-17,2025-03-10,Voluntary,Burnout & Overwork,4.5,1,16500.0,أسيوط - أسيوط الجديدة
+EMP-14883,2025-05-02,2025-05-28,Voluntary,Burnout & Overwork,3.6,1,34000.0,الإسكندرية - لوران
+EMP-12443,2025-02-14,2025-03-01,Voluntary,Direct Management,3.4,0,26000.0,الجيزة - 6 أكتوبر
+EMP-15730,2024-12-14,2025-01-10,Voluntary,Burnout & Overwork,4.4,1,34000.0,القاهرة - التجمع الخامس
+EMP-12229,2025-11-15,2025-12-12,Voluntary,Personal Reasons,4.3,1,21500.0,الجيزة - 6 أكتوبر
+EMP-11397,2025-03-06,2025-04-07,Voluntary,Direct Management,3.1,0,11000.0,الجيزة - الشيخ زايد
+EMP-12959,2025-04-15,2025-05-09,Voluntary,Career Growth,4.9,1,17000.0,أسيوط - أسيوط الجديدة
+EMP-10363,2025-09-13,2025-10-23,Voluntary,Career Growth,4.5,1,14500.0,دمياط - دمياط الجديدة
+EMP-11897,2025-02-20,2025-03-23,Voluntary,Compensation & Market Rate,4.3,1,30500.0,الدقهلية - المنصورة
+EMP-10925,2025-09-18,2025-10-04,Voluntary,Direct Management,3.2,0,12500.0,الجيزة - 6 أكتوبر
+EMP-11555,2025-01-27,2025-03-05,Voluntary,Career Growth,4.9,1,11000.0,القاهرة - التجمع الخامس
+EMP-11598,2025-08-19,2025-09-09,Voluntary,Compensation & Market Rate,4.6,1,10500.0,بورسعيد - الشرق
+EMP-12672,2025-02-03,2025-03-15,Voluntary,Direct Management,5.0,0,12000.0,الجيزة - الدقي
+EMP-15195,2025-01-01,2025-01-25,Voluntary,Career Growth,4.7,1,10500.0,الغربية - طنطا
+EMP-12112,2025-11-02,2025-12-05,Voluntary,Burnout & Overwork,3.2,1,25500.0,القاهرة - مصر الجديدة
+EMP-12843,2025-03-05,2025-04-04,Voluntary,Burnout & Overwork,3.2,1,17500.0,الإسكندرية - لوران
+EMP-14310,2025-02-23,2025-03-20,Voluntary,Direct Management,4.5,0,21500.0,الإسكندرية - سموحة
+EMP-13056,2025-06-15,2025-07-04,Voluntary,Direct Management,3.3,0,15500.0,القاهرة - مصر الجديدة
+EMP-10659,2025-07-26,2025-08-26,Voluntary,Personal Reasons,4.8,1,38000.0,القاهرة - القرية الذكية
+EMP-13230,2025-02-01,2025-03-13,Voluntary,Burnout & Overwork,3.9,1,28000.0,القاهرة - القرية الذكية
+EMP-12491,2025-04-27,2025-06-04,Voluntary,Direct Management,2.9,0,16500.0,القاهرة - التجمع الخامس
+EMP-15676,2025-02-09,2025-03-09,Voluntary,Burnout & Overwork,3.6,1,24500.0,دمياط - دمياط الجديدة
+EMP-13684,2024-12-10,2025-01-17,Voluntary,Direct Management,4.2,0,31000.0,الجيزة - 6 أكتوبر
+EMP-10344,2024-12-03,2025-01-15,Voluntary,Burnout & Overwork,4.7,1,41000.0,الجيزة - الشيخ زايد
+EMP-15888,2025-10-25,2025-11-24,Voluntary,Career Growth,3.9,1,25000.0,الإسكندرية - سموحة
+EMP-13448,2025-07-17,2025-08-16,Voluntary,Personal Reasons,3.8,1,24500.0,الجيزة - الدقي
+EMP-11546,2025-01-01,2025-01-21,Voluntary,Personal Reasons,4.6,1,23000.0,القاهرة - التجمع الخامس
+EMP-14353,2025-09-21,2025-11-02,Voluntary,Compensation & Market Rate,4.4,1,18000.0,الغربية - طنطا
+EMP-11181,2025-06-19,2025-07-03,Voluntary,Relocation,3.7,1,19500.0,القاهرة - المعادي
+EMP-16057,2025-07-13,2025-08-07,Voluntary,Career Growth,4.4,1,20500.0,الجيزة - الدقي
+EMP-10642,2025-10-24,2025-11-11,Voluntary,Personal Reasons,3.7,1,29000.0,بورسعيد - الشرق
+EMP-11004,2025-08-18,2025-09-26,Voluntary,Compensation & Market Rate,3.9,1,35500.0,الجيزة - الدقي
+EMP-14155,2025-06-11,2025-07-22,Voluntary,Compensation & Market Rate,4.0,1,17000.0,الإسكندرية - لوران
+EMP-12940,2025-12-08,2025-12-24,Voluntary,Personal Reasons,3.5,1,14500.0,القاهرة - المعادي
+EMP-14070,2025-11-11,2025-12-09,Voluntary,Career Growth,4.0,1,9500.0,الإسكندرية - سموحة
+EMP-11906,2025-04-22,2025-06-06,Voluntary,Career Growth,4.0,1,16000.0,الإسكندرية - سموحة
+EMP-14977,2025-07-14,2025-08-17,Voluntary,Burnout & Overwork,4.1,1,18500.0,الجيزة - 6 أكتوبر
+EMP-13123,2025-08-01,2025-09-02,Voluntary,Career Growth,4.3,1,10500.0,القاهرة - القرية الذكية
+EMP-12970,2025-08-13,2025-09-19,Voluntary,Compensation & Market Rate,3.9,1,16000.0,أسيوط - أسيوط الجديدة
+EMP-15978,2025-10-04,2025-11-10,Voluntary,Relocation,3.3,1,17000.0,دمياط - دمياط الجديدة
+EMP-12282,2025-07-14,2025-08-06,Voluntary,Direct Management,3.3,0,16500.0,القاهرة - مصر الجديدة
+EMP-10406,2025-07-16,2025-08-09,Voluntary,Compensation & Market Rate,4.3,1,13500.0,بورسعيد - الشرق
+EMP-13085,2025-07-25,2025-08-19,Voluntary,Career Growth,4.2,1,16500.0,القاهرة - المعادي
+EMP-14308,2025-08-24,2025-09-23,Voluntary,Compensation & Market Rate,4.2,1,22500.0,الغربية - طنطا
+EMP-12815,2025-07-30,2025-08-22,Voluntary,Relocation,4.5,1,18000.0,الجيزة - الدقي
+EMP-16143,2025-01-03,2025-01-26,Voluntary,Personal Reasons,3.0,1,15500.0,الإسكندرية - سموحة
+EMP-13536,2025-07-29,2025-09-02,Voluntary,Compensation & Market Rate,4.4,1,14000.0,بورسعيد - الشرق
+EMP-11529,2025-09-08,2025-10-16,Voluntary,Direct Management,3.2,0,27500.0,القاهرة - التجمع الخامس
+EMP-13641,2025-08-20,2025-09-10,Voluntary,Direct Management,4.4,0,29500.0,القاهرة - مصر الجديدة
+EMP-14554,2025-09-29,2025-10-23,Voluntary,Burnout & Overwork,2.9,1,30500.0,الإسكندرية - لوران
+EMP-16724,2025-08-11,2025-09-18,Voluntary,Relocation,3.1,1,14500.0,الجيزة - الشيخ زايد
+EMP-15604,2025-07-30,2025-08-20,Voluntary,Career Growth,4.6,1,12000.0,الجيزة - الدقي
+EMP-13330,2025-10-08,2025-11-10,Voluntary,Personal Reasons,3.4,1,18000.0,القاهرة - مصر الجديدة
+EMP-14989,2025-09-07,2025-10-01,Voluntary,Compensation & Market Rate,4.3,1,17500.0,الدقهلية - المنصورة
+EMP-11492,2025-07-22,2025-08-26,Voluntary,Direct Management,3.9,0,19000.0,دمياط - دمياط الجديدة
+EMP-11887,2025-01-07,2025-02-02,Voluntary,Career Growth,4.1,1,14000.0,الدقهلية - المنصورة
+EMP-11978,2025-09-22,2025-10-20,Voluntary,Compensation & Market Rate,4.3,1,12000.0,القاهرة - التجمع الخامس
+EMP-11851,2025-04-17,2025-05-10,Voluntary,Burnout & Overwork,4.4,1,21000.0,الجيزة - 6 أكتوبر

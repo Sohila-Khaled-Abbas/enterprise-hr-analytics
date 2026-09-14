@@ -1,11 +1,12 @@
-# Enterprise Power BI Implementation & Analytical Diagnostics Masterclass
+# 💎 Nexora Tech Solutions · Enterprise Power BI Implementation & Analytical Diagnostics Masterclass
 ### Building a Kimball Galaxy Schema (Fact Constellation) from Raw Data with Full GUI, TMDL & DAX Guidance
+**Domain**: Offshore Software House Consulting, International Client Delivery & L&D Tech Academy
 
 ---
 
 ## 🎯 Executive Overview & The Modern Enterprise Paradigm
 
-In enterprise human capital analytics, data engineering is rarely clean. The operational reality of enterprise workforce diagnostics spans **5 heterogeneous, conflicting source systems** operating at disparate frequencies and grains:
+In enterprise human capital and software house operations, data engineering is rarely clean. The operational reality of **Nexora Tech Solutions (حلول نكسورا للبرمجيات والتحول الرقمي)** spans **7 heterogeneous source systems** operating at disparate frequencies and grains across engineering talent, IoT hardware, academy certifications, and offshore client contracts:
 
 ```
                                ┌──────────────────────────────────────────────┐
@@ -16,6 +17,8 @@ In enterprise human capital analytics, data engineering is rarely clean. The ope
                                │ • Relational Exit Audits (SQL Server OLTP)   │
                                │ • FP&A Budget Worksheets (Messy Wide Excel)  │
                                │ • LMS Platform Course Records (REST / CSV)   │
+                               │ • Client Projects & Tasks (JSON / CSV, 3.6k) │
+                               │ • Central Bank FX Spot Rates (CSV Feed)      │
                                └──────────────────────┬───────────────────────┘
                                                       │ Power Query Editor GUI
                                                       ▼
@@ -25,13 +28,14 @@ In enterprise human capital analytics, data engineering is rarely clean. The ope
                                │ Conformed Dimensions:                        │
                                │   Dim_Employee (SCD-2) │ Dim_Department      │
                                │   Dim_Branch           │ Dim_Date (Calendar) │
-                               │   Dim_Course                                 │
+                               │   Dim_Course (L&D)     │ Dim_CurrencyRates   │
                                │                                              │
                                │ Fact Tables:                                 │
                                │   Fact_WorkforceSnapshot (Monthly)           │
                                │   Fact_DailyAttendance   (Daily IoT)         │
                                │   Fact_DepartmentBudget  (Quarterly FP&A)    │
                                │   Fact_TrainingCompletions (Transactional)   │
+                               │   Fact_ProjectTasks      (Client Delivery)   │
                                └──────────────────────┬───────────────────────┘
                                                       │ TMDL & Semantic Modeling
                                                       ▼
@@ -40,22 +44,23 @@ In enterprise human capital analytics, data engineering is rarely clean. The ope
                                ├──────────────────────────────────────────────┤
                                │ • Calculation Groups (Time Intelligence)     │
                                │ • Field Parameters (Dynamic Visual Slicing)  │
-                               │ • Dynamic Format Strings (K / M / EGP)       │
-                               │ • Row-Level (RLS) & Object-Level (OLS) Sec   │
+                               │ • In-Memory Table.Buffer() Dimension Caching │
+                               │ • Dynamic Multi-Currency Normalization (FX)  │
                                │ • Incremental Refresh Policy (VertiPaq)      │
                                └──────────────────────┬───────────────────────┘
                                                       │ DAX Diagnostic Engine
                                                       ▼
                                ┌──────────────────────────────────────────────┐
-                               │       7 ADVANCED ANALYTICAL DIAGNOSTICS      │
+                               │       8 ADVANCED ANALYTICAL DIAGNOSTICS      │
                                ├──────────────────────────────────────────────┤
                                │ 1. Salary Compression & Flight Risk Index    │
                                │ 2. Bi-Temporal Budget & Headcount Variance   │
                                │ 3. Policy Compliance & Ghost Worker Audits   │
-                               │ 4. Upskilling Velocity & Training ROI        │
-                               │ 5. Survivorship Bias & Regrettable Turnover  │
-                               │ 6. Equal Pay & Role Compensation Parity      │
-                               │ 7. Branch Space Utilization & Peak Stress    │
+                               │ 4. Upskilling Velocity & Training ROI (ΔP)   │
+                               │ 5. Client Task Delivery & Bench Cost Bleed   │
+                               │ 6. Global Multi-Currency FX Realization      │
+                               │ 7. Survivorship Bias & Regrettable Turnover  │
+                               │ 8. Branch Space Utilization & Peak Stress    │
                                └──────────────────────┬───────────────────────┘
                                                       │ Report View GUI (1920x1080)
                                                       ▼
@@ -66,12 +71,13 @@ In enterprise human capital analytics, data engineering is rarely clean. The ope
 ```
 
 This guide equips you with:
-1. **Critical Analytical Thinking Frameworks** to formulate hypotheses on organizational behavior, wage friction, and operational leakage.
+1. **Critical Analytical Thinking Frameworks** to formulate hypotheses on organizational behavior, wage friction, bench utilization, and operational leakage.
 2. **Visual, Step-by-Step Power Query GUI Clickpaths** to transform messy raw data into a pristine **Kimball Galaxy Schema** without writing manual M code for data tables.
-3. **Production M Code Exclusively for `Dim_Date`** providing a continuous enterprise calendar with Egyptian weekend rules and relative offsets.
+3. **Production M Code Exclusively for `Dim_Date`** providing a dynamically harvested enterprise calendar with Egyptian weekend rules and relative offsets.
 4. **Advanced Semantic Model Engineering & TMDL Scripting** covering Calculation Groups, Field Parameters, Dynamic Format Strings, and VertiPaq memory optimization.
-5. **Advanced DAX Formulas for 7 Complex Business Problems** with full filter context explanations.
+5. **Advanced DAX Formulas for 8 Complex Business Problems** with full filter context explanations.
 6. **Modern Web App-Style UI/UX Design System** in the Report View GUI.
+
 
 ---
 
@@ -1286,40 +1292,246 @@ In enterprise deployments backed by Microsoft SQL Server (`EnterpriseHR_DWH`), t
 
 ---
 
+### Step 2.7c: Ingesting & Cleansing Client Delivery & Milestone Tasks (`Fact_ProjectTasks`) via GUI
+
+Nexora Tech Solutions operates as a high-end offshore software engineering and digital transformation consultancy. To track client delivery efficiency, project margins, scope creep, and billable engineering utilization, we ingest **3,600 delivery milestone tasks** across international client engagements (Aramco, Emirates Digital, UK RetailNext, US HealthBridge, etc.).
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Power Query Editor — Ingesting Client Projects & Tasks (Fact_ProjectTasks)                            │
+├───────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ [New Source > Text/CSV] ──► Select "data/raw/client_projects_tasks.csv" (or .json)                   │
+│ [Data Types]            ──► TaskID (Text), PlannedHours (Decimal), ActualHours (Decimal), Rate (Fixed)│
+│ [Merge Queries]         ──► Join Dim_Employee on AssignedEmployeeID = الرقم التعريفي (EmployeeKey)    │
+│ [Merge Queries]         ──► Join Dim_CurrencyRates on USD = CurrencyCode (CurrencyKey)                │
+│ [Add Custom Columns]    ──► ScopeOverrunHours, ScopeOverrunPct, TotalBilling_EGP                      │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Ingesting Raw Task Data via GUI:
+1. In Power Query Editor **Home** ribbon, click **New Source > Text/CSV** (or **New Source > JSON** if using `data/raw/client_projects_tasks.json`).
+2. Browse to `data/raw/client_projects_tasks.csv` and click **Open**.
+3. Verify file origin is **65001: Unicode (UTF-8)** and delimiter is **Comma**. Click **OK**.
+4. In the left **Queries** pane, right-click the query and rename it to **`Fact_ProjectTasks`**.
+
+#### 2. Setting Visual Column Data Types:
+Click the type icon on each column header:
+* `TaskID`, `ProjectID`, `ProjectName`, `ClientName`, `ClientCountry`, `ClientRegion`, `Industry`: **Text (`ABC`)**.
+* `AssignedEmployeeID`: **Text (`ABC`)**.
+* `TaskTitle`, `SkillDomain`, `ComplexityTier`, `TaskStatus`: **Text (`ABC`)**.
+* `PlannedHours`, `ActualHours`: **Decimal Number (`1.2`)**.
+* `IsHoursOverrun`, `IsDeliveryDelayed`: **True/False (`✔️/❌`)**.
+* `BillableHourlyRate_USD`, `TotalBilling_USD`: **Fixed Decimal Number (`$`)**.
+* `ClientSatisfactionRating`: **Decimal Number (`1.2`)**.
+* `TaskStartDate`, `DeliveryDeadline`, `ActualCompletionDate`: **Date (`📅`)**.
+
+#### 3. Resolving Surrogate Foreign Keys (`EmployeeKey` & `DateKey`) via GUI:
+
+##### 3a. Merging with `Dim_Employee` to Link `EmployeeKey`:
+1. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+2. Select `Fact_ProjectTasks` on top; click the **`AssignedEmployeeID`** column header.
+3. In the lower dropdown, select **`Dim_Employee`**; click the **`الرقم التعريفي`** (or `EmployeeID`) column header.
+4. Join Kind: **Left Outer (all from first, matching from second)** $\to$ click **OK**.
+5. Click the **Expand (`⤢`)** icon on the new column header $\to$ uncheck *(Select All Columns)* $\to$ check only **`EmployeeKey`** $\to$ uncheck *"Use original column name as prefix"* $\to$ click **OK**.
+6. Set `EmployeeKey` type to **Whole Number (`123`)**.
+
+##### 3b. Generating Calendar Surrogate Keys (`DateKey` format `YYYYMMDD`):
+To link tasks to `Dim_Date` without expensive DateTime joins:
+1. Switch to **Add Column > Custom Column**.
+2. Name: `StartDateKey` $\to$ Formula:
+   ```
+   Date.Year([TaskStartDate]) * 10000 + Date.Month([TaskStartDate]) * 100 + Date.Day([TaskStartDate])
+   ```
+3. Repeat for `DeadlineDateKey`:
+   ```
+   Date.Year([DeliveryDeadline]) * 10000 + Date.Month([DeliveryDeadline]) * 100 + Date.Day([DeliveryDeadline])
+   ```
+4. Repeat for `CompletionDateKey` (with null-safety):
+   ```
+   if [ActualCompletionDate] <> null then Date.Year([ActualCompletionDate]) * 10000 + Date.Month([ActualCompletionDate]) * 100 + Date.Day([ActualCompletionDate]) else null
+   ```
+5. Set all three new key columns to **Whole Number (`123`)**.
+
+#### 4. Adding Business Diagnostic Columns via GUI:
+
+##### 4a. Scope Overrun Hours & Overrun %:
+1. Go to **Add Column > Custom Column**.
+2. Name: `ScopeOverrunHours` $\to$ Formula:
+   ```
+   [ActualHours] - [PlannedHours]
+   ```
+3. Go to **Add Column > Custom Column**.
+4. Name: `ScopeOverrunPct` $\to$ Formula:
+   ```
+   if [PlannedHours] > 0 then ([ActualHours] - [PlannedHours]) / [PlannedHours] else 0
+   ```
+5. Set `ScopeOverrunHours` to **Decimal Number (`1.2`)** and `ScopeOverrunPct` to **Percentage (`%`)**.
+
+##### 4b. Local Currency Realization (`TotalBilling_EGP`):
+1. Go to **Add Column > Custom Column**.
+2. Name: `TotalBilling_EGP` $\to$ Formula:
+   ```
+   [TotalBilling_USD] * 48.85
+   ```
+3. Set type to **Fixed Decimal Number (`$`)**.
+
+#### 5. Production M Code for `Fact_ProjectTasks` (with In-Memory Caching):
+For automated deployment or TMDL script injection:
+
+```powerquery-m
+let
+    Source = Csv.Document(File.Contents("data/raw/client_projects_tasks.csv"), [Delimiter=",", Columns=22, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"TaskID", type text}, {"ProjectID", type text}, {"ProjectName", type text},
+        {"ClientName", type text}, {"ClientCountry", type text}, {"ClientRegion", type text},
+        {"Industry", type text}, {"AssignedEmployeeID", type text}, {"TaskTitle", type text},
+        {"SkillDomain", type text}, {"ComplexityTier", type text}, {"PlannedHours", type number},
+        {"ActualHours", type number}, {"IsHoursOverrun", type logical}, {"BillableHourlyRate_USD", Currency.Type},
+        {"TotalBilling_USD", Currency.Type}, {"TaskStatus", type text}, {"ClientSatisfactionRating", type number},
+        {"TaskStartDate", type date}, {"DeliveryDeadline", type date}, {"ActualCompletionDate", type date},
+        {"IsDeliveryDelayed", type logical}
+    }),
+    
+    // In-memory buffer for high-speed dimensional join
+    BufferedEmployees = Table.Buffer(Dim_Employee),
+    
+    // Merge surrogate key from Dim_Employee
+    #"Merged Dim_Employee" = Table.NestedJoin(#"Changed Type", {"AssignedEmployeeID"}, BufferedEmployees, {"الرقم التعريفي"}, "Dim_Employee", JoinKind.LeftOuter),
+    #"Expanded Dim_Employee" = Table.ExpandTableColumn(#"Merged Dim_Employee", "Dim_Employee", {"EmployeeKey"}, {"EmployeeKey"}),
+    
+    // Generate YYYYMMDD surrogate date keys
+    #"Added StartDateKey" = Table.AddColumn(#"Expanded Dim_Employee", "StartDateKey", each Date.Year([TaskStartDate]) * 10000 + Date.Month([TaskStartDate]) * 100 + Date.Day([TaskStartDate]), Int64.Type),
+    #"Added DeadlineDateKey" = Table.AddColumn(#"Added StartDateKey", "DeadlineDateKey", each Date.Year([DeliveryDeadline]) * 10000 + Date.Month([DeliveryDeadline]) * 100 + Date.Day([DeliveryDeadline]), Int64.Type),
+    #"Added CompletionDateKey" = Table.AddColumn(#"Added DeadlineDateKey", "CompletionDateKey", each if [ActualCompletionDate] <> null then Date.Year([ActualCompletionDate]) * 10000 + Date.Month([ActualCompletionDate]) * 100 + Date.Day([ActualCompletionDate]) else null, Int64.Type),
+    
+    // Derived Operational Metrics
+    #"Added ScopeOverrunHours" = Table.AddColumn(#"Added CompletionDateKey", "ScopeOverrunHours", each [ActualHours] - [PlannedHours], type number),
+    #"Added ScopeOverrunPct" = Table.AddColumn(#"Added ScopeOverrunHours", "ScopeOverrunPct", each if [PlannedHours] > 0 then ([ActualHours] - [PlannedHours]) / [PlannedHours] else 0, Percentage.Type),
+    #"Added TotalBilling_EGP" = Table.AddColumn(#"Added ScopeOverrunPct", "TotalBilling_EGP", each [TotalBilling_USD] * 48.85, Currency.Type)
+in
+    #"Added TotalBilling_EGP"
+```
+
+---
+
+### Step 2.7d: Ingesting & Standardizing Central Bank FX Spot Rates (`Dim_CurrencyRates`) via GUI
+
+Nexora Tech Solutions bills offshore enterprise accounts in multiple global currencies (**USD, EUR, GBP, SAR, AED**) while managing domestic salaries and facility overhead in **EGP**. Ingesting daily FX spot rates enables seamless, dynamic currency conversions in DAX without hardcoding exchange multipliers.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Dim_CurrencyRates Schema Contract & Normalization Factors                                             │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ CurrencyKey │ CurrencyCode │ CurrencyName          │ RateToEGP │ OneEGPInCurrency │ RateType           │
+├─────────────┼──────────────┼───────────────────────┼───────────┼──────────────────┼────────────────────┤
+│ 1           │ EGP          │ Egyptian Pound        │ 1.0000    │ 1.000000         │ Base Operational   │
+│ 2           │ USD          │ United States Dollar  │ 48.8500   │ 0.020471         │ Central Bank Spot  │
+│ 3           │ EUR          │ Euro                  │ 53.2000   │ 0.018797         │ Central Bank Spot  │
+│ 4           │ GBP          │ British Pound         │ 63.5000   │ 0.015748         │ Central Bank Spot  │
+│ 5           │ SAR          │ Saudi Riyal           │ 13.0200   │ 0.076805         │ Regional Pegged    │
+│ 6           │ AED          │ UAE Dirham            │ 13.3000   │ 0.075188         │ Regional Pegged    │
+└─────────────┴──────────────┴───────────────────────┴───────────┴──────────────────┴────────────────────┘
+```
+
+#### 1. Ingesting Currency Master Data via GUI:
+1. Go to **Home > New Source > Text/CSV**.
+2. Select `data/raw/dim_currency_rates.csv` (or `data/processed/Dim_CurrencyRates.csv`) and click **Open**.
+3. Verify UTF-8 encoding and click **OK**. Rename the query to **`Dim_CurrencyRates`**.
+
+#### 2. Visual Column Data Types:
+* `CurrencyKey`: **Whole Number (`123`)**.
+* `CurrencyCode`: **Text (`ABC`)**.
+* `CurrencyName`: **Text (`ABC`)**.
+* `RateToEGP`: **Decimal Number (`1.2`)**.
+* `OneEGPInCurrency`: **Decimal Number (`1.2`)**.
+* `RateType`: **Text (`ABC`)**.
+* `LastUpdated`: **Date/Time (`📅🕒`)**.
+
+#### 3. Production M Code for `Dim_CurrencyRates`:
+```powerquery-m
+let
+    Source = Csv.Document(File.Contents("data/raw/dim_currency_rates.csv"), [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"CurrencyKey", Int64.Type},
+        {"CurrencyCode", type text},
+        {"CurrencyName", type text},
+        {"RateToEGP", type number},
+        {"OneEGPInCurrency", type number},
+        {"RateType", type text},
+        {"LastUpdated", type datetime}
+    }),
+    #"Buffered Table" = Table.Buffer(#"Changed Type")
+in
+    #"Buffered Table"
+```
+
+---
+
+### Step 2.7e: Enriching L&D Curriculum Catalog (`Dim_Course`) with Level 1, 2, 3 Hierarchy via GUI
+
+To analyze training ROI ($\Delta P$) and skill advancement velocity, the L&D curriculum must be organized into standardized proficiency tiers:
+* **Level 1 (Foundational)**: Entry-level certificates (Cloud Foundations, Python, Agile Scrum).
+* **Level 2 (Intermediate)**: Role-specific certifications (AWS Solutions Architect, Databricks PySpark, Docker/GitHub Actions, Full-Stack Next.js).
+* **Level 3 (Advanced)**: Enterprise architect credentials (Kubernetes CKA, Microsoft Fabric Governance, Zero-Trust Cybersecurity).
+
+#### 1. Ingesting Curriculum Catalog via GUI:
+1. Go to **Home > New Source > Text/CSV**.
+2. Select `data/raw/lms_curriculum_catalog.csv` and click **Open**. Click **OK**.
+3. Rename the query to **`Dim_Course`** (or merge it into existing `Dim_Course` created in Step 2.5c).
+4. Verify column data types:
+   * `CourseKey`: **Whole Number (`123`)**.
+   * `CourseID`: **Text (`ABC`)**.
+   * `CourseName`: **Text (`ABC`)**.
+   * `SkillDomain`: **Text (`ABC`)**.
+   * `CourseLevel`: **Text (`ABC`)** — Contains `Level 1 (Foundational)`, `Level 2 (Intermediate)`, `Level 3 (Advanced)`.
+   * `AccreditationBody`: **Text (`ABC`)**.
+   * `DurationHours`: **Whole Number (`123`)**.
+   * `Cost_EGP`: **Fixed Decimal Number (`$`)**.
+   * `PassingThreshold`: **Whole Number (`123`)**.
+   * `ExpectedSalaryDelta_Pct`: **Percentage (`%`)**.
+
+---
+
 ### Step 2.8: The Complete Kimball Galaxy Constellation Model Topology
 
-Before committing all queries to the Power BI Tabular Engine, verify that your data model strictly implements the Kimball Fact Constellation architecture. The dimensional model comprises **5 Conformed Dimensions** sharing relationships across **4 Galaxy Fact Tables**:
+Before committing all queries to the Power BI Tabular Engine, verify that your data model strictly implements the Kimball Fact Constellation architecture. The dimensional model comprises **6 Conformed Dimensions** sharing relationships across **5 Galaxy Fact Tables**:
 
 ```
-                                  ┌───────────────────┐
-                                  │   Dim_Department  │
-                                  │   (DepartmentKey) │
-                                  └─────────┬─────────┘
-                                            │
-               ┌────────────────────────────┼────────────────────────────┐
-               │ 1:*                        │ 1:*                        │ 1:*
-               ▼                            ▼                            ▼
-   ┌───────────────────────┐    ┌───────────────────────┐    ┌───────────────────────┐
-   │ Fact_WorkforceSnapshot│    │ Fact_DepartmentBudget │    │  Dim_Employee (SCD-2) │
-   │   (Monthly Snapshot)  │    │   (Quarterly FP&A)    │    │     (EmployeeKey)     │
-   └───────────┬───────────┘    └───────────┬───────────┘    └───────────┬───────────┘
-               │ 1:*                        │ 1:*                        │ 1:*
-               │                            │             ┌──────────────┼──────────────┐
-               │                            │             │              │              │
-               ▼                            ▼             ▼              ▼              ▼
-   ┌───────────────────────┐    ┌──────────────────────────────────┐   ┌───────────────────────┐
-   │       Dim_Date        │◄───┤      Fact_DailyAttendance        │   │Fact_TrainingCompletion│
-   │       (DateKey)       │    │           (Daily IoT)            │   │    (LMS Attempts)     │
-   └───────────▲───────────┘    └─────────────────▲────────────────┘   └───────────┬───────────┘
-               │                                  │                                │ 1:*
-               │ 1:*                              │ 1:*                            ▼
-               │                        ┌─────────┴─────────┐            ┌───────────────────┐
-               └────────────────────────┤     Dim_Branch    │            │    Dim_Course     │
-                                        │    (BranchKey)    │            │    (CourseKey)    │
-                                        └───────────────────┘            └───────────────────┘
+                                  ┌────────────────────────┐
+                                  │     Dim_Department     │
+                                  │     (DepartmentKey)    │
+                                  └───────────┬────────────┘
+                                              │
+                 ┌────────────────────────────┼────────────────────────────┐
+                 │ 1:*                        │ 1:*                        │ 1:*
+                 ▼                            ▼                            ▼
+     ┌───────────────────────┐    ┌───────────────────────┐    ┌───────────────────────┐
+     │ Fact_WorkforceSnapshot│    │ Fact_DepartmentBudget │    │  Dim_Employee (SCD-2) │
+     │   (Monthly Census)    │    │   (Quarterly FP&A)    │    │     (EmployeeKey)     │
+     └───────────┬───────────┘    └───────────┬───────────┘    └───────────┬───────────┘
+                 │ 1:*                        │ 1:*                        │ 1:*
+                 │                            │              ┌─────────────┼─────────────┐
+                 │                            │              │             │             │
+                 ▼                            ▼              ▼             ▼             ▼
+     ┌───────────────────────┐    ┌────────────────────┐   ┌───────────────────┐   ┌───────────────────┐
+     │       Dim_Date        │◄───┤Fact_DailyAttendance│   │Fact_TrainingCompl.│   │ Fact_ProjectTasks │
+     │       (DateKey)       │    │    (Daily IoT)     │   │   (LMS Attempts)  │   │ (Client Delivery) │
+     └───────────▲───────────┘    └───────────▲────────┘   └─────────┬─────────┘   └─────────┬─────────┘
+                 │                            │                      │ 1:*                   │
+                 │ 1:*                        │ 1:*                  ▼                       │ 1:*
+                 │                  ┌─────────┴─────────┐  ┌───────────────────┐             │
+                 └──────────────────┤     Dim_Branch    │  │    Dim_Course     │             │
+                                    │    (BranchKey)    │  │    (CourseKey)    │             │
+                                    └───────────────────┘  └───────────────────┘             ▼
+                                                                                   ┌───────────────────┐
+                                                                                   │ Dim_CurrencyRates │
+                                                                                   │   (CurrencyKey)   │
+                                                                                   └───────────────────┘
 ```
 
-#### Galaxy Schema Referential Integrity Matrix:
+#### Galaxy Schema Referential Integrity Matrix (18 Active Relationships):
 
 | Relationship Source (Fact Table) | Foreign Key Column | Dimension Target Table | Primary Key Column | Cardinality | Cross-Filter Direction | Business Grain |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
@@ -1335,13 +1547,19 @@ Before committing all queries to the Power BI Tabular Engine, verify that your d
 | **`Fact_DepartmentBudget`** | `DateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Quarter commencement date |
 | **`Fact_TrainingCompletions`** | `EmployeeKey` | `Dim_Employee` | `EmployeeKey` | Many-to-One (`*:1`) | Single | 1 row per Course attempt |
 | **`Fact_TrainingCompletions`** | `CourseKey` | `Dim_Course` | `CourseKey` | Many-to-One (`*:1`) | Single | Course catalog entity |
-| **`Fact_TrainingCompletions`** | `CompletionDateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Examination completion date |
+| **`Fact_TrainingCompletions`** | `CompletionDateKey`| `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Examination completion date |
+| **`Fact_ProjectTasks`** | `EmployeeKey` | `Dim_Employee` | `EmployeeKey` | Many-to-One (`*:1`) | Single | 1 row per delivery task / milestone |
+| **`Fact_ProjectTasks`** | `StartDateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single | Task initiation calendar date |
+| **`Fact_ProjectTasks`** | `DeadlineDateKey` | `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single (Inactive) | Delivery commitment deadline |
+| **`Fact_ProjectTasks`** | `CompletionDateKey`| `Dim_Date` | `DateKey` | Many-to-One (`*:1`) | Single (Inactive) | Final handover / signoff date |
+| **`Fact_ProjectTasks`** | `CurrencyCode` | `Dim_CurrencyRates` | `CurrencyCode` | Many-to-One (`*:1`) | Single | Contract FX conversion rate |
 
 > [!CAUTION]
 > **Kimball Galaxy Cardinality Rules**:
-> 1. **Never Create Direct Fact-to-Fact Relationships**: Joining `Fact_DailyAttendance` directly to `Fact_WorkforceSnapshot` or `Fact_DepartmentBudget` creates a toxic Many-to-Many circular path resulting in double-counting and VertiPaq memory exhaustion.
-> 2. **Always Filter Downward Through Dimensions**: Slicers on `Dim_Department[DepartmentName]`, `Dim_Branch[Region]`, or `Dim_Date[FiscalQuarter]` propagate naturally to all 4 fact tables simultaneously.
+> 1. **Never Create Direct Fact-to-Fact Relationships**: Joining `Fact_DailyAttendance` or `Fact_ProjectTasks` directly to `Fact_WorkforceSnapshot` creates a toxic Many-to-Many circular path resulting in double-counting and VertiPaq memory exhaustion.
+> 2. **Always Filter Downward Through Dimensions**: Slicers on `Dim_Department[DepartmentName]`, `Dim_Branch[Region]`, `Dim_Employee[JobRole]`, or `Dim_Date[FiscalQuarter]` propagate naturally to all 5 fact tables simultaneously.
 > 3. **Single Cross-Filter Direction (`→`)**: Keep all relationship cross-filtering set to **Single**. Bidirectional filtering introduces ambiguous filter paths and severe performance degradation on large datasets.
+> 4. **Role-Playing Date Dimensions**: For `Fact_ProjectTasks`, `StartDateKey` is the active relationship. `DeadlineDateKey` and `CompletionDateKey` must be set to **Inactive**, activated on demand via DAX `USERELATIONSHIP()`.
 
 ---
 
@@ -2682,6 +2900,134 @@ DIVIDE([Peak Daily Attendance Count], [Branch Physical Capacity], BLANK())
 
 ---
 
+### Problem 8: Client Delivery Efficiency, Scope Overruns & Bench Cost Bleed
+
+Offshore software consultancies sustain profitability through **high billable talent utilization** and **disciplined scope control**. When engineers sit unallocated on the "bench", their base salary represents pure operational cost bleed. When milestone deliveries experience scope overruns ($ActualHours > PlannedHours$), project profit margins collapse.
+
+```dax
+// 1. Total Billable Hours Delivered
+Total Billable Hours = 
+SUM('Fact_ProjectTasks'[ActualHours])
+
+// 2. Total Contracted Planned Hours
+Total Planned Hours = 
+SUM('Fact_ProjectTasks'[PlannedHours])
+
+// 3. Net Scope Overrun Hours
+Scope Overrun Hours = 
+VAR Overrun = [Total Billable Hours] - [Total Planned Hours]
+RETURN
+    IF(Overrun > 0, Overrun, 0)
+
+// 4. Scope Overrun Rate % (Threshold: Alert when > 15%)
+Scope Overrun Rate Pct = 
+DIVIDE([Scope Overrun Hours], [Total Planned Hours], 0)
+
+// 5. Delayed Milestone Delivery Rate %
+Delayed Milestone Delivery Rate Pct = 
+VAR DelayedTasks = CALCULATE(COUNTROWS('Fact_ProjectTasks'), 'Fact_ProjectTasks'[IsDeliveryDelayed] = TRUE())
+VAR TotalTasks = COUNTROWS('Fact_ProjectTasks')
+RETURN
+    DIVIDE(DelayedTasks, TotalTasks, 0)
+
+// 6. Average Client Satisfaction Score (CSAT 1.0 - 5.0)
+Average Client CSAT = 
+AVERAGE('Fact_ProjectTasks'[ClientSatisfactionRating])
+
+// 7. Total Billed Client Revenue (USD)
+Total Billed Revenue USD = 
+SUM('Fact_ProjectTasks'[TotalBilling_USD])
+
+// 8. Total Billed Client Revenue Converted to EGP
+Total Billed Revenue EGP = 
+VAR USD_SpotRate = 
+    CALCULATE(
+        MAX('Dim_CurrencyRates'[RateToEGP]),
+        'Dim_CurrencyRates'[CurrencyCode] = "USD"
+    )
+RETURN
+    [Total Billed Revenue USD] * COALESCE(USD_SpotRate, 48.85)
+
+// 9. Engineering Talent Billable Utilization Rate %
+// Standard consulting monthly capacity: 160 hours per active software engineer
+Billable Talent Utilization Pct = 
+VAR ActiveSoftwareEngineers = 
+    CALCULATE(
+        COUNTROWS('Dim_Employee'),
+        'Dim_Employee'[Department] = "Software Engineering" || 'Dim_Employee'[Department] = "Data & AI",
+        'Dim_Employee'[IsActive] = TRUE()
+    )
+VAR AvailableCapacityHours = ActiveSoftwareEngineers * 160
+RETURN
+    DIVIDE([Total Billable Hours], AvailableCapacityHours, 0)
+
+// 10. Bench Talent Headcount (Active Technical Staff with Zero Billable Hours in Selected Period)
+Bench Talent Headcount = 
+CALCULATE(
+    COUNTROWS('Dim_Employee'),
+    'Dim_Employee'[Department] IN {"Software Engineering", "Data & AI", "Cloud Architecture", "DevOps & SRE"},
+    'Dim_Employee'[IsActive] = TRUE(),
+    FILTER(
+        'Dim_Employee',
+        CALCULATE(COUNTROWS('Fact_ProjectTasks')) = 0
+    )
+)
+
+// 11. Monthly Bench Payroll Cost Bleed (EGP)
+Monthly Bench Cost Bleed EGP = 
+CALCULATE(
+    SUM('Dim_Employee'[الراتب الأساسي]),
+    'Dim_Employee'[Department] IN {"Software Engineering", "Data & AI", "Cloud Architecture", "DevOps & SRE"},
+    'Dim_Employee'[IsActive] = TRUE(),
+    FILTER(
+        'Dim_Employee',
+        CALCULATE(COUNTROWS('Fact_ProjectTasks')) = 0
+    )
+)
+```
+
+---
+
+### Problem 9: Global Multi-Currency FX Realization & Offshore Margin Arbitrage
+
+Nexora Tech Solutions negotiates client contracts in international currencies (**USD, EUR, GBP, SAR, AED**) while settling operating payroll and domestic overhead in **EGP**. This measure suite provides dynamic multi-currency reporting, allowing executives to toggle reporting currency or evaluate currency devaluation impacts.
+
+```dax
+// 1. Currently Selected Reporting Currency from Slicer
+Selected Reporting Currency = 
+SELECTEDVALUE('Dim_CurrencyRates'[CurrencyCode], "USD")
+
+// 2. Dynamic Revenue Converted to Selected Slicer Currency
+Dynamic Revenue Selected Currency = 
+VAR TargetCurrency = [Selected Reporting Currency]
+VAR TargetRateToEGP = 
+    CALCULATE(
+        MAX('Dim_CurrencyRates'[RateToEGP]),
+        'Dim_CurrencyRates'[CurrencyCode] = TargetCurrency
+    )
+VAR RevenueInEGP = [Total Billed Revenue EGP]
+RETURN
+    DIVIDE(RevenueInEGP, TargetRateToEGP, [Total Billed Revenue USD])
+
+// 3. Effective Hourly Client Margin (USD)
+// Assumes domestic engineer hourly cost = (Monthly Salary / 160) / USD Exchange Rate
+Effective Hourly Client Margin USD = 
+VAR AvgEngineerSalaryEGP = AVERAGE('Dim_Employee'[الراتب الأساسي])
+VAR USD_Rate = CALCULATE(MAX('Dim_CurrencyRates'[RateToEGP]), 'Dim_CurrencyRates'[CurrencyCode] = "USD")
+VAR HourlyCostUSD = DIVIDE(AvgEngineerSalaryEGP, 160 * USD_Rate, 0)
+VAR AvgBillableRateUSD = AVERAGE('Fact_ProjectTasks'[BillableHourlyRate_USD])
+RETURN
+    AvgBillableRateUSD - HourlyCostUSD
+
+// 4. Offshore Multiplier (Revenue USD to Payroll Cost Ratio)
+Offshore Revenue to Cost Multiplier = 
+VAR MonthlyPayrollUSD = DIVIDE([Actual Monthly Payroll EGP], 48.85, 0)
+RETURN
+    DIVIDE([Total Billed Revenue USD], MonthlyPayrollUSD, 0)
+```
+
+---
+
 ## 🎨 Module 5: Modern Web App-Style UI/UX Design System (Report View GUI)
 
 Following top Power BI report designers (Bas / *How to Power BI*, Guy in a Cube, Enterprise DNA), we construct a **SaaS Web App Experience**.
@@ -2752,6 +3098,74 @@ Switch to **Report View** in Power BI Desktop (top icon on the left bar).
    * **Compensation Audit**: `BaseSalary`, `Role Median New Hire Salary`, `Salary Percentile In Role`, `Flight Risk Severity Score`.
    * **30-Day IoT Access Timeline**: Bar chart of daily `DurationHours` colored by `ActualWorkMode`.
    * **LMS Credentials**: Table of `CourseName`, `SkillDomain`, `Score`, and `CertificationCost_EGP`.
+
+---
+
+### Step 5.6: Building Report Page 5: "Client Delivery & Bench Utilization Hub" via GUI
+
+To manage Nexora Tech Solutions' offshore client contracts, billable engineering allocation, and project profitability, Page 5 provides executive visibility across client deliverables and talent bench overhead.
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ PAGE 5: CLIENT DELIVERY & BENCH UTILIZATION HUB (1920 x 1080)                                         │
+├───────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ [NAV] │ [ $1.84M Billed Rev ] [ 82.4% Utilization ] [ 7.2% Overrun ] [ 4.72 CSAT ] [ 42 On Bench ]   │
+│       ├───────────────────────────────────────────────┬───────────────────────────────────────────────┤
+│       │ Visual 1: Client Account Delivery Matrix      │ Visual 2: Engineering Efficiency Scatter      │
+│       │ (Client, Project, Hours, Overrun Data Bars)   │ (X: Billable Hours, Y: Hourly Rate USD)       │
+│       ├───────────────────────────────────────────────┼───────────────────────────────────────────────┤
+│       │ Visual 3: Global Revenue by Client Country    │ Visual 4: Overdue Milestone Alert Monitor     │
+│       │ (Clustered Bar: UAE, KSA, UK, US, Germany)    │ (Delayed Tasks, Assigned Dev, Overrun Hours)  │
+└───────┴───────────────────────────────────────────────┴───────────────────────────────────────────────┘
+```
+
+#### 1. Page Configuration:
+1. Click **`+`** to create a new page $\to$ rename to **`Client_Delivery_Hub`**.
+2. Format report page $\to$ **Canvas background**: Color: `#0B0F19`, Transparency: `0%`.
+3. Add Page Title: Text box $\to$ `NEXORA TECH SOLUTIONS · CLIENT DELIVERY & BENCH UTILIZATION` (Font: Segoe UI Semibold, Size: 18pt, Color: `#F9FAFB`).
+
+#### 2. Top KPI Hero Ribbon (New Card Visual):
+1. In the **Visualizations** pane, select **Card (new)**.
+2. Position: X: `230 px`, Y: `80 px`, Width: `1650 px`, Height: `130 px`.
+3. Drag the following measures into the **Data** well:
+   * `[Total Billed Revenue USD]` $\to$ Display units: **Auto**, Format: `$#,##0`. Reference label: `[Total Billed Revenue EGP]`.
+   * `[Billable Talent Utilization Pct]` $\to$ Format: `0.0%`. Callout value color: `#10B981` (Emerald).
+   * `[Scope Overrun Rate Pct]` $\to$ Format: `0.0%`. Callout value color: `#F59E0B` (Amber).
+   * `[Average Client CSAT]` $\to$ Format: `0.00 / 5.00`. Callout value color: `#6366F1` (Indigo).
+   * `[Bench Talent Headcount]` $\to$ Reference label: `[Monthly Bench Cost Bleed EGP]`.
+4. Format visual $\to$ **Cards**: Background: `#111827`, Shape: Rounded rectangle (Radius `10 px`), Border: `#1F2937` (`1 px`).
+
+#### 3. Visual 1: Client Account Delivery Matrix:
+1. Insert **Matrix visual** $\to$ Position: X: `230 px`, Y: `230 px`, Width: `810 px`, Height: `400 px`.
+2. **Rows**: `Fact_ProjectTasks[ClientName]`, `Fact_ProjectTasks[ProjectName]`.
+3. **Values**: `[Total Planned Hours]`, `[Total Billable Hours]`, `[Scope Overrun Rate Pct]`, `[Total Billed Revenue USD]`, `[Average Client CSAT]`.
+4. Format visual $\to$ **Cell elements**:
+   * Turn on **Data bars** for `[Scope Overrun Rate Pct]`: Positive bar color: `#EF4444` (Red), Axis color: `#374151`.
+   * Turn on **Icons** for `[Average Client CSAT]`: Star rating thresholds (Red $< 3.5$, Yellow $3.5–4.2$, Green $\ge 4.3$).
+
+#### 4. Visual 2: Engineering Efficiency & Rate Scatter Plot:
+1. Insert **Scatter chart** $\to$ Position: X: `1060 px`, Y: `230 px`, Width: `820 px`, Height: `400 px`.
+2. **X Axis**: `Fact_ProjectTasks[ActualHours]` (Summarize: Don't summarize).
+3. **Y Axis**: `Fact_ProjectTasks[BillableHourlyRate_USD]`.
+4. **Size**: `Fact_ProjectTasks[TotalBilling_USD]`.
+5. **Legend**: `Fact_ProjectTasks[SkillDomain]`.
+6. **Tooltips**: `Fact_ProjectTasks[TaskTitle]`, `Fact_ProjectTasks[ComplexityTier]`, `[Average Client CSAT]`.
+7. Add reference lines:
+   * Constant X line: `50 Hours` (Standard task sprint budget).
+   * Constant Y line: `$80/hr` (Blended target offshore billable rate).
+
+#### 5. Visual 3: Global Revenue by Client Country & Currency:
+1. Insert **Clustered bar chart** $\to$ Position: X: `230 px`, Y: `650 px`, Width: `810 px`, Height: `380 px`.
+2. **Y Axis**: `Fact_ProjectTasks[ClientCountry]`.
+3. **X Axis**: `[Total Billed Revenue USD]`.
+4. **Legend**: `Fact_ProjectTasks[BillingModel]` (Fixed-Price Milestone vs Time & Materials).
+5. Colors: Fixed-Price (`#3B82F6` Electric Blue), T&M (`#10B981` Emerald Green).
+
+#### 6. Visual 4: Overdue Milestone & Scope Overrun Alert Monitor:
+1. Insert **Table visual** $\to$ Position: X: `1060 px`, Y: `650 px`, Width: `820 px`, Height: `380 px`.
+2. Columns: `Fact_ProjectTasks[TaskID]`, `Fact_ProjectTasks[TaskTitle]`, `Fact_ProjectTasks[ProjectName]`, `Dim_Employee[FullName]`, `Fact_ProjectTasks[DeliveryDeadline]`, `[Scope Overrun Hours]`.
+3. Visual filter: `Fact_ProjectTasks[IsDeliveryDelayed] = True` OR `Fact_ProjectTasks[IsHoursOverrun] = True`.
+4. Style: Alternating rows `#1F2937` / `#111827`, Header font bold `#F9FAFB`.
 
 ---
 
@@ -2841,12 +3255,14 @@ Power BI allows calculations defined directly within a visual matrix (e.g. runni
 
 ## 🏆 Final Summary Checklist: Enterprise Analytics Delivery
 
-- [x] **Diagnose Operational Friction**: Formulate hypotheses on Wage Inversion, Grain Collisions, Ghost Workers, and Attrition Survivorship before modeling.
-- [x] **Power Query Editor GUI**: Use visual clickpaths to ingest raw CSVs, extract conformed dimensions via Reference queries, impute clock-outs, and unpivot wide FP&A budgets.
-- [x] **Production M Script for `Dim_Date`**: Deploy the full enterprise calendar with Egyptian workweek rules and relative offsets.
-- [x] **Semantic Model Engineering (TMDL)**: Implement Calculation Groups, Field Parameters, RLS/OLS, and Incremental Refresh policies.
+- [x] **Diagnose Operational Friction**: Formulate hypotheses on Wage Inversion, Grain Collisions, Ghost Workers, Bench Cost Bleed, and Attrition Survivorship before modeling.
+- [x] **Power Query Editor GUI**: Use visual clickpaths to ingest raw CSVs, extract conformed dimensions via Reference queries, impute clock-outs, unpivot wide FP&A budgets, ingest client project tasks (`Fact_ProjectTasks`), and load central bank FX spot rates (`Dim_CurrencyRates`).
+- [x] **Production M Script for `Dim_Date`**: Deploy the full enterprise calendar with dynamic dataset date harvesting, Egyptian workweek rules, and relative offsets.
+- [x] **Kimball Galaxy Schema (Constellation)**: Enforce 6 conformed dimensions (`Dim_Employee`, `Dim_Department`, `Dim_Branch`, `Dim_Date`, `Dim_Course`, `Dim_CurrencyRates`) filtering 5 galaxy fact tables (`Fact_WorkforceSnapshot`, `Fact_DailyAttendance`, `Fact_DepartmentBudget`, `Fact_TrainingCompletions`, `Fact_ProjectTasks`).
+- [x] **Semantic Model Engineering (TMDL)**: Implement Calculation Groups, Field Parameters, RLS/OLS, in-memory `Table.Buffer()` dimension caching, and Incremental Refresh policies.
 - [x] **VertiPaq Memory Optimization**: Eliminate Auto Date/Time, split DateTime into Date and Time, hide surrogate keys, and enforce column sorting.
-- [x] **Advanced DAX Formulas**: Deploy 7 analytical diagnostic solutions covering salary compression, ghost workers, upskilling ROI, and branch space stress.
+- [x] **Advanced DAX Formulas**: Deploy 9 analytical diagnostic solutions covering salary compression, ghost workers, upskilling ROI, branch space stress, client delivery scope overruns, bench cost bleed, and multi-currency FX arbitrage.
 - [x] **Kimball & Enterprise Best Practices**: Single-direction filter relationships, semi-additive snapshots, metadata row counts, and VertiPaq column splitting.
-- [x] **Web App UX Design**: Build a 1920x1080 canvas with a persistent sidebar, New Card visuals, wage inversion quadrant scatter plots, and 360° employee dossiers.
+- [x] **Web App UX Design**: Build a 1920x1080 canvas across 5 modern pages (Workforce Overview, Attendance & Space Stress, FP&A Budget Variance, L&D Talent Velocity, Client Delivery & Bench Hub) with persistent sidebars, New Card visuals, wage inversion quadrant scatter plots, and 360° employee dossiers.
+
 

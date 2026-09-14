@@ -5,129 +5,8 @@ table Dim_Employee
 		dataType: int64
 		formatString: 0
 		lineageTag: baa066b2-530b-4a03-926a-f6719b7ed55b
-		summarizeBy: count
+		summarizeBy: none
 		sourceColumn: EmployeeKey
-
-		annotation SummarizationSetBy = Automatic
-
-	column الاسم
-		dataType: string
-		lineageTag: 84cecc23-0ce8-4da5-8f44-b0bc2aa67a91
-		summarizeBy: none
-		sourceColumn: الاسم
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'الرقم التعريفي'
-		dataType: string
-		lineageTag: df0f5469-fd60-404e-8950-5e4bc03bc59b
-		summarizeBy: none
-		sourceColumn: الرقم التعريفي
-
-		annotation SummarizationSetBy = Automatic
-
-	column السن
-		dataType: int64
-		formatString: 0
-		lineageTag: c8eace50-7efa-4881-a4e6-e2eb6eed05b4
-		summarizeBy: sum
-		sourceColumn: السن
-
-		annotation SummarizationSetBy = Automatic
-
-	column الجنس
-		dataType: string
-		lineageTag: 7b1abe58-72f7-4e23-bdcf-730e23fed1c9
-		summarizeBy: none
-		sourceColumn: الجنس
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'المسمى الوظيفي'
-		dataType: string
-		lineageTag: 96306f9d-d437-4d6e-995b-1d699494edbb
-		summarizeBy: none
-		sourceColumn: المسمى الوظيفي
-
-		annotation SummarizationSetBy = Automatic
-
-	column القسم
-		dataType: string
-		lineageTag: ca0ae163-ea0b-492f-a2a8-45fc01cbfd96
-		summarizeBy: none
-		sourceColumn: القسم
-
-		annotation SummarizationSetBy = Automatic
-
-	column الفرع
-		dataType: string
-		lineageTag: 5284128e-2e0f-4ed1-8bae-fc1daaa7d175
-		summarizeBy: none
-		sourceColumn: الفرع
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'تاريخ التعيين'
-		dataType: dateTime
-		formatString: Long Date
-		lineageTag: 9740b66d-8682-4db8-ad6d-0042affac6f4
-		summarizeBy: none
-		sourceColumn: تاريخ التعيين
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation UnderlyingDateTimeDataType = Date
-
-	column 'الراتب الأساسي'
-		dataType: decimal
-		formatString: "AED"#,0.###############;-"AED"#,0.###############;"AED"#,0.###############
-		lineageTag: 7a4580e5-bec2-4faa-a619-842087b52821
-		summarizeBy: sum
-		sourceColumn: الراتب الأساسي
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"currencyCulture":"en-AE"}
-
-	column العملة
-		dataType: string
-		lineageTag: 326b9e8c-ddd2-4a20-a7f9-b6e02a134fab
-		summarizeBy: none
-		sourceColumn: العملة
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'نوع العقد'
-		dataType: string
-		lineageTag: 5f13b53e-ef05-44e5-a1c9-9cf637e4a4f2
-		summarizeBy: none
-		sourceColumn: نوع العقد
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'تقييم الأداء السنوي'
-		dataType: double
-		lineageTag: 9d7bc9ba-808f-4b44-917b-5f7ee71545a5
-		summarizeBy: sum
-		sourceColumn: تقييم الأداء السنوي
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
-	column 'الحالة الاجتماعية'
-		dataType: string
-		lineageTag: 3e786bf4-9a69-435b-aac4-045e553055c6
-		summarizeBy: none
-		sourceColumn: الحالة الاجتماعية
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'البريد الإلكتروني'
-		dataType: string
-		lineageTag: 54337d27-facb-4656-9997-5a2c541143d8
-		summarizeBy: none
-		sourceColumn: البريد الإلكتروني
 
 		annotation SummarizationSetBy = Automatic
 
@@ -164,11 +43,168 @@ table Dim_Employee
 
 		annotation SummarizationSetBy = Automatic
 
-	column IsActive
+	column ExitDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a1e2f3d4-5b6c-7d8e-9f0a-1b2c3d4e5f6a
+		summarizeBy: none
+		sourceColumn: ExitDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column EmploymentStatus
 		dataType: string
+		lineageTag: b2f3a4d5-6c7b-8e9d-0a1f-2c3b4d5e6f7a
+		summarizeBy: none
+		sourceColumn: EmploymentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsActive
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
 		lineageTag: 3ef172b5-89de-43fc-a24c-6fe1ca80fe7a
 		summarizeBy: none
 		sourceColumn: IsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	column FlightRiskIndex
+		dataType: string
+		lineageTag: de1c3a84-2390-438a-93e9-d451d2c2bf5b
+		summarizeBy: none
+		sourceColumn: FlightRiskIndex
+
+		annotation SummarizationSetBy = Automatic
+
+	column RetirementProximity
+		dataType: string
+		lineageTag: 6a2245ea-e286-4156-a55a-888aee341dc7
+		summarizeBy: none
+		sourceColumn: RetirementProximity
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullName
+		dataType: string
+		lineageTag: 54860741-b07f-4157-b4d9-d7ec6442224a
+		summarizeBy: none
+		sourceColumn: FullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeID
+		dataType: string
+		lineageTag: 99f5c821-fec1-434c-9019-4cc3c79046f1
+		summarizeBy: none
+		sourceColumn: EmployeeID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Age
+		dataType: int64
+		formatString: 0
+		lineageTag: a59fcef6-f818-49a0-acd7-42ef02e37fc2
+		summarizeBy: sum
+		sourceColumn: Age
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender
+		dataType: string
+		lineageTag: 27c774d7-dba2-411b-887e-8ab0796c1ee1
+		summarizeBy: none
+		sourceColumn: Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column JobTitle
+		dataType: string
+		lineageTag: 894d677f-5d96-497f-bc59-a8c75f53051f
+		summarizeBy: none
+		sourceColumn: JobTitle
+
+		annotation SummarizationSetBy = Automatic
+
+	column Department
+		dataType: string
+		lineageTag: 2b5829f8-bc5a-496c-956a-0ad737e799d0
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	column Branch
+		dataType: string
+		lineageTag: 387c4b33-54d0-4182-95bf-ce75514250a5
+		summarizeBy: none
+		sourceColumn: Branch
+
+		annotation SummarizationSetBy = Automatic
+
+	column HireDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a496531e-c544-48f8-8a2a-413c46e8e01b
+		summarizeBy: none
+		sourceColumn: HireDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column BaseSalary_EGP
+		dataType: decimal
+		formatString: "AED"#,0.###############;-"AED"#,0.###############;"AED"#,0.###############
+		lineageTag: 56c2f783-aa29-4dcc-97f1-c4f2e1fd3cab
+		summarizeBy: sum
+		sourceColumn: BaseSalary_EGP
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AE"}
+
+	column Currency
+		dataType: string
+		lineageTag: 3a6df3f4-8ade-4820-8f11-08f7e840de4f
+		summarizeBy: none
+		sourceColumn: Currency
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContractType
+		dataType: string
+		lineageTag: 0db7e6c1-a772-4baa-9c2c-fb68eb825eaa
+		summarizeBy: none
+		sourceColumn: ContractType
+
+		annotation SummarizationSetBy = Automatic
+
+	column PerformanceRating
+		dataType: double
+		lineageTag: a3fdcabc-8df3-48ea-9665-1e065837b6b0
+		summarizeBy: sum
+		sourceColumn: PerformanceRating
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Status
+		dataType: string
+		lineageTag: bc3ece3c-8814-46c4-8f7b-9e7436d0fff3
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Email
+		dataType: string
+		lineageTag: d0c4abfe-4d5f-46b6-82d9-54639ffbd65d
+		summarizeBy: none
+		sourceColumn: Email
 
 		annotation SummarizationSetBy = Automatic
 
@@ -185,9 +221,35 @@ table Dim_Employee
 				    #"Added AgeBand" = Table.AddColumn(#"Rounded Down", "AgeBand", each if [السن] < 25 then "Gen Z (< 25)" else if [السن] < 35 then "Millennial (25–34)" else if [السن] < 45 then "Gen X (35–44)" else if [السن] < 55 then "Senior (45–54)" else "Pre-Retirement (55+)", type text),
 				    #"Added SalaryBand" = Table.AddColumn(#"Added AgeBand", "SalaryBand", each if [الراتب الأساسي] < 5000 then "Entry (< 5K)" else if [الراتب الأساسي] < 10000 then "Junior (5K–10K)" else if [الراتب الأساسي] < 20000 then "Mid-Level (10K–20K)" else if [الراتب الأساسي] < 35000 then "Senior (20K–35K)" else "Executive (35K+)", type text),
 				    #"Added PerformanceTier" = Table.AddColumn(#"Added SalaryBand", "PerformanceTier", each if [تقييم الأداء السنوي] < 2 then "🔴 Underperformer" else if [تقييم الأداء السنوي] < 3 then "🟡 Developing" else if [تقييم الأداء السنوي] < 4 then "🟢 Meets Expectations" else if [تقييم الأداء السنوي] < 4.5 then "🔵 High Performer" else "⭐ Exceptional (Top Talent)", type text),
-				    #"Added Custom" = Table.AddColumn(#"Added PerformanceTier", "IsActive", each true)
+				    // ── Automatic Merge with Exit_Attrition_Records ──
+				    #"Merged Exits" = Table.NestedJoin(#"Added PerformanceTier", {"الرقم التعريفي"}, Exit_Attrition_Records, {"EmployeeID"}, "ExitData", JoinKind.LeftOuter),
+				    #"Expanded ExitDate" = Table.ExpandTableColumn(#"Merged Exits", "ExitData", {"ExitDate"}, {"ExitDate"}),
+				    #"Changed ExitDate Type" = Table.TransformColumnTypes(#"Expanded ExitDate",{{"ExitDate", type date}}),
+				    #"Added EmploymentStatus" = Table.AddColumn(#"Changed ExitDate Type", "EmploymentStatus", each if [ExitDate] = null then "Active" else "Separated", type text),
+				    #"Added IsActive" = Table.AddColumn(#"Added EmploymentStatus", "IsActive", each [EmploymentStatus] = "Active", type logical),
+				    #"Added FlightRiskIndex" = Table.AddColumn(#"Added IsActive", "FlightRiskIndex", each if [تقييم الأداء السنوي] >= 4.0 and ([SalaryBand] = "Entry (< 5K)" or [SalaryBand] = "Junior (5K–10K)") then "🔴 Critical Risk (High Talent, Low Comp)"
+				     else if [TenureYears] > 4.0 and [SalaryBand] = "Junior (5K–10K)" then "🟡 Moderate Risk (Tenured Compression)"
+				     else "🟢 Retained & Stable", type text),
+				    #"Added RetirementProximity" = Table.AddColumn(#"Added FlightRiskIndex", "RetirementProximity", each if [AgeBand] = "Pre-Retirement (55+)" then "Succession Required (< 5 Years)" else "Normal Horizon", type text),
+				    #"Renamed Columns to English" = Table.RenameColumns(#"Added RetirementProximity", {
+				      {"الرقم التعريفي", "EmployeeID"},
+				      {"الاسم", "FullName"},
+				      {"السن", "Age"},
+				      {"الجنس", "Gender"},
+				      {"المسمى الوظيفي", "JobTitle"},
+				      {"القسم", "Department"},
+				      {"الفرع", "Branch"},
+				      {"تاريخ التعيين", "HireDate"},
+				      {"الراتب الأساسي", "BaseSalary_EGP"},
+				      {"العملة", "Currency"},
+				      {"نوع العقد", "ContractType"},
+				      {"تقييم الأداء السنوي", "PerformanceRating"},
+				      {"الحالة الاجتماعية", "Status"},
+				      {"الحالة الوظيفية", "EmploymentStatus"},
+				      {"البريد الإلكتروني", "Email"}
+				  }, MissingField.Ignore)
 				in
-				    #"Added Custom"
+				    #"Renamed Columns to English"
 
 	annotation PBI_NavigationStepName = Navigation
 

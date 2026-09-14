@@ -1,11 +1,12 @@
 <div align="center">
 
-# 💎 Enterprise Human Capital & Operational Efficiency Diagnostics
+# 💎 Nexora Tech Solutions · Enterprise Data Platform
 ### Enterprise Data Warehouse · Kimball Galaxy Schema · Microsoft SQL Server (T-SQL) · Power BI PBIP / TMDL
+**Domain**: Offshore Software House Consulting, Client Freelance Delivery & L&D Tech Academy
 
 [![Python Version](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Database Engine](https://img.shields.io/badge/SQL%20Server-2022%20(T--SQL)-CC292B?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
-[![Architecture](https://img.shields.io/badge/Architecture-Kimball%20Galaxy%20Schema-8B5CF6?style=for-the-badge&logo=diagramsdotnet&logoColor=white)](docs/architecture.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Kimball%20Galaxy%20Schema-8B5CF6?style=for-the-badge&logo=diagramsdotnet&logoColor=white)](docs/architecture/kimball_galaxy_schema_specification.md)
 [![Power BI PBIP](https://img.shields.io/badge/Power%20BI-PBIP%20%2F%20TMDL%20Dev%20Mode-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)](powerbi/employess-report.pbip)
 [![Data Quality Tests](https://img.shields.io/badge/Data%20Quality-14%2F14%20Passed%20(100%25)-10B981?style=for-the-badge&logo=pytest&logoColor=white)](tests/test_data_quality.py)
 [![License](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)](LICENSE)
@@ -13,7 +14,7 @@
 <br/>
 
 <p align="center">
-  <b>A production-grade, enterprise data engineering &amp; analytics platform transforming 5 heterogeneous HR and operational source feeds into a high-performance Kimball Galaxy Schema (Fact Constellation) for executive decision-making.</b>
+  <b>A production-grade, enterprise data engineering &amp; business intelligence platform for Nexora Tech Solutions (حلول نكسورا للبرمجيات), transforming 6 heterogeneous HR, L&amp;D Academy, and Client Delivery source feeds into a high-performance Kimball Galaxy Schema (Fact Constellation) for executive decision-making.</b>
 </p>
 
 </div>
@@ -22,13 +23,13 @@
 
 ## 🏛️ Enterprise System Architecture
 
-The platform bridges the gap between transactional workforce records and executive strategic decision-making, resolving real-world data engineering friction across **Core HR, IoT Physical Turnstiles, Transactional Exit Audits, Messy Financial Workbooks, and LMS Learning APIs**.
+The platform bridges the gap between transactional workforce records and executive strategic decision-making, resolving real-world data engineering friction across **Core Engineering Talent, IoT Physical Turnstiles, Transactional Exit Audits, Messy Financial Workbooks, L&D Academy Certifications, and International Client Delivery Tasks**.
 
 <div align="center">
   <a href="docs/assets/enterprise_galaxy_architecture.svg">
-    <img src="docs/assets/enterprise_galaxy_architecture.png" alt="Enterprise Galaxy Schema Architecture" width="100%"/>
+    <img src="docs/assets/enterprise_galaxy_architecture.png" alt="Nexora Tech Solutions Enterprise Galaxy Schema Architecture" width="100%"/>
   </a>
-  <p><i>Figure 1: High-level System Architecture &amp; Kimball Galaxy Schema (Fact Constellation). <a href="docs/assets/enterprise_galaxy_architecture.svg">[View Vector SVG]</a></i></p>
+  <p><i>Figure 1: High-level System Architecture &amp; Kimball Galaxy Schema (Fact Constellation). <a href="docs/assets/enterprise_galaxy_architecture.svg">[View Vector SVG]</a> · <a href="docs/architecture/kimball_galaxy_schema_specification.md">[Technical Specification]</a></i></p>
 </div>
 
 ---
@@ -36,35 +37,42 @@ The platform bridges the gap between transactional workforce records and executi
 ## 📊 Heterogeneous Source Systems & Data Engineering Challenges
 
 ```
-                    ┌────────────────────────┐
-                    │    Core HR System      │
-                    │   (Employees Table)    │
-                    └───────────┬────────────┘
-                                │
-       ┌────────────────────────┼────────────────────────┬────────────────────────┐
-       ▼                        ▼                        ▼                        ▼
-┌──────────────┐         ┌──────────────┐         ┌──────────────┐         ┌──────────────┐
-│ Daily Badge  │         │  Historical  │         │  LMS & Certs │         │ Finance Plan │
-│ Access Logs  │         │  Exits & HR  │         │   Platform   │         │  & Headcount │
-│ (JSON / IoT) │         │ (SQL Server) │         │ (REST / CSV) │         │(Messy Excel) │
-└──────────────┘         └──────────────┘         └──────────────┘         └──────────────┘
+                           ┌──────────────────────────────────────────────┐
+                           │            NEXORA TECH SOLUTIONS             │
+                           │           Core HR Master Database            │
+                           └──────────────────────┬───────────────────────┘
+                                                  │
+         ┌────────────────────────┼───────────────┴────────┼────────────────────────┐
+         ▼                        ▼                        ▼                        ▼
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   Daily Badge    │     │  Historical Exit │     │   L&D Academy    │     │ Client Projects  │
+│   Access Logs    │     │  & Audit Stream  │     │  Certifications  │     │ & Freelance Tasks│
+│   (JSON / IoT)   │     │   (SQL Server)   │     │   (REST / CSV)   │     │   (JSON / CSV)   │
+└──────────────────┘     └──────────────────┘     └──────────────────┘     └──────────────────┘
 ```
 
 | Source System | Grain | Format | Real-World Engineering Challenges Handled |
 | :--- | :--- | :--- | :--- |
-| **1. Core HR System** | 1 row / employee | Flat File / Relational | Master dataset with 7,000 employees mapped from 14 localized Arabic attributes (`الاسم`, `الرقم التعريفي`, `السن`, `الراتب الأساسي`, `نوع العقد`, etc.). |
-| **2. Daily Badge & Remote Logs** | 1 row / employee / workday | Cloud Blob (JSON / Parquet) | **Missing Clock-Outs**: Night shifts and forgotten sign-outs produce negative or 24h+ durations requiring heuristic median imputation.<br/>**Ghost Workers**: Active payroll records showing 0 access events over 60+ consecutive days.<br/>**Contract Violations**: Employees contracted under `دوام كامل (حضوري)` logging >60% remote days. |
+| **1. Core HR System** | 1 row / employee | Flat File / Relational | Master dataset with 7,000 employees mapped from 14 localized Arabic attributes (`الاسم`, `الرقم التعريفي`, `السن`, `الراتب الأساسي`, `نوع العقد`, etc.). Ground truth baseline for conformed dimensions. |
+| **2. Daily Badge & Remote Logs** | 1 row / employee / workday | Cloud Blob (JSON / Parquet) | **Missing Clock-Outs**: Developers in release crunch cycles forgetting to swipe out at night, resulting in NULL or negative durations resolved through heuristic median imputation.<br/>**Ghost Workers**: Active payroll records showing 0 access events over 60+ consecutive days.<br/>**Contract Violations**: Employees contracted under `دوام كامل (حضوري)` logging >60% remote days. |
 | **3. HR Attrition & Exit Audit** | 1 row / separated employee | Microsoft SQL Server (T-SQL) | **Temporal Misalignment**: Resignation notice submitted weeks before `ExitDate`.<br/>**Survivorship Bias**: Active tables only show survivors; historical turnover requires joining past headcount snapshots against termination dates.<br/>**SCD Type 2**: Tracking salary and branch *at the time of exit*. |
 | **4. FP&A Budget & Headcount** | Quarterly / Dept / Branch | Network Shared Excel (`.xlsx`) | **Grain Mismatch**: Fact-to-fact comparison (monthly individual payroll vs. quarterly branch budget).<br/>**Structural Pivoting**: Quarters stored horizontally (`Q1_Budget`, `Q2_Budget`), requiring dynamic unpivoting.<br/>**Branch Inconsistencies**: Typographical variations (`القاهرة - المعادي` vs `فرع المعادي`) resolved via fuzzy normalization. |
-| **5. LMS Platform & Certifications** | 1 row / completion attempt | REST API / CSV | **Many-to-Many Relationships**: Employees completing multiple certifications; direct links duplicate payroll totals without conformed dimensional modeling.<br/>**Repeated Attempts**: Filtering retakes to retain highest/latest scores. |
+| **5. LMS Academy Platform** | 1 row / completion attempt | REST API / CSV | **Many-to-Many Relationships**: Employees completing multiple certifications; direct links duplicate payroll totals without conformed dimensional modeling.<br/>**Repeated Attempts**: Filtering retakes to retain highest/latest scores across Levels 1, 2, and 3. |
+| **6. Client Delivery & Freelance Tasks** | 1 row / milestone task | JSON / CSV | **Scope Creep & Overruns**: 3,600 tasks across 8 international client projects (Aramco, Emirates Digital, US Healthcare). Tracking Planned vs Actual hours, bench cost bleed, and client satisfaction (CSAT) ratings. |
+| **7. Central Bank FX Feed** | 1 row / currency pair | CSV Feed | **Multi-Currency Normalization**: Dynamic spot exchange rates (USD, EUR, GBP, SAR, AED to EGP) enabling real-time foreign revenue conversion against local operational payroll. |
 
 ---
 
 ## 🌌 Target Kimball Galaxy Schema (Fact Constellation)
 
-Unlike a simple single-fact Star Schema, this enterprise model implements a **Kimball Galaxy Schema (Fact Constellation)** featuring **6 Conformed Dimensions** shared across **4 Specialized Fact Tables** with an in-memory `Table.Buffer()` caching layer:
+Unlike a simple single-fact Star Schema, this enterprise model implements a **Kimball Galaxy Schema (Fact Constellation)** featuring **6 Conformed Dimensions** shared across **5 Specialized Fact Tables** with an in-memory `Table.Buffer()` caching layer:
 
-![Enterprise Project Lifecycle & Data Architecture](docs/assets/project_lifecycle_architecture.svg)
+<div align="center">
+  <a href="docs/assets/project_lifecycle_architecture.svg">
+    <img src="docs/assets/project_lifecycle_architecture.png" alt="Nexora Tech Solutions Project Lifecycle & Architecture" width="100%"/>
+  </a>
+  <p><i>Figure 2: End-to-End Project Lifecycle &amp; Data Pipeline Architecture. <a href="docs/assets/project_lifecycle_architecture.svg">[View Vector SVG]</a> · <a href="docs/architecture/software_house_business_domain.md">[Business Domain Specification]</a></i></p>
+</div>
 
 ```mermaid
 erDiagram
@@ -86,6 +94,10 @@ erDiagram
     Dim_Employee ||--o{ Fact_TrainingCompletions : filters
     Dim_Course ||--o{ Fact_TrainingCompletions : filters
     Dim_Date ||--o{ Fact_TrainingCompletions : filters
+
+    Dim_Employee ||--o{ Fact_ProjectTasks : filters
+    Dim_Date ||--o{ Fact_ProjectTasks : filters
+    Dim_CurrencyRates ||--o{ Fact_ProjectTasks : converts
 
     Dim_Employee {
         int EmployeeKey PK
@@ -193,6 +205,21 @@ erDiagram
         string ScoreTier
         decimal CertificationCost_EGP
     }
+
+    Fact_ProjectTasks {
+        int TaskKey PK
+        string TaskID UK
+        string ProjectID FK
+        int EmployeeKey FK
+        int DateKey FK
+        int CurrencyKey FK
+        decimal PlannedHours
+        decimal ActualHours
+        boolean IsHoursOverrun
+        decimal BillableHourlyRate_USD
+        decimal TotalBilling_USD
+        decimal ClientSatisfactionRating
+    }
 ```
 
 ---
@@ -205,6 +232,8 @@ erDiagram
 | **2. Budget Burn Rate & Headcount Variance** | Workforce Snapshot + FP&A Budgets | Reconciles disparate grains (individual monthly payroll vs. quarterly branch budget) through conformed dimensions (`Dim_Department`, `Dim_Branch`, `Dim_Date`) and inactive relationships without circular dependencies. |
 | **3. Workplace Policy Compliance** | Core HR + Daily IoT Access Logs | Imputes missing clock-outs for night shifts. Audits actual presence against contract mandates (`دوام كامل (حضوري)` vs `هجين`) and triggers automated alerts for **Ghost Workers** (0 access in >60 days). |
 | **4. Upskilling ROI on Performance** | Core HR + LMS Logs + Performance Ratings | Deduplicates course retakes to retain highest scores. Measures **Performance Score Velocity ($\Delta P$)** by comparing appraisal scores before and after completing high-cost certifications. |
+| **5. Client Task Delivery & Bench Cost** | Client Tasks + Core HR + Currency Rates | Evaluates billable utilization vs non-billable bench cost bleed. Flags milestone scope overruns (`ActualHours > PlannedHours`) and tracks CSAT vs developer certification levels. |
+| **6. Multi-Currency Global Arbitrage** | Workforce Snapshot + Client Tasks + FX Rates | Dynamically evaluates offshore USD/EUR revenue against local EGP operational payroll via DAX `RELATED('Dim_CurrencyRates'[OneEGPInCurrency])`. |
 
 ---
 

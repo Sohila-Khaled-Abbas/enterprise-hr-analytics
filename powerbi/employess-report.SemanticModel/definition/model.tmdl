@@ -10,24 +10,41 @@ model Model
 
 queryGroup Raw_Data
 
-	annotation PBI_QueryGroupOrder = 0
+	annotation PBI_QueryGroupOrder = 1
 
 queryGroup Dimensions_Tables
 
-	annotation PBI_QueryGroupOrder = 1
+	annotation PBI_QueryGroupOrder = 3
 
 queryGroup Fact_Tables
 
+	annotation PBI_QueryGroupOrder = 4
+
+queryGroup Staging_Data
+
 	annotation PBI_QueryGroupOrder = 2
+
+queryGroup Parameters
+
+	annotation PBI_QueryGroupOrder = 0
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["employees_data_7000","Exit_Attrition_Records","Dim_Employee","Dim_Department"]
+annotation PBI_QueryOrder = ["employees_data_7000","attendance_badge_logs","Badge_Access_Logs","fpa_department_budget_messy","lms_course_completions","Exit_Attrition_Records","Badge_Access_Logs_SQL","TrainingCompletions","Mart_WorkforceSnapshot","Fact_Employee_SCD2","Dim_Employee","Dim_Department","Dim_Branch","Dim_Course","Dim_Date","Dim_CurrencyRates","Fact_DailyAttendance","Fact_DepartmentBudget","Fact_TrainingCompletions","Fact_WorkforceSnapshot","_Measures","pServerName","pDatabaseName","pDataDirectory","pTargetCurrency"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
 ref table Dim_Employee
 ref table Dim_Department
+ref table Dim_Branch
+ref table Fact_DailyAttendance
+ref table _Measures
+ref table Fact_DepartmentBudget
+ref table Dim_Course
+ref table Dim_Date
+ref table Fact_WorkforceSnapshot
+ref table Fact_TrainingCompletions
+ref table Dim_CurrencyRates
 
 ref cultureInfo en-US
 

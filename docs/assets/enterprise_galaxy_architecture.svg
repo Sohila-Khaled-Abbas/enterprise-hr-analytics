@@ -1,38 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1350" width="2200" height="1350" style="background:#050811; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1440" width="2400" height="1440" style="background:#030712; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <defs>
+    <!-- Background Gradient -->
     <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#050812"/>
-      <stop offset="40%" stop-color="#0A1024"/>
-      <stop offset="80%" stop-color="#060A17"/>
-      <stop offset="100%" stop-color="#030408"/>
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="35%" stop-color="#070E22"/>
+      <stop offset="70%" stop-color="#050A19"/>
+      <stop offset="100%" stop-color="#010309"/>
     </linearGradient>
 
-    <pattern id="dotGrid2" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1.2" fill="#1E293B" fill-opacity="0.4"/>
+    <!-- Dot Grid Pattern -->
+    <pattern id="dotGrid2" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#334155" fill-opacity="0.35"/>
     </pattern>
 
-    <!-- Gradients -->
+    <!-- Dimension Header Gradient (Emerald/Teal) -->
     <linearGradient id="dimHeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#10B981"/>
       <stop offset="100%" stop-color="#047857"/>
     </linearGradient>
 
+    <!-- Fact Header Gradient (Amber/Orange) -->
     <linearGradient id="factHeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#F59E0B"/>
       <stop offset="100%" stop-color="#D97706"/>
     </linearGradient>
 
+    <!-- Title Gradient -->
     <linearGradient id="titleGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#34D399"/>
-      <stop offset="40%" stop-color="#38BDF8"/>
-      <stop offset="80%" stop-color="#A78BFA"/>
+      <stop offset="35%" stop-color="#38BDF8"/>
+      <stop offset="70%" stop-color="#A78BFA"/>
       <stop offset="100%" stop-color="#F472B6"/>
     </linearGradient>
 
+    <!-- Card Backgrounds -->
     <linearGradient id="cardDark2" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#141C30" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#0B1020" stop-opacity="0.98"/>
+      <stop offset="0%" stop-color="#0F172A" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#070C18" stop-opacity="0.98"/>
     </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="shadowBox2" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#000000" flood-opacity="0.7"/>
+    </filter>
 
     <!-- Markers -->
     <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
@@ -41,221 +51,286 @@
     <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
       <polygon points="0 0, 8 3, 0 6" fill="#F59E0B"/>
     </marker>
-
-    <!-- Filter -->
-    <filter id="shadowBox2" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
-    </filter>
   </defs>
 
-  <rect width="2200" height="1350" fill="url(#bgGrad2)"/>
-  <rect width="2200" height="1350" fill="url(#dotGrid2)"/>
+  <rect width="2400" height="1440" fill="url(#bgGrad2)"/>
+  <rect width="2400" height="1440" fill="url(#dotGrid2)"/>
 
-  <!-- Ambient Glows -->
-  <circle cx="1100" cy="650" r="500" fill="#059669" fill-opacity="0.04" filter="blur(90px)"/>
-  <circle cx="350" cy="400" r="350" fill="#D97706" fill-opacity="0.04" filter="blur(70px)"/>
-  <circle cx="1850" cy="900" r="350" fill="#2563EB" fill-opacity="0.04" filter="blur(70px)"/>
+  <!-- Ambient Glow Orbs -->
+  <circle cx="1200" cy="680" r="520" fill="#059669" fill-opacity="0.05" filter="blur(100px)"/>
+  <circle cx="400" cy="420" r="380" fill="#D97706" fill-opacity="0.04" filter="blur(80px)"/>
+  <circle cx="2000" cy="950" r="380" fill="#2563EB" fill-opacity="0.04" filter="blur(80px)"/>
 
   <!-- ========================================================================= -->
   <!-- HEADER                                                                    -->
   <!-- ========================================================================= -->
-  <g transform="translate(100, 50)">
-    <rect x="0" y="0" width="280" height="32" rx="16" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+  <g transform="translate(80, 45)">
+    <rect x="0" y="0" width="370" height="32" rx="16" fill="#064E3B" stroke="#059669" stroke-width="1.2"/>
     <circle cx="16" cy="16" r="5" fill="#34D399"/>
-    <text x="32" y="21" fill="#A7F3D0" font-size="11" font-weight="800" letter-spacing="1.5">KIMBALL GALAXY SCHEMA</text>
+    <text x="32" y="21" fill="#A7F3D0" font-size="11" font-weight="800" letter-spacing="1.5">KIMBALL GALAXY SCHEMA · FACT CONSTELLATION</text>
 
-    <text x="0" y="72" fill="url(#titleGrad2)" font-size="34" font-weight="800">
-      Enterprise Fact Constellation: Conformed Dimensions &amp; Multi-Grain Facts
+    <text x="0" y="74" fill="url(#titleGrad2)" font-size="34" font-weight="800">
+      Nexora Tech Solutions: Conformed Dimensions &amp; Multi-Grain Fact Constellations
     </text>
-    <text x="0" y="100" fill="#94A3B8" font-size="15">
-      5 Conformed Dimensions (Green) Shared Across 4 Distinct Analytical Fact Tables (Amber) with Single-Direction (1 → *) Filter Propagation
+    <text x="0" y="102" fill="#94A3B8" font-size="15">
+      6 Conformed Dimensions (Green) Shared Across 4+ Analytical Fact Tables (Amber) with Single-Direction (1 → *) Filter Propagation &amp; Table.Buffer() Caching
     </text>
+
+    <!-- Advanced Architecture Badges -->
+    <g transform="translate(1520, 10)">
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="220" height="40" rx="10" fill="#0F172A" stroke="#10B981" stroke-width="1.2"/>
+        <circle cx="18" cy="20" r="5" fill="#10B981"/>
+        <text x="32" y="25" fill="#D1FAE5" font-size="11" font-weight="700">In-Memory Table.Buffer()</text>
+      </g>
+
+      <g transform="translate(235, 0)">
+        <rect x="0" y="0" width="220" height="40" rx="10" fill="#0F172A" stroke="#0284C7" stroke-width="1.2"/>
+        <circle cx="18" cy="20" r="5" fill="#38BDF8"/>
+        <text x="32" y="25" fill="#E0F2FE" font-size="11" font-weight="700">Dynamic Date Harvesting</text>
+      </g>
+
+      <g transform="translate(470, 0)">
+        <rect x="0" y="0" width="270" height="40" rx="10" fill="#0F172A" stroke="#F59E0B" stroke-width="1.2"/>
+        <circle cx="18" cy="20" r="5" fill="#FBBF24"/>
+        <text x="32" y="25" fill="#FEF3C7" font-size="11" font-weight="700">Multi-Currency (Dim_CurrencyRates)</text>
+      </g>
+    </g>
   </g>
 
   <!-- ========================================================================= -->
-  <!-- CONFORMED DIMENSIONS (CENTER & PERIPHERY)                                -->
+  <!-- 6 CONFORMED DIMENSIONS (GREEN THEME)                                      -->
   <!-- ========================================================================= -->
 
   <!-- DIMENSION 1: Dim_Employee (CENTER HUB) -->
-  <g transform="translate(900, 480)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="400" height="380" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="2"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 384 0 C 392.84 0 400 7.16 400 16 L 400 50 L 0 50 Z" fill="url(#dimHeaderGrad)"/>
+  <g transform="translate(980, 500)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="440" height="410" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 424 0 C 432.84 0 440 7.16 440 16 L 440 50 L 0 50 Z" fill="url(#dimHeaderGrad)"/>
     <polygon points="25,18 35,24 35,36 25,42 15,36 15,24" fill="#064E3B" stroke="#34D399" stroke-width="1.5"/>
     <text x="45" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Dim_Employee</text>
-    <text x="380" y="32" text-anchor="end" fill="#D1FAE5" font-size="12" font-weight="700">7,000 Rows</text>
+    <text x="420" y="32" text-anchor="end" fill="#D1FAE5" font-size="12" font-weight="700">7,000 Rows · SCD-2 Hub</text>
 
     <g transform="translate(20, 65)">
       <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 EmployeeKey (INT PK, Surrogate)</text>
-      <text x="0" y="45" fill="#E2E8F0" font-size="12">EmployeeID (VARCHAR - EMP-10001..17000)</text>
-      <text x="0" y="70" fill="#E2E8F0" font-size="12">FullName (NVARCHAR - Arabic Authentic)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">EmployeeID (VARCHAR UK - EMP-10001..17000)</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">FullName (NVARCHAR - Authentic Arabic Names)</text>
       <text x="0" y="95" fill="#E2E8F0" font-size="12">Age, Gender (ذكر / أنثى), MaritalStatus</text>
       <text x="0" y="120" fill="#E2E8F0" font-size="12">JobRole, ContractType (دوام كامل / هجين)</text>
-      <text x="0" y="145" fill="#E2E8F0" font-size="12">BaseSalary, Currency (EGP)</text>
-      <text x="0" y="170" fill="#E2E8F0" font-size="12">HireDate, TenureYears, AgeBand</text>
-      <text x="0" y="195" fill="#E2E8F0" font-size="12">SalaryBand, PerformanceTier</text>
-      <rect x="0" y="210" width="360" height="1" fill="#334155"/>
+      <text x="0" y="145" fill="#E2E8F0" font-size="12">BaseSalary_EGP, Currency (EGP / USD)</text>
+      <text x="0" y="170" fill="#E2E8F0" font-size="12">HireDate, TenureYears, TenureMonths</text>
+      <text x="0" y="195" fill="#E2E8F0" font-size="12">SalaryBand, PerformanceTier, FlightRiskIndex</text>
+      <rect x="0" y="210" width="400" height="1" fill="#334155"/>
       <text x="0" y="235" fill="#FBBF24" font-size="12" font-weight="700">SCD Type 2 Validity Intervals:</text>
       <text x="0" y="255" fill="#94A3B8" font-size="11">EffectiveDate, ExpiryDate (9999-12-31), IsCurrent</text>
       <text x="0" y="280" fill="#38BDF8" font-size="11" font-weight="700">Grounded strictly on employees_data_7000.txt</text>
+      <text x="0" y="305" fill="#10B981" font-size="11">Buffered in RAM via Table.Buffer() for fast merges</text>
     </g>
   </g>
 
   <!-- DIMENSION 2: Dim_Date (TOP CENTER) -->
-  <g transform="translate(900, 170)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="400" height="240" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="2"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 384 0 C 392.84 0 400 7.16 400 16 L 400 50 L 0 50 Z" fill="url(#dimHeaderGrad)"/>
+  <g transform="translate(980, 180)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="440" height="260" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 424 0 C 432.84 0 440 7.16 440 16 L 440 50 L 0 50 Z" fill="url(#dimHeaderGrad)"/>
     <polygon points="25,18 35,24 35,36 25,42 15,36 15,24" fill="#064E3B" stroke="#34D399" stroke-width="1.5"/>
     <text x="45" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Dim_Date (Enterprise Calendar)</text>
-    <text x="380" y="32" text-anchor="end" fill="#D1FAE5" font-size="12" font-weight="700">1,096 Days</text>
+    <text x="420" y="32" text-anchor="end" fill="#D1FAE5" font-size="12" font-weight="700">1,096 Days</text>
 
     <g transform="translate(20, 65)">
       <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 DateKey (INT PK - YYYYMMDD)</text>
-      <text x="0" y="45" fill="#E2E8F0" font-size="12">FullDate (DATE - 2024-01-01 to 2026-12-31)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">FullDate (DATE - Dynamically Harvested)</text>
       <text x="0" y="70" fill="#E2E8F0" font-size="12">CalendarYear, CalendarQuarter (Q1..Q4)</text>
       <text x="0" y="95" fill="#E2E8F0" font-size="12">MonthNumberOfYear (1..12), MonthName</text>
       <text x="0" y="120" fill="#E2E8F0" font-size="12">DayNumberOfWeek, DayNameOfWeek</text>
       <text x="0" y="145" fill="#94A3B8" font-size="11">Egyptian Weekend: IsWeekend = (Day ∈ [Fri, Sat])</text>
+      <text x="0" y="170" fill="#38BDF8" font-size="11" font-weight="700">Boundaries auto-calculated from List.Min / List.Max</text>
     </g>
   </g>
 
   <!-- DIMENSION 3: Dim_Department (LEFT TOP) -->
-  <g transform="translate(480, 200)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="340" height="190" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 45 L 0 45 Z" fill="url(#dimHeaderGrad)"/>
-    <text x="20" y="28" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Department</text>
-    <text x="320" y="28" text-anchor="end" fill="#D1FAE5" font-size="11">6 Depts</text>
+  <g transform="translate(520, 180)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="380" height="230" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 364 0 C 372.84 0 380 7.16 380 16 L 380 48 L 0 48 Z" fill="url(#dimHeaderGrad)"/>
+    <text x="20" y="30" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Department</text>
+    <text x="360" y="30" text-anchor="end" fill="#D1FAE5" font-size="11">6 Divisions</text>
 
-    <g transform="translate(20, 60)">
+    <g transform="translate(20, 65)">
       <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 DepartmentKey (INT PK)</text>
       <text x="0" y="45" fill="#E2E8F0" font-size="12">DepartmentID (DEPT-001..006)</text>
-      <text x="0" y="70" fill="#E2E8F0" font-size="12">DepartmentName (المالية, الموارد البشرية...)</text>
-      <text x="0" y="95" fill="#E2E8F0" font-size="12">Division (Corporate Services, Tech...)</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">DepartmentName (Software Eng, AI...)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">Division (Tech Solutions, Cloud Services)</text>
+      <text x="0" y="120" fill="#94A3B8" font-size="11">Conformed across Payroll, Budget &amp; Tasks</text>
     </g>
   </g>
 
   <!-- DIMENSION 4: Dim_Branch (RIGHT TOP) -->
-  <g transform="translate(1380, 200)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="340" height="210" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 45 L 0 45 Z" fill="url(#dimHeaderGrad)"/>
-    <text x="20" y="28" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Branch (Geographic)</text>
-    <text x="320" y="28" text-anchor="end" fill="#D1FAE5" font-size="11">14 Branches</text>
+  <g transform="translate(1500, 180)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="380" height="230" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 364 0 C 372.84 0 380 7.16 380 16 L 380 48 L 0 48 Z" fill="url(#dimHeaderGrad)"/>
+    <text x="20" y="30" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Branch (Geographic)</text>
+    <text x="360" y="30" text-anchor="end" fill="#D1FAE5" font-size="11">14 Tech Hubs</text>
 
-    <g transform="translate(20, 60)">
+    <g transform="translate(20, 65)">
       <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 BranchKey (INT PK)</text>
       <text x="0" y="45" fill="#E2E8F0" font-size="12">BranchID (BR-001..014), BranchName</text>
-      <text x="0" y="70" fill="#E2E8F0" font-size="12">Region (Cairo, Alex, Delta, Upper Egypt)</text>
-      <text x="0" y="95" fill="#E2E8F0" font-size="12">City (Cairo, Alexandria, Tanta, Assiut...)</text>
-      <text x="0" y="120" fill="#94A3B8" font-size="11">DeskCapacity (Physical space quotas)</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">Region (Cairo Smart Village, Alex, Assiut...)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">City (Cairo, Alexandria, Giza, Tanta, Mansoura)</text>
+      <text x="0" y="120" fill="#94A3B8" font-size="11">DeskCapacity (On-site vs Hybrid allocations)</text>
     </g>
   </g>
 
   <!-- DIMENSION 5: Dim_Course (RIGHT BOTTOM) -->
-  <g transform="translate(1380, 720)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="340" height="210" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 45 L 0 45 Z" fill="url(#dimHeaderGrad)"/>
-    <text x="20" y="28" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Course (LMS Catalog)</text>
-    <text x="320" y="28" text-anchor="end" fill="#D1FAE5" font-size="11">10 Courses</text>
+  <g transform="translate(1500, 500)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="380" height="230" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 364 0 C 372.84 0 380 7.16 380 16 L 380 48 L 0 48 Z" fill="url(#dimHeaderGrad)"/>
+    <text x="20" y="30" fill="#FFFFFF" font-size="15" font-weight="800">Dim_Course (LMS Academy)</text>
+    <text x="360" y="30" text-anchor="end" fill="#D1FAE5" font-size="11">10 Courses · 3 Tiers</text>
 
-    <g transform="translate(20, 60)">
+    <g transform="translate(20, 65)">
       <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 CourseKey (INT PK)</text>
-      <text x="0" y="45" fill="#E2E8F0" font-size="12">CourseID (CRS-101..302), CourseName</text>
-      <text x="0" y="70" fill="#E2E8F0" font-size="12">SkillDomain (Tech, Leadership, Soft...)</text>
-      <text x="0" y="95" fill="#E2E8F0" font-size="12">EstimatedHours, CertificationCost_EGP</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">CourseID (CRS-101..303), CourseName</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">CourseLevel (Level 1, Level 2, Level 3)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">SkillDomain (Cloud, Data/AI, DevOps, Cyber)</text>
+      <text x="0" y="120" fill="#94A3B8" font-size="11">Accreditation: Microsoft, AWS, Databricks, CNCF</text>
+    </g>
+  </g>
+
+  <!-- DIMENSION 6: Dim_CurrencyRates (NEW - RIGHT LOWER) -->
+  <g transform="translate(1500, 770)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="380" height="230" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 364 0 C 372.84 0 380 7.16 380 16 L 380 48 L 0 48 Z" fill="url(#dimHeaderGrad)"/>
+    <text x="20" y="30" fill="#FFFFFF" font-size="15" font-weight="800">Dim_CurrencyRates (FX)</text>
+    <text x="360" y="30" text-anchor="end" fill="#D1FAE5" font-size="11">6 Currencies</text>
+
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#34D399" font-size="12" font-weight="800">🔑 CurrencyKey (INT PK)</text>
+      <text x="0" y="45" fill="#E2E8F0" font-size="12">CurrencyCode (EGP, USD, EUR, GBP, SAR, AED)</text>
+      <text x="0" y="70" fill="#E2E8F0" font-size="12">RateToEGP, OneEGPInCurrency (Multiplier)</text>
+      <text x="0" y="95" fill="#E2E8F0" font-size="12">RateType (Central Bank Spot / Base Peg)</text>
+      <text x="0" y="120" fill="#38BDF8" font-size="11" font-weight="700">Dynamic DAX Multi-Currency Slicing</text>
     </g>
   </g>
 
   <!-- ========================================================================= -->
-  <!-- GALAXY FACT TABLES (SURROUNDING)                                          -->
+  <!-- 4+ GALAXY FACT TABLES (AMBER/ORANGE THEME)                                 -->
   <!-- ========================================================================= -->
 
   <!-- FACT 1: Fact_WorkforceSnapshot (LEFT) -->
-  <g transform="translate(80, 480)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="370" height="380" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 354 0 C 362.84 0 370 7.16 370 16 L 370 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+  <g transform="translate(60, 500)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="410" height="410" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 394 0 C 402.84 0 410 7.16 410 16 L 410 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
     <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Fact_WorkforceSnapshot</text>
-    <text x="350" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Monthly</text>
+    <text x="390" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Monthly</text>
 
     <g transform="translate(20, 65)">
       <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 SnapshotKey (BIGINT PK)</text>
-      <rect x="0" y="30" width="330" height="1" fill="#334155"/>
+      <rect x="0" y="30" width="370" height="1" fill="#334155"/>
       <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 EmployeeKey (FK → Dim_Employee)</text>
       <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 DepartmentKey (FK → Dim_Department)</text>
       <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 BranchKey (FK → Dim_Branch)</text>
       <text x="0" y="130" fill="#6EE7B7" font-size="12">🔗 SnapshotDateKey (FK → Dim_Date)</text>
-      <rect x="0" y="145" width="330" height="1" fill="#334155"/>
-      <text x="0" y="170" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Diagnostics:</text>
-      <text x="0" y="195" fill="#CBD5E1" font-size="12">• BaseSalary (Monthly Run-rate)</text>
-      <text x="0" y="220" fill="#CBD5E1" font-size="12">• AnnualPerformanceRating (1.0..5.0)</text>
-      <text x="0" y="245" fill="#CBD5E1" font-size="12">• SalaryPercentileInRole (0.00..1.00)</text>
-      <text x="0" y="270" fill="#EF4444" font-size="12">• IsSalaryCompressed (Flight Risk Flag)</text>
-      <text x="0" y="295" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Active Employee / Month</text>
+      <text x="0" y="155" fill="#6EE7B7" font-size="12">🔗 CurrencyKey (FK → Dim_CurrencyRates)</text>
+      <rect x="0" y="170" width="370" height="1" fill="#334155"/>
+      <text x="0" y="195" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Flight Risk:</text>
+      <text x="0" y="220" fill="#CBD5E1" font-size="12">• BaseSalary_EGP (Monthly Payroll Run-rate)</text>
+      <text x="0" y="245" fill="#CBD5E1" font-size="12">• AnnualPerformanceRating (1.0..5.0)</text>
+      <text x="0" y="270" fill="#CBD5E1" font-size="12">• SalaryPercentileInRole, TenureMonths</text>
+      <text x="0" y="295" fill="#EF4444" font-size="12">• IsSalaryCompressed (Veteran Flight Risk Flag)</text>
+      <text x="0" y="320" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Active Employee / Month</text>
     </g>
   </g>
 
   <!-- FACT 2: Fact_DailyAttendance (BOTTOM CENTER) -->
-  <g transform="translate(900, 930)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="400" height="350" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 384 0 C 392.84 0 400 7.16 400 16 L 400 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+  <g transform="translate(980, 960)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="440" height="380" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 424 0 C 432.84 0 440 7.16 440 16 L 440 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
     <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Fact_DailyAttendance</text>
-    <text x="380" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Daily IoT</text>
+    <text x="420" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Daily IoT</text>
 
     <g transform="translate(20, 65)">
       <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 AttendanceKey (BIGINT PK)</text>
-      <rect x="0" y="30" width="360" height="1" fill="#334155"/>
+      <rect x="0" y="30" width="400" height="1" fill="#334155"/>
       <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 EmployeeKey (FK → Dim_Employee)</text>
       <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 BranchKey (FK → Dim_Branch)</text>
       <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 AccessDateKey (FK → Dim_Date)</text>
-      <rect x="0" y="120" width="360" height="1" fill="#334155"/>
-      <text x="0" y="145" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Diagnostics:</text>
+      <rect x="0" y="120" width="400" height="1" fill="#334155"/>
+      <text x="0" y="145" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Telemetry:</text>
       <text x="0" y="170" fill="#CBD5E1" font-size="12">• CheckInTime, CheckOutTime, DurationHours</text>
-      <text x="0" y="195" fill="#EF4444" font-size="12">• IsImputedClockOut (Recovered Forgotten Swipe)</text>
-      <text x="0" y="220" fill="#EF4444" font-size="12">• IsContractViolation (Remote breach)</text>
-      <text x="0" y="245" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Employee / Badge Access Day</text>
+      <text x="0" y="195" fill="#CBD5E1" font-size="12">• DeclaredWorkMode vs ActualWorkMode</text>
+      <text x="0" y="220" fill="#EF4444" font-size="12">• IsImputedClockOut (Recovered Forgotten Swipe)</text>
+      <text x="0" y="245" fill="#EF4444" font-size="12">• IsTardyArrival (> 9:15 AM), OvertimeHours</text>
+      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Employee / Badge Access Day</text>
     </g>
   </g>
 
   <!-- FACT 3: Fact_DepartmentBudget (LEFT BOTTOM) -->
-  <g transform="translate(480, 930)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="340" height="350" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 324 0 C 332.84 0 340 7.16 340 16 L 340 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+  <g transform="translate(520, 960)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="380" height="380" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 364 0 C 372.84 0 380 7.16 380 16 L 380 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
     <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="800">Fact_DepartmentBudget</text>
-    <text x="320" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Quarterly</text>
+    <text x="360" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Quarterly</text>
 
     <g transform="translate(20, 65)">
-      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 BudgetFactKey (INT PK)</text>
-      <rect x="0" y="30" width="300" height="1" fill="#334155"/>
+      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 BudgetKey (INT PK)</text>
+      <rect x="0" y="30" width="340" height="1" fill="#334155"/>
       <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 DepartmentKey (FK → Dim_Department)</text>
       <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 BranchKey (FK → Dim_Branch)</text>
       <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 DateKey (FK → Dim_Date, Quarter Start)</text>
-      <rect x="0" y="120" width="300" height="1" fill="#334155"/>
-      <text x="0" y="145" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Quotas:</text>
-      <text x="0" y="170" fill="#CBD5E1" font-size="12">• BudgetedHeadcount</text>
-      <text x="0" y="195" fill="#CBD5E1" font-size="12">• AllocatedSalaryBudget_EGP</text>
-      <text x="0" y="220" fill="#38BDF8" font-size="11">Apportioned in DAX: Budget ÷ 3 = Monthly</text>
-      <text x="0" y="245" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Dept / Branch / Quarter</text>
+      <text x="0" y="130" fill="#6EE7B7" font-size="12">🔗 CurrencyKey (FK → Dim_CurrencyRates)</text>
+      <rect x="0" y="145" width="340" height="1" fill="#334155"/>
+      <text x="0" y="170" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Quotas:</text>
+      <text x="0" y="195" fill="#CBD5E1" font-size="12">• BudgetedHeadcount, HeadcountVariance</text>
+      <text x="0" y="220" fill="#CBD5E1" font-size="12">• AllocatedSalaryBudget_EGP</text>
+      <text x="0" y="245" fill="#38BDF8" font-size="11">Apportioned in DAX: Budget ÷ 3 = Monthly</text>
+      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Dept / Branch / Quarter</text>
     </g>
   </g>
 
-  <!-- FACT 4: Fact_TrainingCompletions (RIGHT) -->
-  <g transform="translate(1760, 480)" filter="url(#shadowBox2)">
-    <rect x="0" y="0" width="360" height="380" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
-    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 344 0 C 352.84 0 360 7.16 360 16 L 360 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+  <!-- FACT 4: Fact_TrainingCompletions (FAR RIGHT TOP) -->
+  <g transform="translate(1950, 180)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="390" height="380" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 374 0 C 382.84 0 390 7.16 390 16 L 390 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
     <text x="20" y="32" fill="#FFFFFF" font-size="15" font-weight="800">Fact_TrainingCompletions</text>
-    <text x="340" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Events</text>
+    <text x="370" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">L&amp;D Events</text>
 
     <g transform="translate(20, 65)">
-      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 CompletionFactKey (INT PK)</text>
-      <rect x="0" y="30" width="320" height="1" fill="#334155"/>
+      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 CompletionKey (INT PK)</text>
+      <rect x="0" y="30" width="350" height="1" fill="#334155"/>
       <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 EmployeeKey (FK → Dim_Employee)</text>
       <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 CourseKey (FK → Dim_Course)</text>
-      <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 DateKey (FK → Dim_Date, Exam Date)</text>
-      <rect x="0" y="120" width="320" height="1" fill="#334155"/>
+      <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 CompletionDateKey (FK → Dim_Date)</text>
+      <rect x="0" y="120" width="350" height="1" fill="#334155"/>
       <text x="0" y="145" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Scores:</text>
       <text x="0" y="170" fill="#CBD5E1" font-size="12">• Score (0.0 .. 100.0)</text>
       <text x="0" y="195" fill="#CBD5E1" font-size="12">• IsPassed (Score ≥ 70)</text>
-      <text x="0" y="220" fill="#CBD5E1" font-size="12">• CertificationCost_EGP</text>
-      <text x="0" y="245" fill="#38BDF8" font-size="11">Talent ROI: Delta P (Upskilling Velocity)</text>
-      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Certification Attempt</text>
+      <text x="0" y="220" fill="#CBD5E1" font-size="12">• ScoreTier (Distinction / Proficient / Remediation)</text>
+      <text x="0" y="245" fill="#CBD5E1" font-size="12">• CertificationCost_EGP</text>
+      <text x="0" y="270" fill="#38BDF8" font-size="11">Talent ROI: Delta P (Upskilling Velocity)</text>
+      <text x="0" y="295" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Certification Attempt</text>
+    </g>
+  </g>
+
+  <!-- FACT 5: Fact_ProjectTasks (NEW - FAR RIGHT LOWER) -->
+  <g transform="translate(1950, 610)" filter="url(#shadowBox2)">
+    <rect x="0" y="0" width="390" height="420" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 374 0 C 382.84 0 390 7.16 390 16 L 390 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
+    <text x="20" y="32" fill="#FFFFFF" font-size="15" font-weight="800">Fact_ProjectTasks (Client Delivery)</text>
+    <text x="370" y="32" text-anchor="end" fill="#FEF3C7" font-size="12">Tasks / SLAs</text>
+
+    <g transform="translate(20, 65)">
+      <text x="0" y="20" fill="#FBBF24" font-size="12" font-weight="800">🔑 TaskKey (INT PK) / TaskID</text>
+      <rect x="0" y="30" width="350" height="1" fill="#334155"/>
+      <text x="0" y="55" fill="#6EE7B7" font-size="12">🔗 EmployeeKey (FK → Dim_Employee)</text>
+      <text x="0" y="80" fill="#6EE7B7" font-size="12">🔗 ProjectID (8 Enterprise Client Projects)</text>
+      <text x="0" y="105" fill="#6EE7B7" font-size="12">🔗 DateKey (FK → Dim_Date, Delivery Date)</text>
+      <text x="0" y="130" fill="#6EE7B7" font-size="12">🔗 CurrencyKey (FK → Dim_CurrencyRates, USD)</text>
+      <rect x="0" y="145" width="350" height="1" fill="#334155"/>
+      <text x="0" y="170" fill="#F1F5F9" font-size="12" font-weight="700">Measures &amp; Realization:</text>
+      <text x="0" y="195" fill="#CBD5E1" font-size="12">• PlannedHours vs ActualHours</text>
+      <text x="0" y="220" fill="#EF4444" font-size="12">• IsHoursOverrun (Scope Creep Alert)</text>
+      <text x="0" y="245" fill="#CBD5E1" font-size="12">• BillableHourlyRate_USD, TotalBilling_USD</text>
+      <text x="0" y="270" fill="#CBD5E1" font-size="12">• ClientSatisfactionRating (1.0..5.0 Stars)</text>
+      <text x="0" y="295" fill="#38BDF8" font-size="11">Billable Realization vs Bench Cost Bleed</text>
+      <text x="0" y="320" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Client Milestone Task</text>
     </g>
   </g>
 
@@ -264,59 +339,72 @@
   <!-- ========================================================================= -->
 
   <!-- Dim_Employee -> Fact_WorkforceSnapshot -->
-  <path d="M 900 650 L 450 650" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-  <circle cx="895" cy="650" r="4" fill="#34D399"/>
-  <text x="675" y="640" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+  <path d="M 980 670 L 470 670" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="975" cy="670" r="4" fill="#34D399"/>
+  <text x="725" y="660" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
 
   <!-- Dim_Employee -> Fact_DailyAttendance -->
-  <path d="M 1100 860 L 1100 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-  <circle cx="1100" cy="865" r="4" fill="#34D399"/>
-  <text x="1115" y="900" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+  <path d="M 1200 910 L 1200 960" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="1200" cy="915" r="4" fill="#34D399"/>
+  <text x="1215" y="940" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
 
-  <!-- Dim_Employee -> Fact_TrainingCompletions -->
-  <path d="M 1300 650 L 1760 650" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-  <circle cx="1305" cy="650" r="4" fill="#34D399"/>
-  <text x="1530" y="640" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+  <!-- Dim_Employee -> Fact_TrainingCompletions (Arching neatly above Dim_Course) -->
+  <path d="M 1420 520 C 1460 450, 1900 450, 1950 370" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="1425" cy="520" r="4" fill="#34D399"/>
+  <text x="1680" y="440" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
 
-  <!-- Dim_Date -> Fact_WorkforceSnapshot -->
-  <path d="M 900 290 C 350 290, 350 400, 350 480" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-  <circle cx="895" cy="290" r="4" fill="#34D399"/>
+  <!-- Dim_Employee -> Fact_ProjectTasks -->
+  <path d="M 1420 720 C 1460 720, 1900 750, 1950 750" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <circle cx="1425" cy="720" r="4" fill="#34D399"/>
+  <text x="1680" y="735" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
 
-  <!-- Dim_Date -> Fact_DailyAttendance -->
-  <path d="M 1300 290 C 1340 290, 1340 1050, 1300 1050" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-
-  <!-- Dim_Department -> Fact_WorkforceSnapshot -->
-  <path d="M 600 390 C 600 440, 400 440, 400 480" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <!-- Dim_Department -> Fact_WorkforceSnapshot (Clean arch) -->
+  <path d="M 520 280 C 470 280, 470 420, 470 500" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
 
   <!-- Dim_Department -> Fact_DepartmentBudget -->
-  <path d="M 650 390 L 650 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-  <text x="665" y="660" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+  <path d="M 710 410 L 710 960" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="725" y="690" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
 
-  <!-- Dim_Branch -> Fact_WorkforceSnapshot -->
-  <path d="M 1380 300 C 700 300, 420 400, 420 480" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <!-- Dim_Branch -> Fact_WorkforceSnapshot (Clean top perimeter route) -->
+  <path d="M 1500 200 C 1000 120, 300 120, 260 500" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowGreen)"/>
 
   <!-- Dim_Branch -> Fact_DailyAttendance -->
-  <path d="M 1550 410 C 1550 850, 1250 850, 1250 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <path d="M 1650 410 C 1650 880, 1380 880, 1380 960" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowGreen)"/>
 
   <!-- Dim_Branch -> Fact_DepartmentBudget -->
-  <path d="M 1450 410 C 1450 900, 780 900, 780 930" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <path d="M 1500 380 C 1460 480, 850 480, 850 960" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowGreen)"/>
 
   <!-- Dim_Course -> Fact_TrainingCompletions -->
-  <path d="M 1720 800 C 1740 800, 1740 750, 1760 750" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-  <text x="1730" y="770" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+  <path d="M 1880 580 C 1910 580, 1910 420, 1950 420" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="1900" y="500" fill="#6EE7B7" font-size="11" font-weight="800">1 → *</text>
+
+  <!-- Dim_CurrencyRates -> Fact_WorkforceSnapshot (Clean bottom perimeter) -->
+  <path d="M 1500 890 C 1440 940, 480 940, 470 820" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_CurrencyRates -> Fact_DepartmentBudget -->
+  <path d="M 1500 850 C 1200 850, 880 880, 880 960" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_CurrencyRates -> Fact_ProjectTasks -->
+  <path d="M 1880 880 C 1910 880, 1910 850, 1950 850" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Date -> Fact_WorkforceSnapshot (Arches cleanly between dims) -->
+  <path d="M 980 260 C 930 260, 930 460, 470 560" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
 
   <!-- ========================================================================= -->
-  <!-- LEGEND                                                                    -->
+  <!-- LEGEND & GOVERNANCE MATRIX                                                -->
   <!-- ========================================================================= -->
-  <g transform="translate(80, 1220)">
-    <rect x="0" y="0" width="740" height="65" rx="12" fill="#0B1222" stroke="#1E293B"/>
-    <circle cx="30" cy="32" r="7" fill="#10B981"/>
-    <text x="45" y="37" fill="#E2E8F0" font-size="12" font-weight="700">Conformed Dimension (1 Side)</text>
+  <g transform="translate(60, 1260)">
+    <rect x="0" y="0" width="880" height="75" rx="14" fill="#0B1222" stroke="#1E293B"/>
+    <circle cx="30" cy="37" r="7" fill="#10B981"/>
+    <text x="45" y="42" fill="#E2E8F0" font-size="12" font-weight="700">Conformed Dimension (1 Side)</text>
 
-    <circle cx="260" cy="32" r="7" fill="#F59E0B"/>
-    <text x="275" y="37" fill="#E2E8F0" font-size="12" font-weight="700">Galaxy Fact Table (* Side)</text>
+    <circle cx="270" cy="37" r="7" fill="#F59E0B"/>
+    <text x="285" y="42" fill="#E2E8F0" font-size="12" font-weight="700">Galaxy Fact Table (* Side)</text>
 
-    <line x1="470" y1="32" x2="520" y2="32" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-    <text x="530" y="37" fill="#E2E8F0" font-size="12" font-weight="700">Single-Direction Filter (1 → *)</text>
+    <line x1="500" y1="37" x2="550" y2="37" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+    <text x="560" y="42" fill="#E2E8F0" font-size="12" font-weight="700">Single-Direction Filter (1 → *)</text>
+
+    <rect x="750" y="22" width="110" height="30" rx="8" fill="#1E293B" stroke="#334155"/>
+    <text x="805" y="41" text-anchor="middle" fill="#38BDF8" font-size="11" font-weight="700">VERTI-PAQ OPT</text>
   </g>
 </svg>

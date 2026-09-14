@@ -1,0 +1,126 @@
+table Fact_TrainingCompletions
+	lineageTag: e5ddba89-4058-4787-837f-3fe8104ad840
+
+	column CompletionKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 9f6128de-c5d6-4130-b6d9-9edc8633a942
+		summarizeBy: count
+		sourceColumn: CompletionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompletionDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 76bd7b97-a0f5-4afe-937c-ea29ecb2a049
+		summarizeBy: none
+		sourceColumn: CompletionDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 261b1869-61db-4fd2-a8d6-8be7c6186cc2
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CourseKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 942fbb06-4f18-4770-9bf0-9a5918a5d24c
+		summarizeBy: count
+		sourceColumn: CourseKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompletionDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 6c9834ae-39f0-4aaa-89da-ab29f1820ed1
+		summarizeBy: none
+		sourceColumn: CompletionDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Score
+		dataType: double
+		lineageTag: e581f992-11e6-4c04-8126-58c3f191d8f2
+		summarizeBy: sum
+		sourceColumn: Score
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CertificationCost_EGP
+		dataType: decimal
+		formatString: "AED"#,0.###############;-"AED"#,0.###############;"AED"#,0.###############
+		lineageTag: 9ddb43f0-1cc9-4237-b9da-4857ae5c918d
+		summarizeBy: sum
+		sourceColumn: CertificationCost_EGP
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AE"}
+
+	column IsPassed
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 6bd9bfd2-78a2-4b32-82f3-44aa5bccc6e0
+		summarizeBy: none
+		sourceColumn: IsPassed
+
+		annotation SummarizationSetBy = Automatic
+
+	column ScoreTier
+		dataType: string
+		lineageTag: 8ac0b9d7-6010-4f0a-b51b-c533b865a304
+		summarizeBy: none
+		sourceColumn: ScoreTier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fact_TrainingCompletions = m
+		mode: import
+		queryGroup: Fact_Tables
+		source = ```
+				let
+				       Source = lms_course_completions,
+				       #"Changed Type" = Table.TransformColumnTypes(Source,{{"CertificationCost_EGP", Currency.Type}}),
+				       #"Added IsPassed" = Table.AddColumn(#"Changed Type", "IsPassed", each if [Score] >= 70 then 1 else 0),
+				       #"Changed Type1" = Table.TransformColumnTypes(#"Added IsPassed",{{"IsPassed", type logical}}),
+				       #"Added ScoreTier" = Table.AddColumn(#"Changed Type1", "ScoreTier", each if [Score] >= 90 then "⭐ Distinction (90-100)" else if [Score] >= 70 then "🟢 Proficient Pass (70-89)" else "🔴 Remediation Required (< 70)", type text),
+				       #"Added CompletionDateKey" = Table.AddColumn(#"Added ScoreTier", "CompletionDateKey", each Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate]), Int64.Type),
+				       #"Reordered Columns" = Table.ReorderColumns(#"Added CompletionDateKey",{"CompletionDateKey", "EmployeeID", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+				       #"Added CompletionKey" = Table.AddIndexColumn(#"Reordered Columns", "CompletionKey", 1, 1, Int64.Type),
+				       #"Reordered Columns1" = Table.ReorderColumns(#"Added CompletionKey",{"CompletionKey", "CompletionDateKey", "EmployeeID", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+				       
+				       // ⭐ Enterprise In-Memory Buffer: Pins Dim_Employee in RAM
+				       BufferedDimEmployee = Table.Buffer(Table.SelectColumns(Dim_Employee, {"EmployeeID", "EmployeeKey"})),
+				       #"Merged Queries" = Table.NestedJoin(#"Reordered Columns1", {"EmployeeID"}, BufferedDimEmployee, {"EmployeeID"}, "Dim_Employee", JoinKind.LeftOuter),
+				       #"Expanded Dim_Employee" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Employee", {"EmployeeKey"}, {"EmployeeKey"}),
+				       
+				       #"Reordered Columns2" = Table.ReorderColumns(#"Expanded Dim_Employee",{"CompletionKey", "CompletionDateKey", "EmployeeKey", "EmployeeID", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+				       #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns2",{"EmployeeID"}),
+				       
+				       // ⭐ Enterprise In-Memory Buffer: Pins Dim_Course in RAM
+				       BufferedDimCourse = Table.Buffer(Table.SelectColumns(Dim_Course, {"CourseID", "CourseKey"})),
+				       #"Merged Queries1" = Table.NestedJoin(#"Removed Columns", {"CourseID"}, BufferedDimCourse, {"CourseID"}, "Dim_Course", JoinKind.LeftOuter),
+				       #"Expanded Dim_Course" = Table.ExpandTableColumn(#"Merged Queries1", "Dim_Course", {"CourseKey"}, {"CourseKey"}),
+				       
+				       #"Reordered Columns3" = Table.ReorderColumns(#"Expanded Dim_Course",{"CompletionKey", "CompletionDateKey", "EmployeeKey", "CourseKey", "CourseID", "CourseName", "SkillDomain", "CompletionDate", "Score", "CertificationCost_EGP", "IsPassed", "ScoreTier"}),
+				       #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns3",{"CourseID", "CourseName", "SkillDomain"})
+				   in
+				       #"Removed Columns1"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,100 @@
+table Dim_CurrencyRates
+	lineageTag: 543dc755-a9d4-466e-9b6d-e98d18977d24
+
+	column CurrencyCode
+		dataType: string
+		lineageTag: d6500f1a-0bba-4eec-a69b-e55a091b01c7
+		summarizeBy: none
+		sourceColumn: CurrencyCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExchangeRateToUSD
+		dataType: double
+		lineageTag: 94d632f3-0e27-41a9-bbc7-33d6fe384dc6
+		summarizeBy: sum
+		sourceColumn: ExchangeRateToUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column RateToEGP
+		dataType: double
+		lineageTag: 3db47dc2-231c-4dc4-bdb8-7aa6fee62670
+		summarizeBy: sum
+		sourceColumn: RateToEGP
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column OneEGPInCurrency
+		dataType: double
+		lineageTag: c2b55d29-b43c-4ff1-86a6-a9e2a7cbedaf
+		summarizeBy: sum
+		sourceColumn: OneEGPInCurrency
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LastRefreshedUTC
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 300d32b9-5f32-4430-94ed-9a0d0792f518
+		summarizeBy: none
+		sourceColumn: LastRefreshedUTC
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: e3f073eb-0794-4adb-a6f8-cecec1acc2e2
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_CurrencyRates = m
+		mode: import
+		queryGroup: Dimensions_Tables
+		source = ```
+				let
+				    // 1. Static base URL for Power BI Service scheduled refresh safety
+				    BaseUrl = "https://open.er-api.com",
+				    
+				    // 2. Fetch live JSON payload
+				    Source = Json.Document(
+				        Web.Contents(BaseUrl, [
+				            RelativePath = "/v6/latest/USD",
+				            Headers = [#"Accept" = "application/json"]
+				        ])
+				    ),
+				    
+				    // 3. Extract rates table
+				    RatesRecord = Source[rates],
+				    RatesTable = Record.ToTable(RatesRecord),
+				    #"Renamed Columns" = Table.RenameColumns(RatesTable, {{"Name", "CurrencyCode"}, {"Value", "ExchangeRateToUSD"}}),
+				    #"Filtered Currencies" = Table.SelectRows(#"Renamed Columns", each List.Contains({"USD", "EGP", "AED", "SAR", "EUR", "GBP"}, [CurrencyCode])),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Currencies", {{"CurrencyCode", type text}, {"ExchangeRateToUSD", type number}}),
+				    
+				    // 4. Compute EGP relative conversion rates
+				    EgpRate = #"Changed Type"{[CurrencyCode="EGP"]}[ExchangeRateToUSD],
+				    #"Added RateToEGP" = Table.AddColumn(#"Changed Type", "RateToEGP", each [ExchangeRateToUSD] / EgpRate, type number),
+				    #"Added EGPToCurrency" = Table.AddColumn(#"Added RateToEGP", "OneEGPInCurrency", each 1 / ([ExchangeRateToUSD] / EgpRate), type number),
+				    #"Added RefreshTimestamp" = Table.AddColumn(#"Added EGPToCurrency", "LastRefreshedUTC", each DateTimeZone.UtcNow(), type datetimezone),
+				
+				    // 5. Add Primary Surrogate Key (CurrencyKey) for Data Modeling Relationships
+				    #"Sorted Currencies" = Table.Sort(#"Added RefreshTimestamp", {{"CurrencyCode", Order.Ascending}}),
+				    #"Added CurrencyKey" = Table.AddIndexColumn(#"Sorted Currencies", "CurrencyKey", 1, 1, Int64.Type),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added CurrencyKey", {"CurrencyKey", "CurrencyCode", "ExchangeRateToUSD", "RateToEGP", "OneEGPInCurrency", "LastRefreshedUTC"})
+				in
+				    #"Reordered Columns"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

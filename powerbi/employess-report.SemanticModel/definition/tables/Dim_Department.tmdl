@@ -1,11 +1,28 @@
 table Dim_Department
 	lineageTag: ad3d796e-0f00-488a-b90b-c4b005b57842
 
-	column القسم
+	column DepartmentName
 		dataType: string
 		lineageTag: 20898a40-3e44-420b-bc4c-825ac944bedc
 		summarizeBy: none
-		sourceColumn: القسم
+		sourceColumn: DepartmentName
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 6811b16b-85dc-4634-bc04-5f0f3b9dd94e
+		summarizeBy: none
+		sourceColumn: DepartmentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentID
+		dataType: string
+		lineageTag: fd5a93c7-d647-4ab2-b1f8-20a9b5a23623
+		summarizeBy: none
+		sourceColumn: DepartmentID
 
 		annotation SummarizationSetBy = Automatic
 
@@ -16,9 +33,15 @@ table Dim_Department
 				let
 				    Source = employees_data_7000,
 				    #"Removed Other Columns" = Table.SelectColumns(Source,{"القسم"}),
-				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns")
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns"),
+				    #"Sorted Rows" = Table.Sort(#"Removed Duplicates",{{"القسم", Order.Ascending}}),
+				    #"Added DepartmentKey" = Table.AddIndexColumn(#"Sorted Rows", "DepartmentKey", 1, 1, Int64.Type),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added DepartmentKey",{"DepartmentKey", "القسم"}),
+				    #"Added DepartmentID" = Table.AddColumn(#"Reordered Columns", "DepartmentID", each "DEPT-" & Text.PadStart(Text.From([DepartmentKey]), 3, "0"), type text),
+				    #"Reordered Columns1" = Table.ReorderColumns(#"Added DepartmentID",{"DepartmentKey", "DepartmentID", "القسم"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Reordered Columns1",{{"القسم", "DepartmentName"}})
 				in
-				    #"Removed Duplicates"
+				    #"Renamed Columns"
 
 	annotation PBI_NavigationStepName = Navigation
 

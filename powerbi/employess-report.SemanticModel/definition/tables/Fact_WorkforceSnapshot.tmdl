@@ -1,0 +1,174 @@
+table Fact_WorkforceSnapshot
+	lineageTag: 835cf9bf-3fad-424c-a422-c17cdc86a4b9
+
+	column SnapshotKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 93ff65ef-9c84-4e47-a8b3-aa2341ffd72e
+		summarizeBy: count
+		sourceColumn: SnapshotKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SnapshotDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: fdab0f83-b3ee-4a8f-86a4-c7257731c76d
+		summarizeBy: none
+		sourceColumn: SnapshotDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f1353eca-f335-43ae-aabe-9fdc54012204
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmploymentStatus
+		dataType: string
+		lineageTag: 393e2dde-f8a8-4a75-8aec-9d1820778fe8
+		summarizeBy: none
+		sourceColumn: EmploymentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column TenureYears
+		dataType: double
+		lineageTag: 55518893-8952-4201-ab19-f22387016bde
+		summarizeBy: sum
+		sourceColumn: TenureYears
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TenureMonths
+		dataType: int64
+		formatString: 0
+		lineageTag: 3a94971f-a1f0-41df-b2e5-effdcf771366
+		summarizeBy: sum
+		sourceColumn: TenureMonths
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 083c021d-5e24-431d-b919-6b6033bd402e
+		summarizeBy: none
+		sourceColumn: DepartmentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchKey
+		dataType: int64
+		formatString: 0
+		lineageTag: df99595f-5e9a-4a5f-a994-9847501375e2
+		summarizeBy: none
+		sourceColumn: BranchKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 5a46c659-f8bf-412f-8909-7f555b291c48
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column HireDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b7a0b21a-4d65-4225-bd81-559adaaef3c4
+		summarizeBy: none
+		sourceColumn: HireDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column BaseSalary_EGP
+		dataType: decimal
+		formatString: "AED"#,0.###############;-"AED"#,0.###############;"AED"#,0.###############
+		lineageTag: 34ba55c4-033c-434c-ab4d-c0925cb4d5ce
+		summarizeBy: sum
+		sourceColumn: BaseSalary_EGP
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AE"}
+
+	column PerformanceRating
+		dataType: double
+		lineageTag: 63598dc8-8090-45db-a803-d7fd8986e602
+		summarizeBy: sum
+		sourceColumn: PerformanceRating
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Fact_WorkforceSnapshot = m
+		mode: import
+		queryGroup: Fact_Tables
+		source =
+				let
+				       // ⭐ Enterprise In-Memory Buffer: Pins master Dim_Employee in RAM before list expansion
+				       Source = Table.Buffer(Dim_Employee),
+				       #"Removed Other Columns" = Table.SelectColumns(Source,{"EmployeeKey", "EmployeeID", "Department", "Branch", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus"}),
+				       #"Added MonthOffset" = Table.AddColumn(#"Removed Other Columns", "MonthOffset", each {0..2}),
+				       #"Expanded MonthOffset" = Table.ExpandListColumn(#"Added MonthOffset", "MonthOffset"),
+				       #"Added SnapshotDateKey" = Table.AddColumn(#"Expanded MonthOffset", "SnapshotDateKey", each let
+				            Today = DateTime.Date(DateTime.LocalNow()),
+				            SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset]))
+				        in
+				            Date.Year(SnapshotDate) * 10000 + Date.Month(SnapshotDate) * 100 + Date.Day(SnapshotDate)),
+				       #"Changed Type" = Table.TransformColumnTypes(#"Added SnapshotDateKey",{{"SnapshotDateKey", Int64.Type}}),
+				       #"Added TenureYears" = Table.AddColumn(#"Changed Type", "TenureYears", each let
+				            Today = DateTime.Date(DateTime.LocalNow()),
+				            SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset])),
+				            HireDate = DateTime.Date([HireDate])
+				        in
+				            Number.Round(Duration.TotalDays(SnapshotDate - HireDate) / 365.25, 2)),
+				       #"Changed Type1" = Table.TransformColumnTypes(#"Added TenureYears",{{"TenureYears", type number}}),
+				       #"Added TenureMonths" = Table.AddColumn(#"Changed Type1", "TenureMonths", each let
+				            Today = DateTime.Date(DateTime.LocalNow()),
+				            SnapshotDate = Date.EndOfMonth(Date.AddMonths(Today, - [MonthOffset])),
+				            HireDate = DateTime.Date([HireDate])
+				        in
+				            Number.IntegerDivide(Duration.TotalDays(SnapshotDate - HireDate), 30.4375)),
+				       #"Changed Type2" = Table.TransformColumnTypes(#"Added TenureMonths",{{"TenureMonths", Int64.Type}}),
+				       #"Added SnapshotKey" = Table.AddIndexColumn(#"Changed Type2", "SnapshotKey", 1, 1, Int64.Type),
+				       #"Removed Columns" = Table.RemoveColumns(#"Added SnapshotKey",{"MonthOffset"}),
+				
+				       // ⭐ Enterprise In-Memory Buffering: Pins Dim_Department, Dim_Branch, and Dim_CurrencyRates
+				       BufferedDimDepartment = Table.Buffer(Table.SelectColumns(Dim_Department, {"DepartmentKey", "DepartmentName"})),
+				       #"Merged Queries" = Table.NestedJoin(#"Removed Columns", {"Department"}, BufferedDimDepartment, {"DepartmentName"}, "Dim_Department", JoinKind.LeftOuter),
+				       #"Expanded Dim_Department" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Department", {"DepartmentKey"}, {"DepartmentKey"}),
+				
+				       BufferedDimBranch = Table.Buffer(Table.SelectColumns(Dim_Branch, {"BranchKey", "BranchName"})),
+				       #"Merged Queries1" = Table.NestedJoin(#"Expanded Dim_Department", {"Branch"}, BufferedDimBranch, {"BranchName"}, "Dim_Branch", JoinKind.LeftOuter),
+				       #"Expanded Dim_Branch" = Table.ExpandTableColumn(#"Merged Queries1", "Dim_Branch", {"BranchKey"}, {"BranchKey"}),
+				
+				       #"Reordered Columns" = Table.ReorderColumns(#"Expanded Dim_Branch",{"SnapshotKey", "DepartmentKey", "BranchKey", "EmployeeKey", "EmployeeID", "Department", "Branch", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus", "SnapshotDateKey", "TenureYears", "TenureMonths"}),
+				       #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns",{"EmployeeID", "Department", "Branch"}),
+				       #"Reordered Columns1" = Table.ReorderColumns(#"Removed Columns1",{"SnapshotKey", "DepartmentKey", "BranchKey", "EmployeeKey", "SnapshotDateKey", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus", "TenureYears", "TenureMonths"}),
+				
+				       BufferedDimCurrencyRates = Table.Buffer(Table.SelectColumns(Dim_CurrencyRates, {"CurrencyKey", "CurrencyCode"})),
+				       #"Merged Queries2" = Table.NestedJoin(#"Reordered Columns1", {"Currency"}, BufferedDimCurrencyRates, {"CurrencyCode"}, "Dim_CurrencyRates", JoinKind.LeftOuter),
+				       #"Expanded Dim_CurrencyRates" = Table.ExpandTableColumn(#"Merged Queries2", "Dim_CurrencyRates", {"CurrencyKey"}, {"CurrencyKey"}),
+				       #"Reordered Columns2" = Table.ReorderColumns(#"Expanded Dim_CurrencyRates",{"SnapshotKey", "DepartmentKey", "BranchKey", "EmployeeKey", "SnapshotDateKey", "CurrencyKey", "HireDate", "BaseSalary_EGP", "Currency", "PerformanceRating", "EmploymentStatus", "TenureYears", "TenureMonths"}),
+				       #"Removed Columns2" = Table.RemoveColumns(#"Reordered Columns2",{"Currency"})
+				   in
+				       #"Removed Columns2"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

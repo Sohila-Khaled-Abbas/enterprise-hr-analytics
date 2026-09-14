@@ -1,0 +1,287 @@
+table Dim_Date
+	lineageTag: b7a3be3e-9b70-4784-9492-57791875b451
+
+	column FullDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 59ce34a5-5d76-488e-8933-3426324a142a
+		summarizeBy: none
+		sourceColumn: FullDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 5d5a7a29-cff2-426e-b5e3-82e68955d655
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CalendarYear
+		dataType: int64
+		formatString: 0
+		lineageTag: 9d42bda9-a03f-4341-adb8-3e209cdd455f
+		summarizeBy: sum
+		sourceColumn: CalendarYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column CalendarQuarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 0de917c8-e655-4436-bf97-d7cbf8c364ed
+		summarizeBy: sum
+		sourceColumn: CalendarQuarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column CalendarQuarterName
+		dataType: string
+		lineageTag: 4815ff3a-f273-45be-bd4b-35ab5b60d1cc
+		summarizeBy: none
+		sourceColumn: CalendarQuarterName
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumberOfYear
+		dataType: int64
+		formatString: 0
+		lineageTag: 4e2064c9-386d-49c9-9f44-d5fdffabf5af
+		summarizeBy: sum
+		sourceColumn: MonthNumberOfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		lineageTag: c8b1d5ea-baa3-458a-96f5-b2c99e17ae89
+		summarizeBy: none
+		sourceColumn: MonthName
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthShortName
+		dataType: string
+		lineageTag: 51baf4bc-a12d-44b7-9874-36fb093ed51e
+		summarizeBy: none
+		sourceColumn: MonthShortName
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonthKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 3e8abf2a-dff0-404d-8c01-d6406a197e0f
+		summarizeBy: count
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayNumberOfMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 8f630fef-f026-4b56-934c-a501997e4d6c
+		summarizeBy: sum
+		sourceColumn: DayNumberOfMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayNumberOfWeek
+		dataType: int64
+		formatString: 0
+		lineageTag: 659cd23a-2d0f-45fc-91b2-62413238c9c8
+		summarizeBy: sum
+		sourceColumn: DayNumberOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayNameOfWeek
+		dataType: string
+		lineageTag: 449427fa-f5bb-47ab-bc5b-8900729312ee
+		summarizeBy: none
+		sourceColumn: DayNameOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayNumberOfYear
+		dataType: int64
+		formatString: 0
+		lineageTag: d40095c4-814b-40d1-8563-cd065aa6d1e7
+		summarizeBy: sum
+		sourceColumn: DayNumberOfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWeekend
+		dataType: int64
+		formatString: 0
+		lineageTag: 47ec77d8-c7fa-42f5-a311-5784ab6321a8
+		summarizeBy: sum
+		sourceColumn: IsWeekend
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWorkingDay
+		dataType: int64
+		formatString: 0
+		lineageTag: c8f9fee1-f3e9-4207-9b24-4b3187afe6bf
+		summarizeBy: sum
+		sourceColumn: IsWorkingDay
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear
+		dataType: int64
+		formatString: 0
+		lineageTag: effc0395-715b-4a03-bda7-df3258220c8a
+		summarizeBy: sum
+		sourceColumn: FiscalYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 088dbe96-e0b8-436b-a458-9f320d9b5355
+		summarizeBy: sum
+		sourceColumn: FiscalQuarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarterName
+		dataType: string
+		lineageTag: ca511a75-1512-4f45-b90b-eb8c634bb8e6
+		summarizeBy: none
+		sourceColumn: FiscalQuarterName
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelativeMonthOffset
+		dataType: int64
+		formatString: 0
+		lineageTag: 1a1acbde-cecb-4185-8457-36bbf80ac7bb
+		summarizeBy: sum
+		sourceColumn: RelativeMonthOffset
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelativeDayOffset
+		dataType: int64
+		formatString: 0
+		lineageTag: 7b5764da-beb6-4896-a97a-fdc130afe7a5
+		summarizeBy: sum
+		sourceColumn: RelativeDayOffset
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelativeYearOffset
+		dataType: int64
+		formatString: 0
+		lineageTag: 83273426-8866-4481-8869-9bd20f744f2f
+		summarizeBy: sum
+		sourceColumn: RelativeYearOffset
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCurrentMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: ec5ba8ab-cd8b-47cb-8f02-ce9d55b84eb0
+		summarizeBy: sum
+		sourceColumn: IsCurrentMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCurrentYear
+		dataType: int64
+		formatString: 0
+		lineageTag: ab8b9d70-0a0f-4528-bee6-9ca6a818513b
+		summarizeBy: sum
+		sourceColumn: IsCurrentYear
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Date = m
+		mode: import
+		queryGroup: Dimensions_Tables
+		source = ```
+				let
+				    // 1. Dynamic Boundary Definition (Harvested Dynamically from Datasets)
+				    // Safely harvests date vectors across fact and dimension tables with fail-safe fallbacks:
+				    AttendanceDates = try List.Transform(List.RemoveNulls(Fact_DailyAttendance[AccessDate]), Date.From) 
+				                      otherwise (try List.Transform(List.RemoveNulls(Fact_DailyAttendance[Date]), Date.From) otherwise {}),
+				    
+				    TrainingDates   = try List.Transform(List.RemoveNulls(Fact_TrainingCompletions[CompletionDate]), Date.From) 
+				                      otherwise {},
+				    
+				    SnapshotDates   = try List.Transform(List.RemoveNulls(Fact_WorkforceSnapshot[SnapshotDate]), Date.From) 
+				                      otherwise (try List.Transform(List.RemoveNulls(Fact_WorkforceSnapshot[SnapshotMonth]), Date.From) otherwise {}),
+				    
+				    HireDates       = try List.Transform(List.RemoveNulls(Dim_Employee[HireDate]), Date.From) 
+				                      otherwise (try List.Transform(List.RemoveNulls(Dim_Employee[#"تاريخ التعيين"]), Date.From) otherwise {}),
+				
+				    // Combine all date series across your loaded datasets
+				    // (Tip: If you only want the operational reporting period, remove HireDates from List.Combine)
+				    AllHarvestedDates = List.Combine({AttendanceDates, TrainingDates, SnapshotDates, HireDates}),
+				
+				    // Determine dynamic earliest and latest dates with safety fallback if tables are loading
+				    MinHarvestedDate = if List.IsEmpty(AllHarvestedDates) then #date(2024, 1, 1) else List.Min(AllHarvestedDates),
+				    MaxHarvestedDate = if List.IsEmpty(AllHarvestedDates) then #date(2026, 12, 31) else List.Max(AllHarvestedDates),
+				
+				    // Kimball Full-Year Calendar Boundaries:
+				    // Expand to complete calendar years (Jan 1 of earliest year to Dec 31 of latest year or current year)
+				    // Mandatory for DAX Time Intelligence (SAMEPERIODLASTYEAR, TOTALYTD, DATEADD) to operate with zero gaps.
+				    Today = DateTime.Date(DateTime.LocalNow()),
+				    CurrentYear = Date.Year(Today),
+				    CurrentMonth = Date.Month(Today),
+				
+				    StartDate = #date(Date.Year(MinHarvestedDate), 1, 1),
+				    EndDate = #date(List.Max({Date.Year(MaxHarvestedDate), CurrentYear}), 12, 31),
+				
+				    // 2. Generate Continuous Date Series
+				    DayCount = Duration.Days(EndDate - StartDate) + 1,
+				    DateList = List.Dates(StartDate, DayCount, #duration(1, 0, 0, 0)),
+				    #"Converted to Table" = Table.FromList(DateList, Splitter.SplitByNothing(), {"FullDate"}, null, ExtraValues.Error),
+				    #"Typed FullDate" = Table.TransformColumnTypes(#"Converted to Table",{{"FullDate", type date}}),
+				
+				    // 3. Calendar Dimensions
+				    #"Added DateKey" = Table.AddColumn(#"Typed FullDate", "DateKey", each Date.Year([FullDate]) * 10000 + Date.Month([FullDate]) * 100 + Date.Day([FullDate]), Int64.Type),
+				    #"Added Year" = Table.AddColumn(#"Added DateKey", "CalendarYear", each Date.Year([FullDate]), Int64.Type),
+				    #"Added Quarter" = Table.AddColumn(#"Added Year", "CalendarQuarter", each Date.QuarterOfYear([FullDate]), Int64.Type),
+				    #"Added QuarterName" = Table.AddColumn(#"Added Quarter", "CalendarQuarterName", each "Q" & Text.From([CalendarQuarter]) & "-" & Text.From([CalendarYear]), type text),
+				    #"Added Month" = Table.AddColumn(#"Added QuarterName", "MonthNumberOfYear", each Date.Month([FullDate]), Int64.Type),
+				    #"Added MonthName" = Table.AddColumn(#"Added Month", "MonthName", each Date.MonthName([FullDate], "en-US"), type text),
+				    #"Added MonthShort" = Table.AddColumn(#"Added MonthName", "MonthShortName", each Text.Start([MonthName], 3), type text),
+				    #"Added YearMonthKey" = Table.AddColumn(#"Added MonthShort", "YearMonthKey", each [CalendarYear] * 100 + [MonthNumberOfYear], Int64.Type),
+				    #"Added DayOfMonth" = Table.AddColumn(#"Added YearMonthKey", "DayNumberOfMonth", each Date.Day([FullDate]), Int64.Type),
+				    #"Added DayOfWeek" = Table.AddColumn(#"Added DayOfMonth", "DayNumberOfWeek", each Date.DayOfWeek([FullDate], Day.Monday) + 1, Int64.Type),
+				    #"Added DayName" = Table.AddColumn(#"Added DayOfWeek", "DayNameOfWeek", each Date.DayOfWeekName([FullDate], "en-US"), type text),
+				    #"Added DayOfYear" = Table.AddColumn(#"Added DayName", "DayNumberOfYear", each Date.DayOfYear([FullDate]), Int64.Type),
+				
+				    // 4. Middle East (Egypt) Weekend & Workday Logic (Friday=5, Saturday=6 in 1-based Monday index)
+				    #"Added IsWeekend" = Table.AddColumn(#"Added DayOfYear", "IsWeekend", each if [DayNumberOfWeek] = 5 or [DayNumberOfWeek] = 6 then 1 else 0, Int64.Type),
+				    #"Added IsWorkDay" = Table.AddColumn(#"Added IsWeekend", "IsWorkingDay", each if [IsWeekend] = 0 then 1 else 0, Int64.Type),
+				
+				    // 5. Fiscal Calendar Attributes (Standard Calendar Fiscal Year)
+				    #"Added FiscalYear" = Table.AddColumn(#"Added IsWorkDay", "FiscalYear", each [CalendarYear], Int64.Type),
+				    #"Added FiscalQuarter" = Table.AddColumn(#"Added FiscalYear", "FiscalQuarter", each [CalendarQuarter], Int64.Type),
+				    #"Added FiscalQuarterName" = Table.AddColumn(#"Added FiscalQuarter", "FiscalQuarterName", each "FQ" & Text.From([FiscalQuarter]) & " " & Text.From([FiscalYear]), type text),
+				
+				    // 6. Relative Offsets (Crucial for Rolling Dynamic Slicers in Power BI)
+				    #"Added MonthOffset" = Table.AddColumn(#"Added FiscalQuarterName", "RelativeMonthOffset", each ((Date.Year([FullDate]) - CurrentYear) * 12) + (Date.Month([FullDate]) - CurrentMonth), Int64.Type),
+				    #"Added DayOffset" = Table.AddColumn(#"Added MonthOffset", "RelativeDayOffset", each Duration.Days([FullDate] - Today), Int64.Type),
+				    #"Added YearOffset" = Table.AddColumn(#"Added DayOffset", "RelativeYearOffset", each Date.Year([FullDate]) - CurrentYear, Int64.Type),
+				    #"Added IsCurrentMonth" = Table.AddColumn(#"Added YearOffset", "IsCurrentMonth", each if [RelativeMonthOffset] = 0 then 1 else 0, Int64.Type),
+				    #"Added IsCurrentYear" = Table.AddColumn(#"Added IsCurrentMonth", "IsCurrentYear", each if [RelativeYearOffset] = 0 then 1 else 0, Int64.Type)
+				in
+				    #"Added IsCurrentYear"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

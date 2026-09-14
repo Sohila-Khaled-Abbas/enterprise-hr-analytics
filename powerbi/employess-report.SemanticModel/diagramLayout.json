@@ -1,0 +1,165 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 868.232189164335,
+            "y": 606.64990085673844
+          },
+          "nodeIndex": "Dim_Employee",
+          "nodeLineageTag": "b55b37e3-f509-4aeb-9bca-20504e4aebd3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 213.93045250109947,
+            "y": 1562.190238928257
+          },
+          "nodeIndex": "Dim_Department",
+          "nodeLineageTag": "ad3d796e-0f00-488a-b90b-c4b005b57842",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 1069.9801467702141,
+            "y": 306.74065282702304
+          },
+          "nodeIndex": "Dim_Branch",
+          "nodeLineageTag": "9c882547-70c6-4fce-ad3c-d30d29dc0e49",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1124.7658165230348,
+            "y": -50
+          },
+          "nodeIndex": "Fact_DailyAttendance",
+          "nodeLineageTag": "be841940-f704-40b7-8b9d-cd5c2d6b90f8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 582.68260155137182,
+            "y": 856.36699226170572
+          },
+          "nodeIndex": "Fact_DepartmentBudget",
+          "nodeLineageTag": "87eaad4e-91ae-4ba3-9df8-39d9a158d582",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 1358.765816523035,
+            "y": 768.46111146126373
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "239e3b42-74ad-4994-86fb-cf55a22abeef",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 451.95818076074664,
+            "y": 492.58241993441311
+          },
+          "nodeIndex": "Dim_Course",
+          "nodeLineageTag": "57b0657d-c131-4750-9738-dd08b5bbfda1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 172.65205717074286,
+            "y": 849.24547166662137
+          },
+          "nodeIndex": "Dim_Date",
+          "nodeLineageTag": "b7a3be3e-9b70-4784-9492-57791875b451",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 495.99762049100514
+          },
+          "nodeIndex": "Fact_TrainingCompletions",
+          "nodeLineageTag": "2a4242b0-df5f-4047-881d-16ce8e12e249",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 455.49241237092457,
+            "y": 1206.4239197647366
+          },
+          "nodeIndex": "Fact_WorkforceSnapshot",
+          "nodeLineageTag": "7624bc16-17fb-4757-87cd-fac8aa84264b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 623.97661018055339,
+            "y": 1562.9222229225275
+          },
+          "nodeIndex": "Dim_CurrencyRates",
+          "nodeLineageTag": "543dc755-a9d4-466e-9b6d-e98d18977d24",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 30.254183315415379,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

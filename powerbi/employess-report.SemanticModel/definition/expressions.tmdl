@@ -1,6 +1,6 @@
 expression employees_data_7000 =
 		let
-		  Source = Table.FromColumns({Lines.FromBinary(File.Contents("D:\courses\Data Science\Data Engineering\Projects\enterprise-hr-analytics\data\raw\employees_data_7000.txt"), null, null, 65001)}),
+		  Source = Table.FromColumns({Lines.FromBinary(File.Contents(pDataDirectory & "\employees_data_7000.txt"), null, null, 65001)}),
 		    #"Cleaned Text" = Table.TransformColumns(Source,{{"Column1", Text.Clean, type text}}),
 		    #"Trimmed Text" = Table.TransformColumns(#"Cleaned Text",{{"Column1", Text.Trim, type text}}),
 		    #"Added Index" = Table.AddIndexColumn(#"Trimmed Text", "Index", 1, 1, Int64.Type),
@@ -27,13 +27,164 @@ expression employees_data_7000 =
 expression Exit_Attrition_Records =
 		let
 		  Source = Sql.Database("localhost", "EnterpriseHR_DWH"),
-		  #"Navigation 1" = Source{[Schema = "stg", Item = "Exit_Attrition_Records"]}[Data]
+		  #"Navigation 1" = Source{[Schema = "stg", Item = "Exit_Attrition_Records"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(#"Navigation 1",{{"ExitDate", type datetime}, {"NoticeDate", type datetime}}),
+		    #"Extracted Date" = Table.TransformColumns(#"Changed Type",{{"NoticeDate", DateTime.Date, type date}, {"ExitDate", DateTime.Date, type date}})
 		in
-		  #"Navigation 1"
+		    #"Extracted Date"
 	lineageTag: ef368d6a-2881-4fef-84b6-a803a9eb6ae2
+	queryGroup: Staging_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression attendance_badge_logs =
+		let
+		  Source = Json.Document(File.Contents(pDataDirectory & "\attendance_badge_logs.json")),
+		  #"Converted to table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		  #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to table", "Column1", {"EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "BuildingID", "DeclaredWorkMode"}, {"EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "BuildingID", "DeclaredWorkMode"}),
+		  #"Changed column type" = Table.TransformColumnTypes(#"Expanded Column1", {{"EmployeeID", type text}, {"AccessDate", type date}, {"CheckInTime", type time}, {"CheckOutTime", type time}, {"BuildingID", type text}, {"DeclaredWorkMode", type text}}, "en-US")
+		in
+		    #"Changed column type"
+	lineageTag: 6b3756d5-1e18-4014-8224-9de4c2626fda
 	queryGroup: Raw_Data
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
+
+expression Badge_Access_Logs =
+		let
+		  Source = Sql.Database("localhost", "EnterpriseHR_DWH"),
+		  #"Navigation 1" = Source{[Schema = "raw", Item = "Badge_Access_Logs"]}[Data]
+		in
+		  #"Navigation 1"
+	lineageTag: 2eff1220-3d70-4a65-8f18-5701cd9fea27
+	queryGroup: Raw_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression fpa_department_budget_messy =
+		let
+		  Source = Csv.Document(File.Contents("D:\courses\Data Science\Data Engineering\Projects\enterprise-hr-analytics\data\raw\fpa_department_budget_messy.csv"), [Delimiter = ",", Columns = 12, Encoding = 65001, QuoteStyle = QuoteStyle.None]),
+		  #"Promoted headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+		  #"Changed column type" = Table.TransformColumnTypes(#"Promoted headers", {{"FiscalYear", Int64.Type}, {"Department", type text}, {"RawBranch", type text}, {"Q1_Budget_EGP", Int64.Type}, {"Q2_Budget_EGP", type number}, {"Q3_Budget_EGP", type number}, {"Q4_Budget_EGP", type number}, {"Q1_Headcount", Int64.Type}, {"Q2_Headcount", Int64.Type}, {"Q3_Headcount", Int64.Type}, {"Q4_Headcount", Int64.Type}, {"OvertimeAllowance_EGP", Int64.Type}}, "en-US")
+		in
+		  #"Changed column type"
+	lineageTag: faa06f7c-af4a-465e-9066-76d1afb9ea68
+	queryGroup: Raw_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Badge_Access_Logs_SQL =
+		let
+		    Source = Badge_Access_Logs,
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"CheckOutTime", type datetime}, {"CheckInTime", type datetime}, {"AccessDate", type date}}),
+		    #"Fixed CheckOutTime" = Table.AddColumn(#"Changed Type", "CleanCheckOutTime", each if [CheckOutTime] <> null then [CheckOutTime] else if [CheckInTime] <> null then [CheckInTime] + #duration(0, 8, 30, 0) else null, type datetime),
+		    #"Added DurationHours" = Table.AddColumn(#"Fixed CheckOutTime", "DurationHours", each if [CheckInTime] = null or [CleanCheckOutTime] = null then 0.0 else Number.Round(Duration.TotalHours([CleanCheckOutTime] - [CheckInTime]), 2), Decimal.Type),
+		    #"Added ActualWorkMode" = Table.AddColumn(#"Added DurationHours", "ActualWorkMode", each if [FacilityCode] = "REMOTE-VPN" then "Remote" else "On-site", type text),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added ActualWorkMode",{"CheckOutTime"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"CleanCheckOutTime", "CheckOutTime"}}),
+		    #"Added AccessDateKey" = Table.AddColumn(#"Renamed Columns", "AccessDateKey", each Date.Year([AccessDate]) * 10000 + Date.Month([AccessDate]) * 100 + Date.Day([AccessDate]), Int64.Type)
+		in
+		    #"Added AccessDateKey"
+	lineageTag: 4419a4d3-3ecc-4d01-a6e3-4997bb1422d0
+	queryGroup: Staging_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression lms_course_completions =
+		let
+		  Source = Csv.Document(File.Contents(pDataDirectory & "\lms_course_completions.csv"), [Delimiter = ",", Columns = 7, Encoding = 65001, QuoteStyle = QuoteStyle.None]),
+		  #"Promoted headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+		  #"Changed column type" = Table.TransformColumnTypes(#"Promoted headers", {{"EmployeeID", type text}, {"CourseID", type text}, {"CourseName", type text}, {"SkillDomain", type text}, {"CompletionDate", type date}, {"Score", type number}, {"CertificationCost_EGP", Int64.Type}}, "en-US")
+		in
+		  #"Changed column type"
+	lineageTag: 58ead887-332f-40d3-aeb7-298917ecd575
+	queryGroup: Raw_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression TrainingCompletions =
+		let
+		    Source = lms_course_completions,
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"CertificationCost_EGP", Currency.Type}})
+		in
+		    #"Changed Type"
+	lineageTag: f9370c70-1593-4e5d-afa8-82895554ea18
+	queryGroup: Staging_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Fact_Employee_SCD2 =
+		let
+		  Source = Sql.Database("localhost", "EnterpriseHR_DWH"),
+		  #"Navigation 1" = Source{[Schema = "mart", Item = "Fact_Employee_SCD2"]}[Data]
+		in
+		  #"Navigation 1"
+	lineageTag: 8d3e0921-d0d1-400f-a668-6050889927d8
+	queryGroup: Staging_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Mart_WorkforceSnapshot =
+		let
+		  Source = Sql.Database("localhost", "EnterpriseHR_DWH"),
+		  #"Navigation 1" = Source{[Schema = "mart", Item = "Fact_WorkforceSnapshot"]}[Data]
+		in
+		  #"Navigation 1"
+	lineageTag: f5c1377c-d330-49df-b5a7-78d5b1d340bc
+	queryGroup: Staging_Data
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+/// Database host address
+expression pServerName = "localhost" meta [IsParameterQuery=true, List={"localhost", "sql-staging.corp", "sql-prod.database.windows.net"}, DefaultValue="localhost", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: b0f679ec-8ae0-47fe-8ea1-655c7dea4749
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// Target DWH catalog
+expression pDatabaseName = "EnterpriseHR_DWH" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f4fc224c-25aa-4c82-bbbf-8f06b8e40c8c
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression pDataDirectory = "D:\courses\Data Science\Data Engineering\Projects\enterprise-hr-analytics\data\raw" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: e560d1eb-f74f-4a0d-9d03-604de1eadb5a
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// Reporting currency target
+expression pTargetCurrency = "EGP" meta [IsParameterQuery=true, List={"EGP", "USD", "AED", "SAR", "EUR"}, DefaultValue="EGP", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: c4e9a5b9-fa48-43ff-8a15-ed02836c8f0d
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
 

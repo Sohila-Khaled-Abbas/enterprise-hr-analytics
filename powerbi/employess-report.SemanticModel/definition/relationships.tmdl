@@ -1,4 +1,52 @@
-relationship AutoDetected_d99abb08-0992-4397-848e-b81a43dda662
-	fromColumn: Dim_Employee.القسم
-	toColumn: Dim_Department.القسم
+relationship 162c6fd0-7827-fe81-a44c-d1a0588fb33b
+	fromColumn: Fact_WorkforceSnapshot.EmployeeKey
+	toColumn: Dim_Employee.EmployeeKey
+
+relationship 74b1fa04-8069-9fda-f8a7-5dfc650c0e12
+	fromColumn: Fact_WorkforceSnapshot.DepartmentKey
+	toColumn: Dim_Department.DepartmentKey
+
+relationship 1c22eccd-7365-dac7-6bf9-abafcef9e381
+	fromColumn: Fact_WorkforceSnapshot.BranchKey
+	toColumn: Dim_Branch.BranchKey
+
+relationship 26fd2ba3-53a2-c304-b929-1464a9a9d938
+	fromColumn: Fact_WorkforceSnapshot.SnapshotDateKey
+	toColumn: Dim_Date.DateKey
+
+relationship 6677cf92-fe4e-f376-a680-483b541aedb9
+	fromColumn: Fact_DailyAttendance.EmployeeKey
+	toColumn: Dim_Employee.EmployeeKey
+
+relationship 56a36a7b-4857-eb05-75be-ceb53a0c8c11
+	fromColumn: Fact_DailyAttendance.BranchKey
+	toColumn: Dim_Branch.BranchKey
+
+relationship e94722bb-7666-1da1-da6c-8a181323ed11
+	fromColumn: Fact_DepartmentBudget.BranchKey
+	toColumn: Dim_Branch.BranchKey
+
+relationship eb3f127c-77cc-73d8-5d97-af6557f29aeb
+	fromColumn: Fact_DepartmentBudget.DateKey
+	toColumn: Dim_Date.DateKey
+
+relationship 4cc894e7-af3c-aede-e8c4-efd08e4fbaec
+	fromColumn: Fact_TrainingCompletions.CompletionDateKey
+	toColumn: Dim_Course.CompletionDateKey
+
+relationship 4440bf5e-0b09-1e96-7d9f-1398e9437590
+	fromColumn: Fact_TrainingCompletions.CompletionDateKey
+	toColumn: Dim_Date.DateKey
+
+relationship 35d2d044-293d-f906-362d-f68d9375299c
+	fromColumn: Fact_TrainingCompletions.EmployeeKey
+	toColumn: Dim_Employee.EmployeeKey
+
+relationship 9f8c0864-6581-d43a-b15c-c20ecbea0272
+	fromColumn: Fact_WorkforceSnapshot.CurrencyKey
+	toColumn: Dim_CurrencyRates.CurrencyKey
+
+relationship 29f292b7-6510-0cc7-85a1-f27f3c576b36
+	fromColumn: Fact_DepartmentBudget.CurrencyKey
+	toColumn: Dim_CurrencyRates.CurrencyKey
 

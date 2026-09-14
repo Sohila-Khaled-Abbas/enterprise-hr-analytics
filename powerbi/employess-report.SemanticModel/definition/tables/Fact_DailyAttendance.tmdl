@@ -1,0 +1,165 @@
+table Fact_DailyAttendance
+	lineageTag: be841940-f704-40b7-8b9d-cd5c2d6b90f8
+
+	column AccessDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f963aa02-c471-43a6-be0b-779228e943cf
+		summarizeBy: count
+		sourceColumn: AccessDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AttendanceKey
+		dataType: int64
+		formatString: 0
+		lineageTag: d5062a69-ebca-44fe-9af3-c7f29f77c88a
+		summarizeBy: count
+		sourceColumn: AttendanceKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccessDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 68487355-c946-412a-bd82-833473bb5ff4
+		summarizeBy: none
+		sourceColumn: AccessDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CheckInTime
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 937b4574-69c1-4560-be35-a374a891a2b2
+		summarizeBy: none
+		sourceColumn: CheckInTime
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column CheckOutTime
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: d95d8474-5d80-403d-9256-610f897679af
+		summarizeBy: none
+		sourceColumn: CheckOutTime
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column DurationHours
+		dataType: double
+		lineageTag: 05a64ebd-ccbe-4ded-865d-b3ddf2efc94b
+		summarizeBy: sum
+		sourceColumn: DurationHours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BuildingID
+		dataType: string
+		lineageTag: a34775bd-292b-44ec-9c41-7319e5ca71cb
+		summarizeBy: none
+		sourceColumn: BuildingID
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeclaredWorkMode
+		dataType: string
+		lineageTag: 5338ace5-5065-491a-85f4-132638ca6be0
+		summarizeBy: none
+		sourceColumn: DeclaredWorkMode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActualWorkMode
+		dataType: string
+		lineageTag: cedf3d3f-ee78-4d69-9f29-dc95a16be12f
+		summarizeBy: none
+		sourceColumn: ActualWorkMode
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: b3fef05d-e189-4b95-9880-cdc1018f49b9
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 54f57059-32c5-4fe7-9c76-fb2168ea9df8
+		summarizeBy: none
+		sourceColumn: BranchKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsTardyArrival
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: e56bb8fe-c63e-4143-a1df-db0969f41b4e
+		summarizeBy: none
+		sourceColumn: IsTardyArrival
+
+		annotation SummarizationSetBy = Automatic
+
+	column OvertimeHours
+		dataType: double
+		lineageTag: c5673183-51fd-4208-aa2f-039840464067
+		summarizeBy: sum
+		sourceColumn: OvertimeHours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Fact_DailyAttendance = m
+		mode: import
+		queryGroup: Fact_Tables
+		source = ```
+				let
+				       Source = attendance_badge_logs,
+				       #"Fixed CheckOutTime" = Table.AddColumn(Source, "CleanCheckOutTime", each if [CheckOutTime] <> null then [CheckOutTime] else if [CheckInTime] <> null then Time.From(DateTime.From([CheckInTime]) + #duration(0, 8, 0, 0)) else null, Time.Type),
+				       #"Added DurationHours" = Table.AddColumn(#"Fixed CheckOutTime", "DurationHours", each if [CheckInTime] = null or [CleanCheckOutTime] = null then 0.0 else if [CleanCheckOutTime] >= [CheckInTime] then Duration.TotalHours([CleanCheckOutTime] - [CheckInTime]) else Duration.TotalHours((#time(23, 59, 59) - [CheckInTime]) + ([CleanCheckOutTime] - #time(0, 0, 0))) + (1 / 3600), Decimal.Type),
+				       #"Removed Columns" = Table.RemoveColumns(#"Added DurationHours",{"CheckOutTime"}),
+				       #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"CleanCheckOutTime", "CheckOutTime"}}),
+				       #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns",{"EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode"}),
+				       #"Added ActualWorkMode" = Table.AddColumn(#"Reordered Columns", "ActualWorkMode", each if [BuildingID] = "REMOTE_GATE" then "Remote" else "On-site", type text),
+				       #"Added AccessDateKey" = Table.AddColumn(#"Added ActualWorkMode", "AccessDateKey", each Date.Year([AccessDate]) * 10000 + Date.Month([AccessDate]) * 100 + Date.Day([AccessDate]), Int64.Type),
+				       #"Added AttendanceKey" = Table.AddIndexColumn(#"Added AccessDateKey", "AttendanceKey", 1, 1, Int64.Type),
+				       #"Reordered Columns1" = Table.ReorderColumns(#"Added AttendanceKey",{"AccessDateKey", "AttendanceKey", "EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode", "ActualWorkMode"}),
+				       
+				       // ⭐ Enterprise In-Memory Buffer: Pins Dim_Employee key pair in RAM
+				       BufferedDimEmployee = Table.Buffer(Table.SelectColumns(Dim_Employee, {"EmployeeID", "EmployeeKey"})),
+				       #"Merged Queries" = Table.NestedJoin(#"Reordered Columns1", {"EmployeeID"}, BufferedDimEmployee, {"EmployeeID"}, "Dim_Employee", JoinKind.LeftOuter),
+				       #"Expanded Dim_Employee" = Table.ExpandTableColumn(#"Merged Queries", "Dim_Employee", {"EmployeeKey"}, {"EmployeeKey"}),
+				       
+				       #"Reordered Columns2" = Table.ReorderColumns(#"Expanded Dim_Employee",{"AccessDateKey", "AttendanceKey", "EmployeeKey", "EmployeeID", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode", "ActualWorkMode"}),
+				       #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns2",{"EmployeeID"}),
+				       #"Added BranchKey" = Table.AddColumn(#"Removed Columns1", "BranchKey", each if Text.StartsWith([BuildingID], "BLD-") then Value.FromText(Text.End([BuildingID], 3)) else null),
+				       #"Changed Type" = Table.TransformColumnTypes(#"Added BranchKey",{{"BranchKey", Int64.Type}}),
+				       #"Reordered Columns3" = Table.ReorderColumns(#"Changed Type",{"AccessDateKey", "AttendanceKey", "EmployeeKey", "BranchKey", "AccessDate", "CheckInTime", "CheckOutTime", "DurationHours", "BuildingID", "DeclaredWorkMode", "ActualWorkMode"}),
+				       #"Added IsTardyArrival" = Table.AddColumn(#"Reordered Columns3", "IsTardyArrival", each if [CheckInTime] <> null and [CheckInTime] > #time(9, 15, 0) then 1 else 0),
+				       #"Changed Type1" = Table.TransformColumnTypes(#"Added IsTardyArrival",{{"IsTardyArrival", type logical}}),
+				       #"Added OvertimeHours" = Table.AddColumn(#"Changed Type1", "OvertimeHours", each if [DurationHours] > 8.5 then Number.Round([DurationHours] - 8.5, 2) else 0.0, Decimal.Type)
+				   in
+				       #"Added OvertimeHours"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

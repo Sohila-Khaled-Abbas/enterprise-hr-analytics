@@ -1,0 +1,112 @@
+table Dim_Branch
+	lineageTag: 9c882547-70c6-4fce-ad3c-d30d29dc0e49
+
+	column BranchKey
+		dataType: int64
+		formatString: 0
+		lineageTag: e5d0a974-0ad4-458b-9018-bca592dc62c8
+		summarizeBy: none
+		sourceColumn: BranchKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchID
+		dataType: string
+		lineageTag: 70f244e2-2373-4fd3-acac-5bf2a89b5a98
+		summarizeBy: none
+		sourceColumn: BranchID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: 141b9aca-bb0e-4b8e-a3c5-0873c900fc54
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column Latitude
+		dataType: double
+		lineageTag: 629c51e0-4eef-4adf-8434-d045035868ab
+		summarizeBy: sum
+		sourceColumn: Latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Longitude
+		dataType: double
+		lineageTag: b4a52ac9-c4cf-4e7f-b60f-7b63ceea80a1
+		summarizeBy: sum
+		sourceColumn: Longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BranchTier
+		dataType: string
+		lineageTag: bc6f2979-3c20-4cf2-8e27-30161b28a0be
+		summarizeBy: none
+		sourceColumn: BranchTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchName
+		dataType: string
+		lineageTag: d3c6da3b-95b4-4dab-8e31-24a07ac3ff39
+		summarizeBy: none
+		sourceColumn: BranchName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Branch = m
+		mode: import
+		queryGroup: Dimensions_Tables
+		source =
+				let
+				    Source = Dim_Employee,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Branch"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns"),
+				    #"Added BranchKey" = Table.AddIndexColumn(#"Removed Duplicates", "BranchKey", 1, 1, Int64.Type),
+				    #"Added BranchID" = Table.AddColumn(#"Added BranchKey", "BranchID", each "BR-" & Text.PadStart(Text.From([BranchKey]), 3, "0"), type text),
+				    #"Added Region" = Table.AddColumn(#"Added BranchID", "Region", each if Text.StartsWith([Branch], "الإسكندرية") then "Alexandria & North" else if Text.StartsWith([Branch], "أسيوط") then "Upper Egypt" else if Text.StartsWith([Branch], "الدقهلية") then "Delta" else if Text.StartsWith([Branch], "الغربية") then "Delta" else if Text.StartsWith([Branch], "دمياط") then "Delta" else if Text.StartsWith([Branch], "بورسعيد") then "Canal Zone" else "Greater Cairo", type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Region",{{"Branch", "BranchName"}}),
+				    #"Added Latitude" = Table.AddColumn(#"Renamed Columns", "Latitude", each if Text.Contains([BranchName], "المعادي") then 29.9599
+				     else if Text.Contains([BranchName], "التجمع") then 30.0074
+				     else if Text.Contains([BranchName], "مصر الجديدة") then 30.0898
+				     else if Text.Contains([BranchName], "القرية الذكية") then 30.0716
+				     else if Text.Contains([BranchName], "أكتوبر") or Text.Contains([BranchName], "اكتوبر") then 29.9678
+				     else if Text.Contains([BranchName], "زايد") then 30.0435
+				     else if Text.Contains([BranchName], "الدقي") then 30.0385
+				     else if Text.Contains([BranchName], "لوران") then 31.2464
+				     else if Text.Contains([BranchName], "سموحة") then 31.2156
+				     else if Text.Contains([BranchName], "المنصورة") then 31.0409
+				     else if Text.Contains([BranchName], "طنطا") then 30.7865
+				     else if Text.Contains([BranchName], "دمياط") then 31.4367
+				     else if Text.Contains([BranchName], "بورسعيد") then 31.2653
+				     else 27.1809, Decimal.Type),
+				    #"Added Longitude" = Table.AddColumn(#"Added Latitude", "Longitude", each if Text.Contains([BranchName], "المعادي") then 31.2595
+				     else if Text.Contains([BranchName], "التجمع") then 31.4913
+				     else if Text.Contains([BranchName], "مصر الجديدة") then 31.3285
+				     else if Text.Contains([BranchName], "القرية الذكية") then 31.0216
+				     else if Text.Contains([BranchName], "أكتوبر") or Text.Contains([BranchName], "اكتوبر") then 30.9388
+				     else if Text.Contains([BranchName], "زايد") then 30.9998
+				     else if Text.Contains([BranchName], "الدقي") then 31.2117
+				     else if Text.Contains([BranchName], "لوران") then 29.9723
+				     else if Text.Contains([BranchName], "سموحة") then 29.9489
+				     else if Text.Contains([BranchName], "المنصورة") then 31.3785
+				     else if Text.Contains([BranchName], "طنطا") then 31.0004
+				     else if Text.Contains([BranchName], "دمياط") then 31.6738
+				     else if Text.Contains([BranchName], "بورسعيد") then 32.3019
+				     else 31.1837, Decimal.Type),
+				    #"Added BranchTier" = Table.AddColumn(#"Added Longitude", "BranchTier", each if [Region] = "Greater Cairo" then "Tier 1 - Strategic Metro Hub" else if [Region] = "Alexandria & North" then "Tier 1 - Strategic Metro Hub" else if [Region] = "Delta" then "Tier 2 - Regional Commercial Center" else "Tier 3 - Emerging Expansion Office", type text)
+				in
+				    #"Added BranchTier"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

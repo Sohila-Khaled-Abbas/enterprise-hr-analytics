@@ -67,7 +67,7 @@ def main():
         print(f"SVG not found: {svg_file}")
         sys.exit(1)
 
-    success = convert_svg_to_png(svg_file, png_file, width=2400, height=1420)
+    success = convert_svg_to_png(svg_file, png_file, width=2400, height=1440)
     if success:
         # Also copy to artifacts directory for interactive display
         if ARTIFACTS_DIR.exists():
@@ -75,13 +75,14 @@ def main():
             shutil.copy(png_file, dest_artifact)
             print(f"[OK] Copied to conversation artifacts: {dest_artifact}")
 
-        # Also convert enterprise galaxy architecture if available
-        galaxy_svg = DOCS_ASSETS / "enterprise_galaxy_architecture.svg"
-        galaxy_png = DOCS_ASSETS / "enterprise_galaxy_architecture.png"
-        if galaxy_svg.exists():
-            convert_svg_to_png(galaxy_svg, galaxy_png, width=2200, height=1350)
-            if ARTIFACTS_DIR.exists():
-                shutil.copy(galaxy_png, ARTIFACTS_DIR / "enterprise_galaxy_architecture.png")
+    # Also convert enterprise galaxy architecture if available
+    galaxy_svg = DOCS_ASSETS / "enterprise_galaxy_architecture.svg"
+    galaxy_png = DOCS_ASSETS / "enterprise_galaxy_architecture.png"
+    if galaxy_svg.exists():
+        success_galaxy = convert_svg_to_png(galaxy_svg, galaxy_png, width=2400, height=1440)
+        if success_galaxy and ARTIFACTS_DIR.exists():
+            shutil.copy(galaxy_png, ARTIFACTS_DIR / "enterprise_galaxy_architecture.png")
+            print(f"[OK] Copied to conversation artifacts: {ARTIFACTS_DIR / 'enterprise_galaxy_architecture.png'}")
 
 if __name__ == "__main__":
     main()
