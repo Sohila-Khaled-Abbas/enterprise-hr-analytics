@@ -868,28 +868,28 @@ Based on your active 10-course enterprise catalog (`CRS-TECH-01..04`, `CRS-LEAD-
 
 1. **Course Difficulty Level / Tier (`CourseLevel`)**:
    Categorizes the 10 programs into standard corporate learning tiers based on technical depth and strategic complexity:
-   * **Level 100 - Foundational Core**: `CRS-COMP-01` (Labor Law 2026), `CRS-COMP-02` (GDPR/Information Governance), `CRS-SOFT-02` (Data Storytelling). *(Mandatory baseline compliance and organizational analytical literacy)*.
-   * **Level 200 - Intermediate & Professional**: `CRS-TECH-01` (Power BI & Enterprise DAX Modeling), `CRS-TECH-02` (Advanced SQL), `CRS-TECH-03` (Python Data Engineering), `CRS-SOFT-01` (Executive Negotiation). *(Role-specific technical mastery and commercial execution)*.
-   * **Level 300 - Advanced Architecture & Strategic**: `CRS-TECH-04` (Cloud Architecture & Cybersecurity), `CRS-LEAD-01` (Strategic People Leadership), `CRS-LEAD-02` (Lean Six Sigma / Operational Excellence). *(Enterprise system design and executive transformation)*.
+   * **Level 1**: `CRS-COMP-01` (Labor Law 2026), `CRS-COMP-02` (GDPR/Information Governance), `CRS-SOFT-02` (Data Storytelling). *(Mandatory baseline compliance and organizational analytical literacy)*.
+   * **Level 2**: `CRS-TECH-01` (Power BI & Enterprise DAX Modeling), `CRS-TECH-02` (Advanced SQL), `CRS-TECH-03` (Python Data Engineering), `CRS-SOFT-01` (Executive Negotiation). *(Role-specific technical mastery and commercial execution)*.
+   * **Level 3**: `CRS-TECH-04` (Cloud Architecture & Cybersecurity), `CRS-LEAD-01` (Strategic People Leadership), `CRS-LEAD-02` (Lean Six Sigma / Operational Excellence). *(Enterprise system design and executive transformation)*.
 
    * **Method A (GUI Clickpath)**:
      * Go to **Add Column > Conditional Column** $\to$ Name: `CourseLevel`.
      * Configure rules:
-       * If `CourseID` equals `CRS-COMP-01` then `Level 100 - Foundational Core`
-       * Else If `CourseID` equals `CRS-COMP-02` then `Level 100 - Foundational Core`
-       * Else If `CourseID` equals `CRS-SOFT-02` then `Level 100 - Foundational Core`
-       * Else If `CourseID` equals `CRS-TECH-01` then `Level 200 - Intermediate & Professional`
-       * Else If `CourseID` equals `CRS-TECH-02` then `Level 200 - Intermediate & Professional`
-       * Else If `CourseID` equals `CRS-TECH-03` then `Level 200 - Intermediate & Professional`
-       * Else If `CourseID` equals `CRS-SOFT-01` then `Level 200 - Intermediate & Professional`
-       * Else `Level 300 - Advanced Architecture & Strategic`
+       * If `CourseID` equals `CRS-COMP-01` then `Level 1`
+       * Else If `CourseID` equals `CRS-COMP-02` then `Level 1`
+       * Else If `CourseID` equals `CRS-SOFT-02` then `Level 1`
+       * Else If `CourseID` equals `CRS-TECH-01` then `Level 2`
+       * Else If `CourseID` equals `CRS-TECH-02` then `Level 2`
+       * Else If `CourseID` equals `CRS-TECH-03` then `Level 2`
+       * Else If `CourseID` equals `CRS-SOFT-01` then `Level 2`
+       * Else `Level 3`
      * Click **OK** $\to$ set data type to **Text (`ABC`)**.
 
    * **Method B (M Formula via Add Column > Custom Column)**:
      ```powerquery
-     if List.Contains({"CRS-COMP-01", "CRS-COMP-02", "CRS-SOFT-02"}, [CourseID]) then "Level 100 - Foundational Core"
-     else if List.Contains({"CRS-TECH-01", "CRS-TECH-02", "CRS-TECH-03", "CRS-SOFT-01"}, [CourseID]) then "Level 200 - Intermediate & Professional"
-     else "Level 300 - Advanced Architecture & Strategic"
+     if List.Contains({"CRS-COMP-01", "CRS-COMP-02", "CRS-SOFT-02"}, [CourseID]) then "Level 1"
+     else if List.Contains({"CRS-TECH-01", "CRS-TECH-02", "CRS-TECH-03", "CRS-SOFT-01"}, [CourseID]) then "Level 2"
+     else "Level 3"
      ```
 
 2. **Strategic Capability Pillar (`StrategicPillar`)**:
@@ -939,7 +939,7 @@ Based on your active 10-course enterprise catalog (`CRS-TECH-01..04`, `CRS-LEAD-
    Recognized educational credit hours earned upon exam completion:
    * **GUI / Custom Column**: Name: `CPD_Credits` $\to$ Formula:
      ```powerquery
-     if Text.Contains([CourseLevel], "300") then 40 else if Text.Contains([CourseLevel], "200") then 24 else 16
+     if [CourseLevel] = "Level 3" then 40 else if [CourseLevel] = "Level 2" then 24 else 16
      ```
    * Set type to **Whole Number (`123`)**.
 
@@ -1015,12 +1015,37 @@ Because `Dim_Course` already stores the textual descriptions `CourseName` and `S
 
 ```powerquery
 let
-    // 1. Dynamic Boundary Definition
-    StartDate = #date(2024, 1, 1),
-    EndDate = #date(2026, 12, 31),
+    // 1. Dynamic Boundary Definition (Harvested Dynamically from Datasets)
+    // Safely harvests date vectors across fact and dimension tables with fail-safe fallbacks:
+    AttendanceDates = try List.Transform(List.RemoveNulls(Fact_DailyAttendance[AccessDate]), Date.From) 
+                      otherwise (try List.Transform(List.RemoveNulls(Fact_DailyAttendance[Date]), Date.From) otherwise {}),
+    
+    TrainingDates   = try List.Transform(List.RemoveNulls(Fact_TrainingCompletions[CompletionDate]), Date.From) 
+                      otherwise {},
+    
+    SnapshotDates   = try List.Transform(List.RemoveNulls(Fact_WorkforceSnapshot[SnapshotDate]), Date.From) 
+                      otherwise (try List.Transform(List.RemoveNulls(Fact_WorkforceSnapshot[SnapshotMonth]), Date.From) otherwise {}),
+    
+    HireDates       = try List.Transform(List.RemoveNulls(Dim_Employee[HireDate]), Date.From) 
+                      otherwise (try List.Transform(List.RemoveNulls(Dim_Employee[#"تاريخ التعيين"]), Date.From) otherwise {}),
+
+    // Combine all date series across your loaded datasets
+    // (Tip: If you only want the operational reporting period, remove HireDates from List.Combine)
+    AllHarvestedDates = List.Combine({AttendanceDates, TrainingDates, SnapshotDates, HireDates}),
+
+    // Determine dynamic earliest and latest dates with safety fallback if tables are loading
+    MinHarvestedDate = if List.IsEmpty(AllHarvestedDates) then #date(2024, 1, 1) else List.Min(AllHarvestedDates),
+    MaxHarvestedDate = if List.IsEmpty(AllHarvestedDates) then #date(2026, 12, 31) else List.Max(AllHarvestedDates),
+
+    // Kimball Full-Year Calendar Boundaries:
+    // Expand to complete calendar years (Jan 1 of earliest year to Dec 31 of latest year or current year)
+    // Mandatory for DAX Time Intelligence (SAMEPERIODLASTYEAR, TOTALYTD, DATEADD) to operate with zero gaps.
     Today = DateTime.Date(DateTime.LocalNow()),
     CurrentYear = Date.Year(Today),
     CurrentMonth = Date.Month(Today),
+
+    StartDate = #date(Date.Year(MinHarvestedDate), 1, 1),
+    EndDate = #date(Number.Max({Date.Year(MaxHarvestedDate), CurrentYear}), 12, 31),
 
     // 2. Generate Continuous Date Series
     DayCount = Duration.Days(EndDate - StartDate) + 1,
