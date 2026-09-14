@@ -80,13 +80,13 @@ The Microsoft SQL Server data warehouse (`EnterpriseHR_DWH`) is partitioned into
 │   • mart.Dim_Department (6 rows) - Corporate departments & divisions       │
 │   • mart.Dim_Branch (14 rows) - Geographic regional offices                │
 │   • mart.Dim_Date (1,096 rows) - Continuous 2024-2026 enterprise calendar  │
-│   • mart.Dim_Course (10 rows) - Professional skill development catalog     │
+│   • mart.Dim_Course (7–10 rows) - Professional skill development catalog   │
 │                                                                            │
 │ Galaxy Fact Tables:                                                        │
 │   • mart.Fact_WorkforceSnapshot (7,000 rows) - Monthly workforce & comp    │
-│   • mart.Fact_DailyAttendance (16,000 rows) - IoT access & compliance      │
-│   • mart.Fact_DepartmentBudget (672 rows) - Unpivoted quarterly FP&A       │
-│   • mart.Fact_TrainingCompletions (2,735 rows) - Deduplicated talent ROI   │
+│   • mart.Fact_DailyAttendance (16,000–114,952 rows) - IoT badge compliance │
+│   • mart.Fact_DepartmentBudget (168–672 rows) - Unpivoted quarterly FP&A   │
+│   • mart.Fact_TrainingCompletions (2,735–7,197 rows) - Talent ROI & scores │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -104,11 +104,11 @@ The Microsoft SQL Server data warehouse (`EnterpriseHR_DWH`) is partitioned into
 | `mart` | `Dim_Department` | 6 | `DepartmentKey` | Conformed corporate department and cost-center dimension. |
 | `mart` | `Dim_Branch` | 14 | `BranchKey` | Conformed regional branch office dimension. |
 | `mart` | `Dim_Date` | 1,096 | `DateKey` (`YYYYMMDD`) | Canonical enterprise calendar spanning 2024–2026. |
-| `mart` | `Dim_Course` | 10 | `CourseKey` | Conformed learning catalog and skill domain dimension. |
+| `mart` | `Dim_Course` | 7–10 | `CourseKey` | Conformed learning catalog and skill domain dimension. |
 | `mart` | `Fact_WorkforceSnapshot` | 7,000 | `SnapshotKey` | Periodic monthly workforce compensation and compression fact. |
-| `mart` | `Fact_DailyAttendance` | 16,000 | `AttendanceKey` | Daily IoT badge attendance, imputed clock-outs, and shift metrics. |
-| `mart` | `Fact_DepartmentBudget` | 672 | `BudgetFactKey` | Unpivoted quarterly department budget and headcount quotas. |
-| `mart` | `Fact_TrainingCompletions` | 2,735 | `CompletionFactKey` | Deduplicated training certifications, exam scores, and investments. |
+| `mart` | `Fact_DailyAttendance` | 16,000–114,952 | `AttendanceKey` | Daily IoT badge attendance, imputed clock-outs, and shift metrics. |
+| `mart` | `Fact_DepartmentBudget` | 168–672 | `BudgetFactKey` | Unpivoted quarterly department budget and headcount quotas. |
+| `mart` | `Fact_TrainingCompletions` | 2,735–7,197 | `CompletionFactKey` | Deduplicated training certifications, exam scores, and investments. |
 
 ---
 

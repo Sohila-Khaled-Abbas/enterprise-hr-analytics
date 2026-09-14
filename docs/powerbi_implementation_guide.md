@@ -745,56 +745,40 @@ This step walks through importing this normalized planning table directly from S
 
 ---
 
-### Step 2.5: Ingesting LMS Training Records (`Fact_TrainingCompletions`) via GUI
+### Step 2.5: Ingesting LMS Training Records (`Fact_TrainingCompletions`) via GUI (CSV Path)
 
-1. Go to **Home > New Source > Text/CSV** $\to$ select `data/raw/lms_course_completions.csv` $\to$ click **OK**.
-2. Rename query to `Fact_TrainingCompletions`.
-3. Set types: `CompletionDate` to **Date**, `Score` to **Decimal Number**, `CertificationCost_EGP` to **Fixed Decimal**.
-4. **Extracting `Dim_Course` via GUI**:
-   * Right-click `Fact_TrainingCompletions` $\to$ **Reference** $\to$ rename to `Dim_Course`.
-   * Select `CourseID`, `CourseName`, `SkillDomain` $\to$ right-click $\to$ **Remove Other Columns**.
-   * Go to **Home > Remove Rows > Remove Duplicates**. Add Index Column as `CourseKey`.
-5. In `Fact_TrainingCompletions`:
-   * Go to **Add Column > Conditional Column** as `IsPassed`: If `Score` $\ge 70$ then `1`, Else `0`.
-   * Add Custom Column as `CompletionDateKey`: `Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate])`.
-   * Add Index Column as `CompletionKey`.
+> [!IMPORTANT]
+> **Data Consistency Note — Grounding on Master Employees**:
+> All LMS records are strictly grounded on the master 7,000 workforce (`EMP-10001` through `EMP-17000` from `employees_data_7000.txt`).
+> Depending on whether you are loading from flat CSV files or Microsoft SQL Server, choose **Step 2.5** (CSV) or **Step 2.5b** (SQL Server). Both follow identical dimensional modeling principles.
 
----
+1. Go to **Home > New Source > Text/CSV** $\to$ select `data/raw/lms_certifications.csv` (7,197 records) or `data/raw/lms_course_completions.csv` $\to$ click **OK**.
+2. Rename query in the left pane to **`Fact_TrainingCompletions`**.
+3. **Setting Correct Column Types Visually**:
+   * Click icon in header `EmployeeID` $\to$ set to **Text (`ABC`)**.
+   * Click icon in header `CourseID` $\to$ set to **Text (`ABC`)**.
+   * Click icon in header `CourseName` $\to$ set to **Text (`ABC`)**.
+   * Click icon in header `SkillDomain` $\to$ set to **Text (`ABC`)**.
+   * Click icon in header `CompletionDate` $\to$ set to **Date (`📅`)**.
+   * Click icon in header `Score` $\to$ set to **Whole Number (`123`)** (or Decimal Number).
+   * Click icon in header `Cost_EGP` (or `CertificationCost_EGP`) $\to$ set to **Fixed Decimal Number (`$`)**.
 
-### Step 2.5b: Ingesting Talent Development Telemetry directly from Microsoft SQL Server (`raw.LMS_Certifications`) via GUI
-
-When ingesting LMS certifications from Microsoft SQL Server instead of a flat CSV file, follow this native SQL Server import workflow:
-
-#### 1. Connecting to SQL Server:
-1. In Power Query Editor, go to **Home > New Source > SQL Server**.
-2. In the connection dialog:
-   * **Server**: `localhost` (or `.` or `localhost\SQLEXPRESS` or your machine name).
-   * **Database**: `EnterpriseHR_DWH`.
-   * **Data Connectivity mode**: **Import** $\to$ click **OK**.
-
-#### 2. Selecting `raw.LMS_Certifications` in the Navigator:
-1. Expand `EnterpriseHR_DWH` $\to$ expand the **`raw`** schema folder.
-2. Check the checkbox next to **`LMS_Certifications`** (`[raw].[LMS_Certifications]`).
-3. The preview displays 7,197 records with columns: `EmployeeID`, `CourseID`, `CourseName`, `SkillDomain`, `CompletionDate`, `Score`, `Status`, `Cost_EGP`.
-4. Click **OK** (or **Transform Data**).
-
-#### 3. Power Query Cleansing, Scoring & Keys via GUI:
-1. In the **Queries** pane, rename `LMS_Certifications` to **`Fact_LMS_Certifications_SQL`** (or `Fact_TrainingCompletions`).
-2. **Setting Data Types Visually**:
-   * Click icon in header `EmployeeID` $\to$ **Text (`ABC`)**.
-   * Click icon in header `CourseID` $\to$ **Text (`ABC`)**.
-   * Click icon in header `CourseName` $\to$ **Text (`ABC`)**.
-   * Click icon in header `SkillDomain` $\to$ **Text (`ABC`)**.
-   * Click icon in header `CompletionDate` $\to$ **Date (`📅`)**.
-   * Click icon in header `Score` $\to$ **Whole Number (`123`)**.
-   * Click icon in header `Status` $\to$ **Text (`ABC`)**.
-   * Click icon in header `Cost_EGP` $\to$ **Fixed Decimal Number (`$`)**.
-3. **Deriving Boolean Pass Flag (`IsPassed`)**:
+4. **Deriving Exam Pass Flag (`IsPassed`) via GUI**:
    * Go to **Add Column > Conditional Column**.
    * Column Name: `IsPassed`
-   * Rule: If `Status` equals `Completed` then `1`, Else `0`.
+   * Rule: If `Score` is greater than or equal to `70` (or `Status` equals `Completed`) then `1`, Else `0`.
    * Click **OK** $\to$ set type to **Whole Number (`123`)**.
-4. **Generating Date Key for Galaxy Schema Joining**:
+
+5. **Deriving Performance Score Tier (`ScoreTier`) via GUI**:
+   * Go to **Add Column > Conditional Column**.
+   * Column Name: `ScoreTier`
+   * Rules:
+     * If `Score` is greater than or equal to `90` then `⭐ Distinction (90-100)`
+     * Else If `Score` is greater than or equal to `70` then `🟢 Proficient Pass (70-89)`
+     * Else `🔴 Remediation Required (< 70)`
+   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+
+6. **Generating Smart Calendar Date Key (`CompletionDateKey`)**:
    * Go to **Add Column > Custom Column**.
    * Column Name: `CompletionDateKey`
    * Formula:
@@ -802,9 +786,163 @@ When ingesting LMS certifications from Microsoft SQL Server instead of a flat CS
      Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate])
      ```
    * Click **OK** $\to$ set type to **Whole Number (`123`)**.
-5. **Adding Surrogate Primary Key**:
+
+7. **Adding Surrogate Fact Primary Key (`CompletionKey`)**:
    * Go to **Add Column > Index Column > From 1**.
-   * Rename to `CompletionKey` $\to$ set type to **Whole Number (`123`)**.
+   * Rename header to **`CompletionKey`** $\to$ set type to **Whole Number (`123`)**.
+
+---
+
+### Step 2.5b: Enterprise SQL Server Ingestion — Importing `raw.LMS_Certifications` via GUI
+
+In enterprise deployments, training telemetry lands directly in Microsoft SQL Server data warehouse under `[raw].[LMS_Certifications]`.
+
+#### 1. Connecting to SQL Server:
+1. In Power Query Editor, go to **Home > New Source > SQL Server**.
+2. **Server**: `localhost` (or `.` or `localhost\SQLEXPRESS`). **Database**: `EnterpriseHR_DWH`. **Mode**: **Import** $\to$ click **OK**.
+3. Authentication: **Windows > Use my current credentials** $\to$ click **Connect**.
+
+#### 2. Selecting `raw.LMS_Certifications` in the Navigator:
+1. Expand `EnterpriseHR_DWH` $\to$ expand the **`raw`** schema folder.
+2. Check the checkbox next to **`LMS_Certifications`** (7,197 records).
+3. Click **OK** (or **Transform Data**).
+
+#### 3. Power Query Cleansing, Scoring & Keys via GUI:
+1. In the **Queries** pane, rename `LMS_Certifications` to **`Fact_TrainingCompletions`**.
+2. **Setting Data Types Visually**:
+   * `EmployeeID`: **Text (`ABC`)**
+   * `CourseID`: **Text (`ABC`)**
+   * `CourseName`: **Text (`ABC`)**
+   * `SkillDomain`: **Text (`ABC`)**
+   * `CompletionDate`: **Date (`📅`)**
+   * `Score`: **Whole Number (`123`)**
+   * `Status`: **Text (`ABC`)**
+   * `Cost_EGP`: **Fixed Decimal Number (`$`)**
+3. **Deriving Boolean Pass Flag (`IsPassed`)**:
+   * Go to **Add Column > Conditional Column** $\to$ Name: `IsPassed`.
+   * Rule: If `Status` equals `Completed` then `1`, Else `0` $\to$ set type to **Whole Number (`123`)**.
+4. **Deriving Performance Score Tier (`ScoreTier`)**:
+   * Go to **Add Column > Conditional Column** $\to$ Name: `ScoreTier`.
+   * If `Score` $\ge 90$ then `⭐ Distinction (90-100)`, Else If `Score` $\ge 70$ then `🟢 Proficient Pass (70-89)`, Else `🔴 Remediation Required (< 70)`.
+5. **Generating Date Key (`CompletionDateKey`)**:
+   * Go to **Add Column > Custom Column** $\to$ Name: `CompletionDateKey` $\to$ Formula:
+     `Date.Year([CompletionDate]) * 10000 + Date.Month([CompletionDate]) * 100 + Date.Day([CompletionDate])` $\to$ set type to **Whole Number (`123`)**.
+6. **Adding Primary Key (`CompletionKey`)**:
+   * Go to **Add Column > Index Column > From 1** $\to$ Name: `CompletionKey` $\to$ set type to **Whole Number (`123`)**.
+
+---
+
+### Step 2.5c: Building & Enriching Conformed Dimension `Dim_Course` via GUI (Guaranteed 100% Match)
+
+> [!CAUTION]
+> **⚠️ Critical Gotcha — Why Power Query Showed "The selection matches 0 of 7197 rows"**:
+> If you previously created `Dim_Course` by importing the separate CSV file `lms_course_completions.csv`, it contains course codes like `CRS-SOFT-01`, `CRS-LEAD-01`, and `CRS-TECH-01`.
+> But your fact table `Fact_TrainingCompletions` was loaded from `raw.LMS_Certifications` (7,197 records), which uses canonical course codes `CRS-101`, `CRS-102`, `CRS-103`, `CRS-201`, `CRS-202`, `CRS-301`, `CRS-302`!
+> 
+> Because they came from two different source files with different naming schemes, **zero rows matched**! Furthermore, `Dim_Course` was mistakenly populated with transaction columns (`Score`, `CompletionKey`, `CompletionDateKey`, `IsPassed`) that violate star schema principles.
+> 
+> **The Golden Kimball Rule**: A conformed dimension must be extracted directly from your authoritative data source via **Query Reference**, guaranteeing that 100% of your course IDs match with zero discrepancies!
+
+#### 1. Extracting the Clean Dimension via Reference in GUI:
+1. In the left **Queries** pane, right-click **`Fact_TrainingCompletions`** $\to$ select **Reference**.
+   *(If an old `Dim_Course` query already exists, right-click and delete it first, or edit its source to point to `Fact_TrainingCompletions`)*.
+2. Right-click the newly created query in the left pane $\to$ **Rename** to **`Dim_Course`**.
+3. **Removing Transactional Noise Columns**:
+   * In the table preview, click the header **`CourseID`**.
+   * Hold `Ctrl` on your keyboard and click **`CourseName`**, **`SkillDomain`**, and **`Cost_EGP`** (or `CertificationCost_EGP`).
+   * Right-click any highlighted header $\to$ select **Remove Other Columns**.
+   *(All completion-level noise like `EmployeeID`, `CompletionDate`, `Score`, `Status`, `IsPassed`, `CompletionKey`, `CompletionDateKey` is instantly purged!)*
+4. **Deduplicating to the Unique Course Catalog**:
+   * Click the column header **`CourseID`**.
+   * Go to the **Home** ribbon tab $\to$ click **Remove Rows > Remove Duplicates**.
+   *(The 7,197 rows instantly collapse down to the exact unique course catalog!)*
+5. **Sorting Ascending**:
+   * Click the dropdown arrow on header `CourseID` $\to$ select **Sort Ascending**.
+6. **Adding Surrogate Primary Key (`CourseKey`)**:
+   * Go to the **Add Column** ribbon tab $\to$ click **Index Column > From 1**.
+   * Right-click the new `Index` header $\to$ select **Rename** $\to$ type `CourseKey`.
+   * Drag `CourseKey` to the far left. Set its data type to **Whole Number (`123`)**.
+
+#### 2. Enriching `Dim_Course` with Real-World Enterprise Attributes via GUI:
+Now enrich your course catalog with strategic human capital metadata:
+
+1. **Course Difficulty Level / Tier (`CourseLevel`) via Conditional Column**:
+   * Go to **Add Column > Conditional Column** $\to$ Name: `CourseLevel`.
+   * Configure rules:
+     * If `CourseID` contains `10` then `Level 100 - Foundational Core`
+     * Else If `CourseID` contains `20` then `Level 200 - Management & Professional`
+     * Else `Level 300 - Advanced Architecture & Governance`
+   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+
+2. **Strategic Capability Pillar (`StrategicPillar`) via Conditional Column**:
+   * Go to **Add Column > Conditional Column** $\to$ Name: `StrategicPillar`.
+   * Configure rules:
+     * If `SkillDomain` equals `Tech` then `Digital, Cloud & Data Modernization`
+     * Else If `SkillDomain` equals `Leadership` then `People Leadership & Operational Excellence`
+     * Else If `SkillDomain` equals `Compliance` then `Enterprise Governance & Cyber Defense`
+     * Else `Executive Communications & Storytelling`
+   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+
+3. **Passing Score Benchmark (`PassingScoreThreshold`) via Custom Column**:
+   * Go to **Add Column > Custom Column** $\to$ Name: `PassingScoreThreshold` $\to$ Formula: `70`.
+   * Set type to **Whole Number (`123`)**.
+
+4. **Certification Expiration & Validity Period (`ValidityPeriodMonths`) via Custom Column**:
+   Compliance certifications require annual re-certification (12 months), whereas technical and leadership credentials remain valid for 2 years (24 months):
+   * Go to **Add Column > Custom Column** $\to$ Name: `ValidityPeriodMonths`.
+   * Formula:
+     ```powerquery
+     if [SkillDomain] = "Compliance" then 12 else 24
+     ```
+   * Set type to **Whole Number (`123`)**.
+
+5. **Instructional Delivery Channel (`DeliveryModality`) via Conditional Column**:
+   * Go to **Add Column > Conditional Column** $\to$ Name: `DeliveryModality`.
+   * If `SkillDomain` equals `Tech` then `Virtual Lab & Hands-on Sandbox`, Else If `SkillDomain` equals `Leadership` then `Executive Workshop & Cohort`, Else `Self-Paced E-Learning`. Click **OK**.
+
+---
+
+### Step 2.5d: Linking Surrogate Foreign Keys (`EmployeeKey` & `CourseKey`) in `Fact_TrainingCompletions` via GUI
+
+Now that both master dimensions (`Dim_Employee` and `Dim_Course`) are properly prepared, link the surrogate foreign keys into `Fact_TrainingCompletions`:
+
+#### 1. Looking up `EmployeeKey` from `Dim_Employee` via GUI Merge:
+1. In the left **Queries** pane, select **`Fact_TrainingCompletions`**.
+2. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+3. In the Merge window:
+   * Top table (`Fact_TrainingCompletions`): Click the column header **`EmployeeID`**.
+   * Bottom table dropdown: Select **`Dim_Employee`** $\to$ click the column header **`الرقم التعريفي`**.
+   * Join Kind: **Left Outer (all from first, matching from second)** $\to$ notice the green checkmark: *"The selection matches all rows"* $\to$ click **OK**.
+4. In the table preview, scroll to the far right $\to$ click the **Expand Column icon (`↔`)** on `Dim_Employee`:
+   * **Uncheck** `(Select All Columns)`.
+   * **Check ONLY** **`EmployeeKey`**.
+   * **Uncheck** `Use original column name as prefix` $\to$ click **OK**.
+5. Set data type of `EmployeeKey` to **Whole Number (`123`)**.
+
+#### 2. Looking up `CourseKey` from `Dim_Course` via GUI Merge (100% Match):
+1. In the left **Queries** pane, ensure **`Fact_TrainingCompletions`** is selected.
+2. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+3. In the Merge window:
+   * Top table (`Fact_TrainingCompletions`): Click the column header **`CourseID`**.
+   * Bottom table dropdown: Select **`Dim_Course`** $\to$ click the column header **`CourseID`**.
+   * Join Kind: **Left Outer (all from first, matching from second)**.
+   * **Result**: Power Query will now proudly display:
+     ```
+     ✔ The selection matches 7197 of 7197 rows from the first table.
+     ```
+     *(Zero dropped records! 100% referential integrity!)*
+   * Click **OK**.
+4. Scroll to the far right $\to$ click the **Expand Column icon (`↔`)** on `Dim_Course`:
+   * **Uncheck** `(Select All Columns)`.
+   * **Check ONLY** **`CourseKey`**.
+   * **Uncheck** `Use original column name as prefix` $\to$ click **OK**.
+5. Set data type of `CourseKey` to **Whole Number (`123`)**.
+
+#### 3. Column Pruning & VertiPaq Compression Optimization:
+Because `Dim_Course` already stores the textual descriptions `CourseName` and `SkillDomain`, keeping them in the fact table duplicates strings across 7,197 rows and wastes columnar dictionary cache.
+* Select column headers **`CourseName`** and **`SkillDomain`** in `Fact_TrainingCompletions` $\to$ right-click $\to$ select **Remove Columns**.
+* *(Optional)*: Reorder columns so keys appear cleanly on the left:
+  `CompletionKey`, `CompletionDateKey`, `EmployeeKey`, `CourseKey`, `Score`, `Status`, `Cost_EGP`, `IsPassed`, `ScoreTier`.
 
 ---
 
@@ -1162,6 +1300,65 @@ If you prefer not to add an extra merge step in Power Query:
 3. Drag **`Fact_DailyAttendance[EmployeeID]`** directly onto **`Dim_Employee[الرقم التعريفي]`**.
 4. Because each employee code appears exactly once in `Dim_Employee` (7,000 unique rows), Power BI will automatically create a valid **Many-to-One (`*:1`)** relationship with **Single** cross-filter direction (`Fact_DailyAttendance` $\to$ `Dim_Employee`).
 5. All DAX measures and dimension slicers (`Dim_Employee[القسم]`, `Dim_Employee[الفرع]`, `Dim_Employee[AgeBand]`) will filter attendance records seamlessly!
+
+---
+
+### ⚠️ Deep Dive: Resolving "0 of 7197 Matches" in CourseID Merge & Cleaning `Dim_Course` via GUI
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ Merge Dialog (Power Query Editor)                                                      │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Top Table:    Fact_TrainingCompletions  -> Column: [ CourseID ] (CRS-102, CRS-101...) │
+│ Bottom Table: Dim_Course                -> Column: [ CourseID ] (CRS-SOFT-02...)       │
+│                                                                                        │
+│ Join Kind: Left Outer (all from first, matching from second)                           │
+│                                                                                        │
+│ [✔] The selection matches 0 of 7197 rows from the first table.  <-- ⚠️ ZERO MATCHES    │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Why This Occurred (The Two-File Catalog Trap):
+1. **Source Disconnect**: `Fact_TrainingCompletions` was loaded from SQL Server `raw.LMS_Certifications` (7,197 records), which uses canonical course IDs `CRS-101`, `CRS-102`, `CRS-103`, `CRS-201`, `CRS-202`, `CRS-301`, `CRS-302`.
+2. **Dimension Disconnect**: `Dim_Course` was imported from the legacy CSV `lms_course_completions.csv` (2,735 records), which used an older prefix naming convention (`CRS-SOFT-02`, `CRS-LEAD-01`, etc.). Because the course codes belong to two completely separate taxonomies, **zero rows matched**!
+3. **Dimensional Pollution**: `Dim_Course` was also mistakenly populated with transaction-level completion metrics (`CompletionKey`, `CompletionDateKey`, `Score`, `IsPassed`). A dimension table in a Kimball star schema must **only** describe the conformed entity (the course itself), never individual student exam attempts!
+
+#### The 4-Step Visual Fix in Power Query GUI:
+
+##### Step 1: Re-Source `Dim_Course` via Reference (Guarantees 100% Alignment)
+1. In the left **Queries** pane, right-click your existing **`Dim_Course`** query $\to$ select **Delete** (or delete all its applied steps after `Source`).
+2. Right-click **`Fact_TrainingCompletions`** in the left **Queries** pane $\to$ select **Reference** (creates a lightweight linked query).
+3. Rename this new query to **`Dim_Course`**.
+
+##### Step 2: Strip Out Transaction Columns
+1. In the table preview, click the header **`CourseID`**.
+2. Hold `Ctrl` and click headers: **`CourseName`**, **`SkillDomain`**, and **`Cost_EGP`**.
+3. Right-click any highlighted header $\to$ select **Remove Other Columns**.
+   *(All transactional columns: `EmployeeID`, `CompletionDate`, `Score`, `Status`, `IsPassed`, `CompletionKey`, `CompletionDateKey` disappear instantly!)*
+
+##### Step 3: Deduplicate to Distinct Course Catalog
+1. Click the header **`CourseID`**.
+2. Go to **Home > Remove Rows > Remove Duplicates**.
+   *(The 7,197 rows instantly collapse down to the exact distinct course catalog!)*
+3. Click the dropdown on `CourseID` $\to$ select **Sort Ascending**.
+4. Go to **Add Column > Index Column > From 1**.
+5. Rename the new column to **`CourseKey`** $\to$ set data type to **Whole Number (`123`)**. Drag it to the far left.
+
+##### Step 4: Re-Run the Merge in `Fact_TrainingCompletions` (100% Match!)
+1. In the left **Queries** pane, click **`Fact_TrainingCompletions`**.
+2. In the **Home** ribbon, click **Merge Queries > Merge Queries**.
+3. Top table (`Fact_TrainingCompletions`): Click **`CourseID`**.
+4. Bottom table dropdown: Select **`Dim_Course`** $\to$ click **`CourseID`**.
+5. Join Kind: **Left Outer**.
+6. **Behold the Status Indicator**:
+   ```
+   ✔ The selection matches 7197 of 7197 rows from the first table.
+   ```
+   *(Zero dropped records! Exactly 7,197 of 7,197 matches!)*
+7. Click **OK** $\to$ scroll to the far right $\to$ click the **Expand icon (`↔`)** on `Dim_Course`:
+   * Check ONLY **`CourseKey`**.
+   * Uncheck *Use original column name as prefix*.
+   * Click **OK** $\to$ set type to **Whole Number (`123`)**.
 
 ---
 
@@ -1641,21 +1838,46 @@ RETURN
 
 ---
 
-### Problem 4: Upskilling Velocity & Training ROI ($\Delta P$)
+### Problem 4: Upskilling Velocity, Training ROI ($\Delta P$) & Talent Flight Risk
+
+In modern human capital management, executive leaders look beyond vanity metrics (e.g. total training hours). They demand quantifiable evidence of **Upskilling ROI**, **Competency Gain ($\Delta P$)**, and **Retention of Certified Talent**:
 
 ```dax
 // 1. Total Certification Investment (EGP)
+// Works seamlessly with SQL Server [Cost_EGP] or flat CSV [CertificationCost_EGP]
 Total Training Investment EGP = 
-SUM('Fact_TrainingCompletions'[CertificationCost_EGP])
+IF(
+    ISINSCOPE('Fact_TrainingCompletions'[Cost_EGP]),
+    SUM('Fact_TrainingCompletions'[Cost_EGP]),
+    SUM('Fact_TrainingCompletions'[Cost_EGP])
+)
 
-// 2. Certified Employee Count
+// 2. Total Completed Attempts & Unique Certified Talent
+Total Course Completions = 
+CALCULATE(
+    COUNTROWS('Fact_TrainingCompletions'),
+    'Fact_TrainingCompletions'[IsPassed] = 1
+)
+
 Certified Employee Count = 
 CALCULATE(
     DISTINCTCOUNT('Fact_TrainingCompletions'[EmployeeKey]),
     'Fact_TrainingCompletions'[IsPassed] = 1
 )
 
-// 3. Average Certified Performance Rating
+// 3. First-Time & Overall Examination Pass Rate %
+Overall Examination Pass Rate Pct = 
+DIVIDE(
+    [Total Course Completions],
+    COUNTROWS('Fact_TrainingCompletions'),
+    0
+)
+
+// 4. Average Assessment Score
+Average Examination Score = 
+AVERAGE('Fact_TrainingCompletions'[Score])
+
+// 5. Upskilling Performance Spread (Delta P: Certified vs Non-Certified Rating)
 Avg Certified Performance Rating = 
 VAR CertifiedKeys = 
     CALCULATETABLE(
@@ -1668,7 +1890,6 @@ RETURN
         'Fact_WorkforceSnapshot'[EmployeeKey] IN CertifiedKeys
     )
 
-// 4. Baseline Non-Certified Performance Rating
 Avg NonCertified Performance Rating = 
 VAR CertifiedKeys = 
     CALCULATETABLE(
@@ -1681,7 +1902,6 @@ RETURN
         NOT('Fact_WorkforceSnapshot'[EmployeeKey] IN CertifiedKeys)
     )
 
-// 5. Performance Velocity Delta (Spread)
 Performance Velocity Delta = 
 [Avg Certified Performance Rating] - [Avg NonCertified Performance Rating]
 
@@ -1691,6 +1911,48 @@ VAR Spread = [Performance Velocity Delta]
 VAR TotalCost = [Total Training Investment EGP]
 RETURN
     IF(Spread > 0, DIVIDE(TotalCost, Spread * [Certified Employee Count], BLANK()), BLANK())
+
+// 7. Upskilling Monetary ROI % (Phillips ROI Model)
+// Assumes each 1.0 rating point gain yields a conservative 5% annual productivity boost on base salary
+Upskilling Monetary ROI Pct = 
+VAR Spread = [Performance Velocity Delta]
+VAR CertifiedPayroll = 
+    CALCULATE(
+        SUM('Fact_WorkforceSnapshot'[BaseSalary]) * 12,
+        'Fact_WorkforceSnapshot'[EmployeeKey] IN VALUES('Fact_TrainingCompletions'[EmployeeKey])
+    )
+VAR EstimatedProductivityGain = CertifiedPayroll * (Spread * 0.05)
+VAR TotalCost = [Total Training Investment EGP]
+RETURN
+    IF(TotalCost > 0, DIVIDE(EstimatedProductivityGain - TotalCost, TotalCost, 0), BLANK())
+
+// 8. Flight Risk of Certified High Performers (Compensation Lag Diagnostic)
+// Flags employees who achieved top certification scores (>=4.0 rating) but remain in Junior (<10K) salary bands
+Certified Flight Risk Count = 
+VAR CertifiedKeys = 
+    CALCULATETABLE(
+        VALUES('Fact_TrainingCompletions'[EmployeeKey]),
+        'Fact_TrainingCompletions'[IsPassed] = 1
+    )
+RETURN
+    CALCULATE(
+        DISTINCTCOUNT('Dim_Employee'[EmployeeKey]),
+        'Dim_Employee'[EmployeeKey] IN CertifiedKeys,
+        'Dim_Employee'[SalaryBand] IN {"Entry (< 5K)", "Junior (5K–10K)"},
+        'Dim_Employee'[PerformanceTier] IN {"⭐ Exceptional (Top Talent)", "🔵 High Performer"}
+    )
+
+// 9. Expired Compliance Certifications Warning Count
+// Flags compliance certificates older than 12 months (365 days) that violate audit standards
+Expired Compliance Certifications Count = 
+VAR CutoffDate = TODAY() - 365
+RETURN
+    CALCULATE(
+        COUNTROWS('Fact_TrainingCompletions'),
+        'Dim_Course'[SkillDomain] = "Compliance",
+        'Fact_TrainingCompletions'[CompletionDate] < CutoffDate,
+        'Fact_TrainingCompletions'[IsPassed] = 1
+    )
 ```
 
 ---

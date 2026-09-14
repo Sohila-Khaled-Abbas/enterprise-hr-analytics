@@ -355,19 +355,45 @@ Materialized via `sql/transformations/02_mart_dimensional_model.sql` and `script
 
 ---
 
-### 6.4 `mart.Fact_LMS_Training` (Deduplicated Talent Development Completions)
-* **Source**: Deduplicated from `raw.LMS_Certifications` retaining only valid (`Completed`) attempts with `AttemptRank = 1`.
-* **Grain**: 1 row per unique employee per course completion (5,553 rows).
+### 6.4 `mart.Dim_Course` (Conformed Learning & Certification Catalog)
+* **Source**: Conformed dimension deduplicated from LMS master telemetry.
+* **Grain**: 1 row per professional course offering (7 distinct enterprise courses).
+* **Storage**: In-memory Power BI VertiPaq tabular model / `mart.Dim_Course`.
 
 | Column Name | Physical Data Type | Nullable | Key Type | Business Description |
 | :--- | :--- | :---: | :---: | :--- |
-| `EmployeeID` | `VARCHAR(20)` | No | FK | Employee identifier. |
-| `CourseID` | `VARCHAR(20)` | No | FK | Course identifier (`CRS-101` .. `CRS-302`). |
-| `CourseName` | `VARCHAR(150)` | No | Attribute | Course title. |
-| `SkillDomain` | `VARCHAR(50)` | No | Attribute | Domain (`Tech`, `Leadership`, `Soft Skills`, `Compliance`). |
-| `CompletionDate` | `DATE` | No | Date FK | Certification completion date. |
-| `Score` | `BIGINT` | No | Metric | Final examination score. |
-| `Cost_EGP` | `BIGINT` | No | Metric | Tuition or certification cost in EGP. |
+| `CourseKey` | `INT` / `Whole Number` | No | PK | Surrogate primary key (1 to 7). |
+| `CourseID` | `VARCHAR(20)` | No | Natural Key | Course code (`CRS-101`, `CRS-102`, `CRS-103`, `CRS-201`, `CRS-202`, `CRS-301`, `CRS-302`). |
+| `CourseName` | `NVARCHAR(150)` | No | Attribute | Formal program title. |
+| `SkillDomain` | `VARCHAR(50)` | No | Attribute | Capability domain (`Tech`, `Leadership`, `Soft Skills`, `Compliance`). |
+| `CourseLevel` | `VARCHAR(50)` | No | Attribute | Level tier: `Level 100 - Foundational Core`, `Level 200 - Management`, `Level 300 - Advanced Architecture`. |
+| `StrategicPillar` | `VARCHAR(100)` | No | Attribute | Executive capability pillar alignment. |
+| `Cost_EGP` | `DECIMAL(12,2)` | No | Metric | Standard catalog course fee / tuition expense. |
+| `PassingScoreThreshold` | `INT` | No | Metric | Minimum examination score required to pass (default 70). |
+| `ValidityPeriodMonths` | `INT` | No | Metric | Audit validity lifespan (12 months for Compliance, 24 months for others). |
+| `DeliveryModality` | `VARCHAR(50)` | No | Attribute | Delivery channel: `Virtual Lab & Sandbox`, `Executive Workshop`, `Self-Paced E-Learning`. |
+
+---
+
+### 6.5 `mart.Fact_TrainingCompletions` / `Fact_LMS_Training` (Talent Development Telemetry)
+* **Source**: Ingested from `raw.LMS_Certifications` (7,197 total attempts) and materialized into Kimball Galaxy Schema.
+* **Grain**: 1 row per employee course attempt / examination.
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `CompletionKey` | `INT` / `Whole Number` | No | PK | Surrogate fact transaction key. |
+| `CompletionDateKey` | `INT` / `Whole Number` | No | Date FK | Smart integer calendar key (`YYYYMMDD`) joining to `Dim_Date[DateKey]`. |
+| `EmployeeKey` | `INT` / `Whole Number` | No | FK | Surrogate foreign key joining to `Dim_Employee[EmployeeKey]`. |
+| `CourseKey` | `INT` / `Whole Number` | No | FK | Surrogate foreign key joining to `Dim_Course[CourseKey]`. |
+| `EmployeeID` | `VARCHAR(20)` | No | Degenerate FK | Natural employee code (`EMP-10001` .. `EMP-17000`). |
+| `CourseID` | `VARCHAR(20)` | No | Degenerate FK | Course catalog identifier (`CRS-101` .. `CRS-302`). |
+| `CompletionDate` | `DATE` | No | Timestamp | Date of examination or completion. |
+| `Score` | `FLOAT` / `INT` | No | Metric | Final examination grade (0 to 100). |
+| `Status` | `VARCHAR(50)` | No | Attribute | Raw platform status (`Completed`, `In Progress`, `Failed`). |
+| `Cost_EGP` | `DECIMAL(12,2)` | No | Metric | Actual expenditure for attempt. |
+| `IsPassed` | `BIT` / `Whole Number` | No | Flag | `1` if passed benchmark ($\ge 70$ or `Completed`); `0` otherwise. |
+| `ScoreTier` | `VARCHAR(50)` | No | Attribute | Evaluation band: `⭐ Distinction (90-100)`, `🟢 Proficient Pass (70-89)`, `🔴 Remediation Required (<70)`. |
+
 
 
 
