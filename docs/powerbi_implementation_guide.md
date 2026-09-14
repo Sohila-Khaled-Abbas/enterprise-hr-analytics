@@ -1655,11 +1655,22 @@ let
     EgpRate = #"Changed Type"{[CurrencyCode="EGP"]}[ExchangeRateToUSD],
     #"Added RateToEGP" = Table.AddColumn(#"Changed Type", "RateToEGP", each [ExchangeRateToUSD] / EgpRate, type number),
     #"Added EGPToCurrency" = Table.AddColumn(#"Added RateToEGP", "OneEGPInCurrency", each 1 / ([ExchangeRateToUSD] / EgpRate), type number),
-    #"Added RefreshTimestamp" = Table.AddColumn(#"Added EGPToCurrency", "LastRefreshedUTC", each DateTimeZone.UtcNow(), type datetimezone)
+    #"Added RefreshTimestamp" = Table.AddColumn(#"Added EGPToCurrency", "LastRefreshedUTC", each DateTimeZone.UtcNow(), type datetimezone),
+
+    // 5. Add Primary Surrogate Key (CurrencyKey) for Data Modeling Relationships
+    #"Sorted Currencies" = Table.Sort(#"Added RefreshTimestamp", {{"CurrencyCode", Order.Ascending}}),
+    #"Added CurrencyKey" = Table.AddIndexColumn(#"Sorted Currencies", "CurrencyKey", 1, 1, Int64.Type),
+    #"Reordered Columns" = Table.ReorderColumns(#"Added CurrencyKey", {"CurrencyKey", "CurrencyCode", "ExchangeRateToUSD", "RateToEGP", "OneEGPInCurrency", "LastRefreshedUTC"})
 in
-    #"Added RefreshTimestamp"
+    #"Reordered Columns"
 ```
 Rename this query to **`Dim_CurrencyRates`**.
+
+> [!TIP]
+> **GUI Clickpath to Add `CurrencyKey` Visually**:
+> 1. In `Dim_CurrencyRates`, go to **Add Column > Index Column > From 1**.
+> 2. Right-click the new `Index` header $\to$ **Rename** to **`CurrencyKey`**.
+> 3. Drag `CurrencyKey` to the far left $\to$ ensure data type is **Whole Number (`123`)**.
 
 ---
 
@@ -1743,42 +1754,238 @@ To enable Power BI's interactive Map visual and Azure Maps with bubble sizing by
    * Set type to **Decimal Number (`1.2`)**.
 
 ##### B. In `Dim_Employee`:
-1. **Flight Risk Composite Index (`FlightRiskIndex`)**:
-   Identifies high-value employees vulnerable to headhunting:
-   * Go to **Add Column > Custom Column** $\to$ Name: `FlightRiskIndex`.
-   * Formula:
+
+#### 1. Converting Arabic Column Headers & Table Names to English in ONE Step:
+When ingesting the master census from `employees_data_7000.txt`, all 14 attribute headers arrive in Arabic (`الرقم التعريفي`, `الاسم الكامل`, `القسم`, `الفرع`, `الراتب الأساسي`, etc.). To make your data model clean, professional, and DAX-friendly, convert them to English in **one single step**:
+
+* **Method A (The Instant 1-Step M Formula — Recommended)**:
+  1. In the left pane, select **`Dim_Employee`**.
+  2. Click the **`fx` (Insert Step)** button next to the Formula Bar (or open **Home > Advanced Editor**).
+  3. Paste the following one-line expression:
+  ```powerquery
+  #"Renamed Columns to English" = Table.RenameColumns(#"PreviousStepName", {
+      {"الرقم التعريفي", "EmployeeID"},
+      {"الاسم الكامل", "FullName"},
+      {"العمر", "Age"},
+      {"الجنس", "Gender"},
+      {"المسمى الوظيفي", "JobTitle"},
+      {"القسم", "Department"},
+      {"الفرع", "Branch"},
+      {"تاريخ التعيين", "HireDate"},
+      {"الراتب الأساسي", "BaseSalary_EGP"},
+      {"العملة", "Currency"},
+      {"نوع عقد العمل", "ContractType"},
+      {"تقييم الأداء السنوي", "PerformanceRating"},
+      {"الحالة الوظيفية", "EmploymentStatus"},
+      {"البريد الإلكتروني", "Email"}
+  }, MissingField.Ignore)
+  ```
+  *(Replace `#"PreviousStepName"` with the name of your preceding step, e.g. `Source` or `#"Changed Type"`).*
+
+* **Method B (Visual GUI Clickpath)**:
+  * In the table preview, double-click the column header **`الرقم التعريفي`** $\to$ type `EmployeeID` $\to$ press `Enter`.
+  * Continue double-clicking each remaining header in sequence:
+    * `الاسم الكامل` $\to$ `FullName`
+    * `العمر` $\to$ `Age`
+    * `الجنس` $\to$ `Gender`
+    * `المسمى الوظيفي` $\to$ `JobTitle`
+    * `القسم` $\to$ `Department`
+    * `الفرع` $\to$ `Branch`
+    * `تاريخ التعيين` $\to$ `HireDate`
+    * `الراتب الأساسي` $\to$ `BaseSalary_EGP`
+    * `العملة` $\to$ `Currency`
+    * `نوع عقد العمل` $\to$ `ContractType`
+    * `تقييم الأداء السنوي` $\to$ `PerformanceRating`
+    * `الحالة الوظيفية` $\to$ `EmploymentStatus`
+    * `البريد الإلكتروني` $\to$ `Email`
+  * *Power Query automatically bundles all 14 sequential column renames into **a single `Renamed Columns` step** in your **Applied Steps** pane!*
+
+* **Renaming Query/Table Names in the Queries Pane**:
+  * If your query was loaded with an Arabic name like `الموظفين` or `بيانات_الموظفين`:
+    * Right-click the query in the left **Queries** pane $\to$ select **Rename** $\to$ type **`Dim_Employee`** $\to$ press `Enter`.
+
+---
+
+#### 2. Visual GUI Enrichment Suite for `Dim_Employee`:
+Enrich the master employee dimension with strategic demographic, compensation, and talent lifecycle attributes using the Power Query ribbon:
+
+1. **Compensation Tier (`SalaryBand`)**:
+   * Go to **Add Column > Conditional Column**.
+   * **Column Name**: `SalaryBand`
+   * Rules:
+     * If `BaseSalary_EGP` is less than `5000` then `Entry (< 5K)`
+     * Else If `BaseSalary_EGP` is less than or equal to `10000` then `Junior (5K–10K)`
+     * Else If `BaseSalary_EGP` is less than or equal to `20000` then `Mid-Level (10K–20K)`
+     * Else If `BaseSalary_EGP` is less than or equal to `35000` then `Senior (20K–35K)`
+     * Else `Executive (35K+)`
+   * Click **OK** $\to$ set data type to **Text (`ABC`)**.
+
+2. **Age Demographics Tier (`AgeBand`)**:
+   * Go to **Add Column > Conditional Column**.
+   * **Column Name**: `AgeBand`
+   * Rules:
+     * If `Age` is less than `25` then `Young Talent (<25)`
+     * Else If `Age` is less than or equal to `35` then `Early Career (25–35)`
+     * Else If `Age` is less than or equal to `50` then `Mid Career (36–50)`
+     * Else `Pre-Retirement (50+)`
+   * Click **OK** $\to$ set data type to **Text (`ABC`)**.
+
+3. **Continuous Service Tenure in Years (`TenureYears`)**:
+   * Go to **Add Column > Custom Column**.
+   * **Column Name**: `TenureYears`
+   * **Formula**:
      ```powerquery
-     if [تقييم الأداء السنوي] >= 4.0 and ([SalaryBand] = "Entry (< 5K)" or [SalaryBand] = "Junior (5K–10K)") then "🔴 Critical Risk (High Talent, Low Comp)"
+     Number.Round(Duration.Days(DateTime.Date(DateTime.LocalNow()) - [HireDate]) / 365.25, 1)
+     ```
+   * Click **OK** $\to$ set data type to **Decimal Number (`1.2`)**.
+
+4. **Tenure Experience Cohort (`TenureBand`)**:
+   * Go to **Add Column > Conditional Column**.
+   * **Column Name**: `TenureBand`
+   * Rules:
+     * If `TenureYears` is less than `1` then `< 1 Year (Onboarding)`
+     * Else If `TenureYears` is less than or equal to `3` then `1–3 Years (Established)`
+     * Else If `TenureYears` is less than or equal to `5` then `3–5 Years (Tenured)`
+     * Else `5+ Years (Veteran)`
+   * Click **OK** $\to$ set data type to **Text (`ABC`)**.
+
+5. **Flight Risk Composite Index (`FlightRiskIndex`)**:
+   Identifies high-performing employees experiencing salary compression who are vulnerable to attrition:
+   * Go to **Add Column > Custom Column**.
+   * **Column Name**: `FlightRiskIndex`
+   * **Formula**:
+     ```powerquery
+     if [PerformanceRating] >= 4.0 and ([SalaryBand] = "Entry (< 5K)" or [SalaryBand] = "Junior (5K–10K)") then "🔴 Critical Risk (High Talent, Low Comp)"
      else if [TenureYears] > 4.0 and [SalaryBand] = "Junior (5K–10K)" then "🟡 Moderate Risk (Tenured Compression)"
      else "🟢 Retained & Stable"
      ```
-   * Set type to **Text (`ABC`)**.
+   * Click **OK** $\to$ set data type to **Text (`ABC`)**.
 
-2. **Retirement Planning Proximity (`RetirementProximity`)**:
-   * Go to **Add Column > Conditional Column** $\to$ Name: `RetirementProximity`.
-   * Rule: If `AgeBand` equals `Pre-Retirement (55+)` then `Succession Required (< 5 Years)`, Else `Normal Horizon`.
+6. **Retirement Succession Planning Proximity (`RetirementProximity`)**:
+   * Go to **Add Column > Conditional Column**.
+   * **Column Name**: `RetirementProximity`
+   * Rules:
+     * If `AgeBand` equals `Pre-Retirement (50+)` then `Succession Planning Required (< 5 Years)`
+     * Else `Normal Horizon`
+   * Click **OK** $\to$ set data type to **Text (`ABC`)**.
+
+7. **Talent Mobility & Promotion Eligibility (`PromotionEligibility`)**:
+   * Go to **Add Column > Custom Column**.
+   * **Column Name**: `PromotionEligibility`
+   * **Formula**:
+     ```powerquery
+     if [PerformanceRating] >= 4.0 and [TenureYears] >= 2.0 then "⭐ Ready for Promotion"
+     else if [PerformanceRating] >= 3.5 then "📈 Developing in Role"
+     else "🔄 Retain / Standard Progression"
+     ```
+   * Click **OK** $\to$ set data type to **Text (`ABC`)**.
 
 ---
 
-#### 5. Advanced M Performance: Table Buffering (`Table.Buffer`):
-When performing multiple `Table.NestedJoin` (Merge Queries) operations across large tables (e.g. 114,952 badge logs or 12,392 audit records), Power Query may evaluate the lookup table repeatedly, leading to slow data refresh speeds.
+#### 3. Connecting `Dim_CurrencyRates` to Fact Tables via GUI:
+To enable real-time multi-currency conversion (EGP, USD, EUR, SAR, AED, GBP) across payroll, training costs, and department budgets, join `Dim_CurrencyRates` to your fact tables:
 
-Wrapping dimension queries in `Table.Buffer()` loads the entire dimension table into RAM once:
+##### Step 1: Add Foreign Key `CurrencyKey` to Fact Tables:
+Since the master payroll in `Fact_WorkforceSnapshot` and department budgets in `Fact_DepartmentBudget` are denominated in base currency (`EGP`):
 
-```powerquery
-// Example: Buffering Dim_Employee before joining into Fact tables
-let
-    Source = Dim_Employee,
-    BufferedEmployeeDim = Table.Buffer(Source),
-    #"Merged Facts" = Table.NestedJoin(Fact_DailyAttendance, {"EmployeeID"}, BufferedEmployeeDim, {"الرقم التعريفي"}, "Dim_Employee", JoinKind.LeftOuter)
-in
-    #"Merged Facts"
+* **Method A (Instant Custom Column)**:
+  1. Select **`Fact_WorkforceSnapshot`** in the left pane.
+  2. Go to **Add Column > Custom Column** $\to$ Name: `CurrencyKey` $\to$ Formula: `1` *(matches `CurrencyKey = 1` for `EGP` in `Dim_CurrencyRates`)*.
+  3. Set data type to **Whole Number (`123`)**.
+  4. Repeat the exact same step on **`Fact_DepartmentBudget`**.
+
+* **Method B (Dynamic Merge Queries via GUI)**:
+  1. Select **`Fact_WorkforceSnapshot`** $\to$ go to **Home > Merge Queries**.
+  2. In the top table, select column **`Currency`**.
+  3. In the bottom dropdown, select **`Dim_CurrencyRates`** $\to$ select column **`CurrencyCode`**.
+  4. Join Kind: **Left Outer (all from first, matching from second)** $\to$ click **OK**.
+  5. In the merged column header, click the **Expand icon (`↔`)** $\to$ check only **`CurrencyKey`** $\to$ uncheck *Use original column name as prefix* $\to$ click **OK**.
+  6. Set data type to **Whole Number (`123`)**.
+
+##### Step 2: Configure Relationships in Power BI Model View:
+After clicking **Close & Apply**, switch to **Model View**:
+1. Drag **`Dim_CurrencyRates[CurrencyKey]`** onto **`Fact_WorkforceSnapshot[CurrencyKey]`**.
+   * Cardinality: **Many to one (`*:1`)** (`Fact_WorkforceSnapshot` $\to$ `Dim_CurrencyRates`).
+   * Cross-filter direction: **Single**.
+2. Drag **`Dim_CurrencyRates[CurrencyKey]`** onto **`Fact_DepartmentBudget[CurrencyKey]`**.
+   * Cardinality: **Many to one (`*:1`)** (`Fact_DepartmentBudget` $\to$ `Dim_CurrencyRates`).
+   * Cross-filter direction: **Single**.
+
+##### Step 3: Dynamic Multi-Currency DAX Measures:
+Add these measures to `_Measures` to let executives toggle any report currency via a slicer on `Dim_CurrencyRates[CurrencyCode]`:
+```dax
+// Dynamically converts total base payroll into the user-selected currency
+Total Payroll (Selected Currency) = 
+SUMX(
+    'Fact_WorkforceSnapshot',
+    'Fact_WorkforceSnapshot'[BaseSalary_EGP] * RELATED('Dim_CurrencyRates'[OneEGPInCurrency])
+)
+
+// Dynamically converts department budget into the user-selected currency
+Total Budget (Selected Currency) = 
+SUMX(
+    'Fact_DepartmentBudget',
+    'Fact_DepartmentBudget'[AllocatedBudget_EGP] * RELATED('Dim_CurrencyRates'[OneEGPInCurrency])
+)
 ```
-*(Use `Table.Buffer()` on small to medium conformed dimensions like `Dim_Department`, `Dim_Branch`, and `Dim_Course` to accelerate joins by up to $300\%$!)*
 
 ---
 
-Click **Home > Close & Apply** in Power Query Editor to commit all 5 Conformed Dimensions and 4 Galaxy Fact Tables to the tabular model!
+#### 4. Enterprise Power Query M Performance Enhancements:
+To optimize memory footprint and refresh performance when dealing with tens of thousands of IoT attendance swipes, training records, and monthly snapshots:
+
+1. **In-Memory Buffering with `Table.Buffer()`**:
+   When joining dimension tables into large fact tables via `Table.NestedJoin`, Power Query re-evaluates the dimension query for each partition. Wrapping conformed dimensions in `Table.Buffer()` pins them in RAM, accelerating merges by up to **300%**:
+   ```powerquery
+   let
+       Source = Dim_Employee,
+       BufferedEmployeeDim = Table.Buffer(Source),
+       #"Merged Facts" = Table.NestedJoin(Fact_DailyAttendance, {"EmployeeID"}, BufferedEmployeeDim, {"EmployeeID"}, "Dim_Employee", JoinKind.LeftOuter)
+   in
+       #"Merged Facts"
+   ```
+   *(Apply `Table.Buffer()` to smaller conformed lookup tables: `Dim_Department`, `Dim_Branch`, `Dim_Course`, and `Dim_CurrencyRates`).*
+
+2. **Early Column Pruning**:
+   Purge unused transactional fields immediately after source ingestion via `Table.SelectColumns()` or **Remove Other Columns** in the GUI. Discarding 5 unused columns on a 100,000-row table saves megabytes of working memory during mashup execution.
+
+3. **Strict Primitive Typing**:
+   Ensure every column has an explicit type (`Int64.Type`, `Currency.Type`, `type date`, `type text`). Do not leave columns as `any` (untyped), which forces the VertiPaq engine into slower string dictionary lookups.
+
+4. **Disable "Enable Load" on Staging Queries**:
+   In the left **Queries** pane, right-click raw staging sources (`employees_data_7000`, `attendance_badge_logs`, `fpa_department_budgets`, `lms_course_completions`) and **uncheck "Enable Load"**.
+   * *The result*: These raw queries remain active as transformation building blocks in Power Query, but are **excluded from the final VertiPaq tabular model**, reducing PBIX file size by over **50%** and doubling visual rendering speeds!
+
+---
+
+#### 5. Data Modeling Best Practices for End Users & Model Designers:
+Once tables are loaded into Power BI Desktop, follow these industry-standard model governance practices:
+
+1. **Hide Technical Foreign Keys in Report View**:
+   * In **Model View**, select foreign key columns in all fact tables:
+     `Fact_WorkforceSnapshot[EmployeeKey]`, `Fact_WorkforceSnapshot[DepartmentKey]`, `Fact_WorkforceSnapshot[BranchKey]`, `Fact_WorkforceSnapshot[SnapshotDateKey]`, `Fact_WorkforceSnapshot[CurrencyKey]`.
+   * In the **Properties** pane, toggle **Is Hidden: On (Yes)**.
+   * *Why*: Business users should only slice by clean dimension attributes (e.g. `Dim_Department[DepartmentName]`), never by raw integer surrogate keys.
+
+2. **Set Default Summarization to "Do Not Summarize"**:
+   * For all Key columns, IDs, Year numbers (`CalendarYear`, `FiscalYear`), and Age values:
+     Select the column $\to$ Properties pane $\to$ **Advanced > Summarize By: None**.
+   * *Why*: Prevents Power BI from mistakenly creating `Sum of EmployeeKey` or `Sum of Year` when users drag fields onto visuals.
+
+3. **Set Sort by Column for Categorical Tiers**:
+   * To prevent alphabetical sorting errors in visuals (e.g. `Q1, Q2, Q3, Q4` or `Level 1, Level 2, Level 3` or `Entry, Junior, Mid-Level`):
+     * Click `Dim_Date[MonthName]` $\to$ **Column Tools > Sort by Column > `MonthNumberOfYear`**.
+     * Click `Dim_Date[CalendarQuarterName]` $\to$ **Column Tools > Sort by Column > `CalendarQuarter`**.
+     * Click `Dim_Course[CourseLevel]` $\to$ **Column Tools > Sort by Column > `CourseKey`** (or numeric level).
+
+4. **Mark as Official Date Table**:
+   * Right-click **`Dim_Date`** in the Data pane $\to$ select **Mark as Date Table**.
+   * Date column: select **`FullDate`** $\to$ click **OK**.
+   * *Why*: This disables Power BI's hidden internal auto-date/time hierarchies, saving substantial file size and enabling optimal DAX Time Intelligence execution.
+
+---
+
+Click **Home > Close & Apply** in Power Query Editor to commit all 6 Conformed Dimensions and 4 Galaxy Fact Tables to the tabular model!
 
 ## 🛠️ Module 3: Advanced Semantic Model Engineering & TMDL Scripting Masterclass
 

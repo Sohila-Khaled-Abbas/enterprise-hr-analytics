@@ -394,6 +394,22 @@ Materialized via `sql/transformations/02_mart_dimensional_model.sql` and `script
 | `IsPassed` | `BIT` / `Whole Number` | No | Flag | `1` if passed benchmark ($\ge 70$ or `Completed`); `0` otherwise. |
 | `ScoreTier` | `VARCHAR(50)` | No | Attribute | Evaluation band: `⭐ Distinction (90-100)`, `🟢 Proficient Pass (70-89)`, `🔴 Remediation Required (<70)`. |
 
+---
+
+### 6.6 `mart.Dim_CurrencyRates` (Live Exchange Rate Telemetry Dimension)
+* **Source**: Real-time REST API (`https://open.er-api.com/v6/latest/USD`) ingested dynamically via Power Query `Web.Contents` with relative path security.
+* **Grain**: 1 row per active target currency (USD, EGP, AED, SAR, EUR, GBP).
+* **Storage**: In-memory Power BI VertiPaq tabular model.
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `CurrencyKey` | `INT` / `Whole Number` | No | PK | Primary surrogate currency key (1 to 6). |
+| `CurrencyCode` | `VARCHAR(10)` | No | Natural Key | Standard ISO 3-letter currency code (`EGP`, `USD`, `AED`, `SAR`, `EUR`, `GBP`). |
+| `ExchangeRateToUSD` | `DECIMAL(18,6)` | No | Metric | Direct conversion rate from USD base. |
+| `RateToEGP` | `DECIMAL(18,6)` | No | Metric | Computed relative rate against Egyptian Pound base. |
+| `OneEGPInCurrency` | `DECIMAL(18,6)` | No | Metric | Conversion multiplier: value of 1 EGP in foreign currency. |
+| `LastRefreshedUTC` | `DATETIMEOFFSET` | No | Audit | UTC timestamp of last live exchange rate sync. |
+
 
 
 
