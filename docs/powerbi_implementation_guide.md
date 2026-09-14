@@ -1045,7 +1045,7 @@ let
     CurrentMonth = Date.Month(Today),
 
     StartDate = #date(Date.Year(MinHarvestedDate), 1, 1),
-    EndDate = #date(Number.Max({Date.Year(MaxHarvestedDate), CurrentYear}), 12, 31),
+    EndDate = #date(List.Max({Date.Year(MaxHarvestedDate), CurrentYear}), 12, 31),
 
     // 2. Generate Continuous Date Series
     DayCount = Duration.Days(EndDate - StartDate) + 1,
