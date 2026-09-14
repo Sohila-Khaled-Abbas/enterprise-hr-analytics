@@ -357,16 +357,16 @@ Materialized via `sql/transformations/02_mart_dimensional_model.sql` and `script
 
 ### 6.4 `mart.Dim_Course` (Conformed Learning & Certification Catalog)
 * **Source**: Conformed dimension deduplicated from LMS master telemetry.
-* **Grain**: 1 row per professional course offering (7 distinct enterprise courses).
+* **Grain**: 1 row per professional course offering (10 distinct enterprise courses).
 * **Storage**: In-memory Power BI VertiPaq tabular model / `mart.Dim_Course`.
 
 | Column Name | Physical Data Type | Nullable | Key Type | Business Description |
 | :--- | :--- | :---: | :---: | :--- |
-| `CourseKey` | `INT` / `Whole Number` | No | PK | Surrogate primary key (1 to 7). |
-| `CourseID` | `VARCHAR(20)` | No | Natural Key | Course code (`CRS-101`, `CRS-102`, `CRS-103`, `CRS-201`, `CRS-202`, `CRS-301`, `CRS-302`). |
+| `CourseKey` | `INT` / `Whole Number` | No | PK | Surrogate primary key (1 to 10). |
+| `CourseID` | `VARCHAR(20)` | No | Natural Key | Course code (`CRS-TECH-01..04`, `CRS-LEAD-01..02`, `CRS-SOFT-01..02`, `CRS-COMP-01..02`). |
 | `CourseName` | `NVARCHAR(150)` | No | Attribute | Formal program title. |
 | `SkillDomain` | `VARCHAR(50)` | No | Attribute | Capability domain (`Tech`, `Leadership`, `Soft Skills`, `Compliance`). |
-| `CourseLevel` | `VARCHAR(50)` | No | Attribute | Level tier: `Level 100 - Foundational Core`, `Level 200 - Management`, `Level 300 - Advanced Architecture`. |
+| `CourseLevel` | `VARCHAR(50)` | No | Attribute | Level tier: `Level 100 - Foundational Core`, `Level 200 - Intermediate & Professional`, `Level 300 - Advanced Architecture & Strategic`. |
 | `StrategicPillar` | `VARCHAR(100)` | No | Attribute | Executive capability pillar alignment. |
 | `Cost_EGP` | `DECIMAL(12,2)` | No | Metric | Standard catalog course fee / tuition expense. |
 | `PassingScoreThreshold` | `INT` | No | Metric | Minimum examination score required to pass (default 70). |

@@ -863,32 +863,92 @@ In enterprise deployments, training telemetry lands directly in Microsoft SQL Se
    * Right-click the new `Index` header $\to$ select **Rename** $\to$ type `CourseKey`.
    * Drag `CourseKey` to the far left. Set its data type to **Whole Number (`123`)**.
 
-#### 2. Enriching `Dim_Course` with Real-World Enterprise Attributes via GUI:
-Now enrich your course catalog with strategic human capital metadata:
+#### 2. Enriching `Dim_Course` with Real-World Enterprise Attributes (GUI & M Options):
+Based on your active 10-course enterprise catalog (`CRS-TECH-01..04`, `CRS-LEAD-01..02`, `CRS-SOFT-01..02`, `CRS-COMP-01..02`), enrich your dimension with strategic capability and governance attributes:
 
-1. **Course Difficulty Level / Tier (`CourseLevel`) via Conditional Column**:
-   * Go to **Add Column > Conditional Column** $\to$ Name: `CourseLevel`.
-   * Configure rules:
-     * If `CourseID` contains `10` then `Level 100 - Foundational Core`
-     * Else If `CourseID` contains `20` then `Level 200 - Management & Professional`
-     * Else `Level 300 - Advanced Architecture & Governance`
-   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+1. **Course Difficulty Level / Tier (`CourseLevel`)**:
+   Categorizes the 10 programs into standard corporate learning tiers based on technical depth and strategic complexity:
+   * **Level 100 - Foundational Core**: `CRS-COMP-01` (Labor Law 2026), `CRS-COMP-02` (GDPR/Information Governance), `CRS-SOFT-02` (Data Storytelling). *(Mandatory baseline compliance and organizational analytical literacy)*.
+   * **Level 200 - Intermediate & Professional**: `CRS-TECH-01` (Power BI & Enterprise DAX Modeling), `CRS-TECH-02` (Advanced SQL), `CRS-TECH-03` (Python Data Engineering), `CRS-SOFT-01` (Executive Negotiation). *(Role-specific technical mastery and commercial execution)*.
+   * **Level 300 - Advanced Architecture & Strategic**: `CRS-TECH-04` (Cloud Architecture & Cybersecurity), `CRS-LEAD-01` (Strategic People Leadership), `CRS-LEAD-02` (Lean Six Sigma / Operational Excellence). *(Enterprise system design and executive transformation)*.
 
-2. **Strategic Capability Pillar (`StrategicPillar`) via Conditional Column**:
-   * Go to **Add Column > Conditional Column** $\to$ Name: `StrategicPillar`.
-   * Configure rules:
-     * If `SkillDomain` equals `Tech` then `Digital, Cloud & Data Modernization`
-     * Else If `SkillDomain` equals `Leadership` then `People Leadership & Operational Excellence`
-     * Else If `SkillDomain` equals `Compliance` then `Enterprise Governance & Cyber Defense`
-     * Else `Executive Communications & Storytelling`
-   * Click **OK** $\to$ set type to **Text (`ABC`)**.
+   * **Method A (GUI Clickpath)**:
+     * Go to **Add Column > Conditional Column** $\to$ Name: `CourseLevel`.
+     * Configure rules:
+       * If `CourseID` equals `CRS-COMP-01` then `Level 100 - Foundational Core`
+       * Else If `CourseID` equals `CRS-COMP-02` then `Level 100 - Foundational Core`
+       * Else If `CourseID` equals `CRS-SOFT-02` then `Level 100 - Foundational Core`
+       * Else If `CourseID` equals `CRS-TECH-01` then `Level 200 - Intermediate & Professional`
+       * Else If `CourseID` equals `CRS-TECH-02` then `Level 200 - Intermediate & Professional`
+       * Else If `CourseID` equals `CRS-TECH-03` then `Level 200 - Intermediate & Professional`
+       * Else If `CourseID` equals `CRS-SOFT-01` then `Level 200 - Intermediate & Professional`
+       * Else `Level 300 - Advanced Architecture & Strategic`
+     * Click **OK** $\to$ set data type to **Text (`ABC`)**.
 
-3. **Passing Score Benchmark (`PassingScoreThreshold`) via Custom Column**:
+   * **Method B (M Formula via Add Column > Custom Column)**:
+     ```powerquery
+     if List.Contains({"CRS-COMP-01", "CRS-COMP-02", "CRS-SOFT-02"}, [CourseID]) then "Level 100 - Foundational Core"
+     else if List.Contains({"CRS-TECH-01", "CRS-TECH-02", "CRS-TECH-03", "CRS-SOFT-01"}, [CourseID]) then "Level 200 - Intermediate & Professional"
+     else "Level 300 - Advanced Architecture & Strategic"
+     ```
+
+2. **Strategic Capability Pillar (`StrategicPillar`)**:
+   Aligns each course to corporate executive development pillars:
+   * **GUI Clickpath**:
+     * Go to **Add Column > Conditional Column** $\to$ Name: `StrategicPillar`.
+     * Rules:
+       * If `SkillDomain` equals `Tech` then `Digital, Cloud & Data Modernization`
+       * Else If `SkillDomain` equals `Leadership` then `People Leadership & Operational Excellence`
+       * Else If `SkillDomain` equals `Compliance` then `Enterprise Governance & Cyber Defense`
+       * Else `Executive Communications & Storytelling`
+     * Click **OK** $\to$ set type to **Text (`ABC`)**.
+   * **M Formula**:
+     ```powerquery
+     if [SkillDomain] = "Tech" then "Digital, Cloud & Data Modernization"
+     else if [SkillDomain] = "Leadership" then "People Leadership & Operational Excellence"
+     else if [SkillDomain] = "Compliance" then "Enterprise Governance & Cyber Defense"
+     else "Executive Communications & Storytelling"
+     ```
+
+3. **Accrediting Authority & External Vendor (`CertifyingVendor`)**:
+   Tracks the external accrediting body for credential verification:
+   * **GUI**: Go to **Add Column > Conditional Column** $\to$ Name: `CertifyingVendor`.
+     * If `CourseID` equals `CRS-TECH-01` then `Microsoft Learn`
+     * Else If `CourseID` equals `CRS-TECH-02` then `Snowflake & Microsoft`
+     * Else If `CourseID` equals `CRS-TECH-03` then `Python Institute & Databricks`
+     * Else If `CourseID` equals `CRS-TECH-04` then `AWS & CompTIA`
+     * Else If `CourseID` equals `CRS-LEAD-01` then `Harvard ManageMentor`
+     * Else If `CourseID` equals `CRS-LEAD-02` then `Six Sigma Global Institute`
+     * Else If `CourseID` equals `CRS-COMP-01` then `Ministry of Manpower Egypt`
+     * Else If `CourseID` equals `CRS-COMP-02` then `IAPP European Privacy Board`
+     * Else `Corporate Talent Academy`
+   * **M Formula**:
+     ```powerquery
+     if [CourseID] = "CRS-TECH-01" then "Microsoft Learn"
+     else if [CourseID] = "CRS-TECH-02" then "Snowflake & Microsoft"
+     else if [CourseID] = "CRS-TECH-03" then "Python Institute & Databricks"
+     else if [CourseID] = "CRS-TECH-04" then "AWS & CompTIA"
+     else if [CourseID] = "CRS-LEAD-01" then "Harvard ManageMentor"
+     else if [CourseID] = "CRS-LEAD-02" then "Six Sigma Global Institute"
+     else if [CourseID] = "CRS-COMP-01" then "Ministry of Manpower Egypt"
+     else if [CourseID] = "CRS-COMP-02" then "IAPP European Privacy Board"
+     else "Corporate Talent Academy"
+     ```
+
+4. **Continuous Professional Development Units (`CPD_Credits`)**:
+   Recognized educational credit hours earned upon exam completion:
+   * **GUI / Custom Column**: Name: `CPD_Credits` $\to$ Formula:
+     ```powerquery
+     if Text.Contains([CourseLevel], "300") then 40 else if Text.Contains([CourseLevel], "200") then 24 else 16
+     ```
+   * Set type to **Whole Number (`123`)**.
+
+5. **Passing Score Benchmark (`PassingScoreThreshold`)**:
    * Go to **Add Column > Custom Column** $\to$ Name: `PassingScoreThreshold` $\to$ Formula: `70`.
    * Set type to **Whole Number (`123`)**.
 
-4. **Certification Expiration & Validity Period (`ValidityPeriodMonths`) via Custom Column**:
-   Compliance certifications require annual re-certification (12 months), whereas technical and leadership credentials remain valid for 2 years (24 months):
+6. **Certification Audit Validity Period (`ValidityPeriodMonths`)**:
+   Compliance courses require annual renewal (12 months), while technical and leadership credentials remain valid for 24 months:
    * Go to **Add Column > Custom Column** $\to$ Name: `ValidityPeriodMonths`.
    * Formula:
      ```powerquery
@@ -896,7 +956,7 @@ Now enrich your course catalog with strategic human capital metadata:
      ```
    * Set type to **Whole Number (`123`)**.
 
-5. **Instructional Delivery Channel (`DeliveryModality`) via Conditional Column**:
+7. **Instructional Delivery Channel (`DeliveryModality`)**:
    * Go to **Add Column > Conditional Column** $\to$ Name: `DeliveryModality`.
    * If `SkillDomain` equals `Tech` then `Virtual Lab & Hands-on Sandbox`, Else If `SkillDomain` equals `Leadership` then `Executive Workshop & Cohort`, Else `Self-Paced E-Learning`. Click **OK**.
 
@@ -1485,6 +1545,211 @@ let
 in
     #"Changed Type"
 ```
+
+---
+
+### Step 2.9: Enterprise Data Enrichment, Parameters, Live REST APIs & Advanced M Techniques
+
+To elevate your semantic model from an academic prototype to an enterprise-grade corporate solution, apply these production patterns combining **Power Query GUI workflows** and **high-performance M language formulas**:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ Modern Enterprise Power Query Architecture                                             │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 1. Parameters        -> Dynamic connection routing (Dev / Test / Prod)                 │
+│ 2. Live REST API     -> Real-time FX exchange rates (USD / EUR / AED / EGP) via Web API│
+│ 3. Spatial Enrichment-> GPS coordinates & branch tiers for Azure Map visual analytics   │
+│ 4. M Functions       -> Table buffering, Arabic text cleansing & try-otherwise guards  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Dynamic Environment Parameters via GUI (`Manage Parameters`):
+Hardcoding file paths and database connection strings creates broken reports when deploying between environments. Power Query Parameters allow one-click environment switching:
+
+##### How to Create Parameters via the Ribbon GUI:
+1. In Power Query Editor, go to the **Home** ribbon tab.
+2. Click **Manage Parameters > New Parameter**.
+3. Create the following 4 enterprise parameters:
+
+| Parameter Name | Description | Type | Suggested Values | Current / Default Value |
+| :--- | :--- | :---: | :---: | :--- |
+| **`pServerName`** | Database host address | `Text` | List: `localhost`, `sql-staging.corp`, `sql-prod.database.windows.net` | `localhost` |
+| **`pDatabaseName`** | Target DWH catalog | `Text` | Any value | `EnterpriseHR_DWH` |
+| **`pDataDirectory`** | Raw file system directory | `Text` | Any value | `D:\courses\Data Science\Data Engineering\Projects\enterprise-hr-analytics\data\raw` |
+| **`pTargetCurrency`** | Reporting currency target | `Text` | List: `EGP`, `USD`, `AED`, `SAR`, `EUR` | `EGP` |
+
+4. Click **OK**.
+5. **Binding Parameters to Queries**:
+   * For SQL Server queries (`Fact_WorkforceSnapshot`, `raw.Badge_Access_Logs`): In the **Source** step formula, replace `"localhost"` with `pServerName`, and `"EnterpriseHR_DWH"` with `pDatabaseName`.
+   * For flat files (`employees_data_7000.txt`): In the **Source** step, replace the hardcoded path with `pDataDirectory & "\employees_data_7000.txt"`.
+   * Now, whenever you clone the project or deploy to another workstation, you only change the parameter values in one dialog!
+
+---
+
+#### 2. Ingesting Live Macroeconomic & Currency Rates via REST API (`Web.Contents`):
+In multinational organizations, training course licensing (AWS, Microsoft, Databricks) and executive compensation are benchmarked in USD or EUR. Integrating a live REST API provides real-time currency conversions.
+
+##### A. GUI Clickpath:
+1. In Power Query Editor, go to **Home > New Source > Web**.
+2. Select **Basic** $\to$ enter the public Open Exchange endpoint:
+   `https://open.er-api.com/v6/latest/USD`
+3. Click **OK** $\to$ select **Anonymous** authentication $\to$ click **Connect**.
+4. Power Query displays a root record. Click the yellow word **`Record`** next to field **`rates`**.
+5. Go to the **Transform** ribbon $\to$ click **To Table** $\to$ click **OK**.
+6. Rename column `Name` to `CurrencyCode`, and `Value` to `ExchangeRateToUSD`.
+7. Filter `CurrencyCode` to key trading currencies: `USD`, `EGP`, `AED`, `SAR`, `EUR`, `GBP`.
+8. Set `ExchangeRateToUSD` to **Decimal Number (`1.2`)**.
+
+##### B. Production Service-Safe M Code (RelativePath Pattern):
+> [!IMPORTANT]
+> **Why `RelativePath` is Mandatory**: If you concatenate dynamic strings directly inside `Web.Contents(url & param)`, Power BI Service will refuse to refresh on a schedule due to security firewall rules. Using `RelativePath` keeps the base domain static so Power BI can authenticate and whitelist the data source.
+
+Click **Home > New Source > Blank Query** $\to$ **Advanced Editor** $\to$ paste:
+
+```powerquery
+let
+    // 1. Static base URL for Power BI Service scheduled refresh safety
+    BaseUrl = "https://open.er-api.com",
+    
+    // 2. Fetch live JSON payload
+    Source = Json.Document(
+        Web.Contents(BaseUrl, [
+            RelativePath = "/v6/latest/USD",
+            Headers = [#"Accept" = "application/json"]
+        ])
+    ),
+    
+    // 3. Extract rates table
+    RatesRecord = Source[rates],
+    RatesTable = Record.ToTable(RatesRecord),
+    #"Renamed Columns" = Table.RenameColumns(RatesTable, {{"Name", "CurrencyCode"}, {"Value", "ExchangeRateToUSD"}}),
+    #"Filtered Currencies" = Table.SelectRows(#"Renamed Columns", each List.Contains({"USD", "EGP", "AED", "SAR", "EUR", "GBP"}, [CurrencyCode])),
+    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Currencies", {{"CurrencyCode", type text}, {"ExchangeRateToUSD", type number}}),
+    
+    // 4. Compute EGP relative conversion rates
+    EgpRate = #"Changed Type"{[CurrencyCode="EGP"]}[ExchangeRateToUSD],
+    #"Added RateToEGP" = Table.AddColumn(#"Changed Type", "RateToEGP", each [ExchangeRateToUSD] / EgpRate, type number),
+    #"Added EGPToCurrency" = Table.AddColumn(#"Added RateToEGP", "OneEGPInCurrency", each 1 / ([ExchangeRateToUSD] / EgpRate), type number),
+    #"Added RefreshTimestamp" = Table.AddColumn(#"Added EGPToCurrency", "LastRefreshedUTC", each DateTimeZone.UtcNow(), type datetimezone)
+in
+    #"Added RefreshTimestamp"
+```
+Rename this query to **`Dim_CurrencyRates`**.
+
+---
+
+#### 3. Spatial Geocoding & Regional Tiering in `Dim_Branch`:
+To enable Power BI's interactive Map visual and Azure Maps with bubble sizing by headcount or budget, enrich `Dim_Branch` with exact Egyptian geographic coordinates:
+
+##### GUI / Custom Column Steps:
+1. In the left pane, select **`Dim_Branch`**.
+2. **Add Latitude via Custom Column**:
+   * Go to **Add Column > Custom Column** $\to$ Name: `Latitude`.
+   * Formula:
+     ```powerquery
+     if Text.Contains([BranchName], "المعادي") then 29.9599
+     else if Text.Contains([BranchName], "التجمع") then 30.0074
+     else if Text.Contains([BranchName], "مصر الجديدة") then 30.0898
+     else if Text.Contains([BranchName], "القرية الذكية") then 30.0716
+     else if Text.Contains([BranchName], "أكتوبر") or Text.Contains([BranchName], "اكتوبر") then 29.9678
+     else if Text.Contains([BranchName], "زايد") then 30.0435
+     else if Text.Contains([BranchName], "الدقي") then 30.0385
+     else if Text.Contains([BranchName], "لوران") then 31.2464
+     else if Text.Contains([BranchName], "سموحة") then 31.2156
+     else if Text.Contains([BranchName], "المنصورة") then 31.0409
+     else if Text.Contains([BranchName], "طنطا") then 30.7865
+     else if Text.Contains([BranchName], "دمياط") then 31.4367
+     else if Text.Contains([BranchName], "بورسعيد") then 31.2653
+     else 27.1809 // أسيوط - أسيوط الجديدة
+     ```
+   * Set type to **Decimal Number (`1.2`)**.
+
+3. **Add Longitude via Custom Column**:
+   * Go to **Add Column > Custom Column** $\to$ Name: `Longitude`.
+   * Formula:
+     ```powerquery
+     if Text.Contains([BranchName], "المعادي") then 31.2595
+     else if Text.Contains([BranchName], "التجمع") then 31.4913
+     else if Text.Contains([BranchName], "مصر الجديدة") then 31.3285
+     else if Text.Contains([BranchName], "القرية الذكية") then 31.0216
+     else if Text.Contains([BranchName], "أكتوبر") or Text.Contains([BranchName], "اكتوبر") then 30.9388
+     else if Text.Contains([BranchName], "زايد") then 30.9998
+     else if Text.Contains([BranchName], "الدقي") then 31.2117
+     else if Text.Contains([BranchName], "لوران") then 29.9723
+     else if Text.Contains([BranchName], "سموحة") then 29.9489
+     else if Text.Contains([BranchName], "المنصورة") then 31.3785
+     else if Text.Contains([BranchName], "طنطا") then 31.0004
+     else if Text.Contains([BranchName], "دمياط") then 31.6738
+     else if Text.Contains([BranchName], "بورسعيد") then 32.3019
+     else 31.1837 // أسيوط - أسيوط الجديدة
+     ```
+   * Set type to **Decimal Number (`1.2`)**.
+
+4. **Add Operational Branch Tier via Conditional Column**:
+   * Go to **Add Column > Conditional Column** $\to$ Name: `BranchTier`.
+   * Rules:
+     * If `Region` equals `Greater Cairo` then `Tier 1 - Strategic Metro Hub`
+     * Else If `Region` equals `Alexandria & North` then `Tier 1 - Strategic Metro Hub`
+     * Else If `Region` equals `Delta` then `Tier 2 - Regional Commercial Center`
+     * Else `Tier 3 - Emerging Expansion Office`
+   * Set type to **Text (`ABC`)**.
+
+---
+
+#### 4. Workforce & Attendance Behavioral Enrichments:
+
+##### A. In `Fact_DailyAttendance`:
+1. **Tardiness Violation Flag (`IsTardyArrival`)**:
+   Core enterprise working hours commence at 09:00 AM with a 15-minute grace window:
+   * Go to **Add Column > Custom Column** $\to$ Name: `IsTardyArrival`.
+   * Formula:
+     ```powerquery
+     if [CheckInTime] <> null and [CheckInTime] > #time(9, 15, 0) then 1 else 0
+     ```
+   * Set type to **Whole Number (`123`)**.
+
+2. **Overtime Shift Hours (`OvertimeHours`)**:
+   Standard physical shift is 8.5 hours (including lunch):
+   * Go to **Add Column > Custom Column** $\to$ Name: `OvertimeHours`.
+   * Formula:
+     ```powerquery
+     if [DurationHours] > 8.5 then Number.Round([DurationHours] - 8.5, 2) else 0.0
+     ```
+   * Set type to **Decimal Number (`1.2`)**.
+
+##### B. In `Dim_Employee`:
+1. **Flight Risk Composite Index (`FlightRiskIndex`)**:
+   Identifies high-value employees vulnerable to headhunting:
+   * Go to **Add Column > Custom Column** $\to$ Name: `FlightRiskIndex`.
+   * Formula:
+     ```powerquery
+     if [تقييم الأداء السنوي] >= 4.0 and ([SalaryBand] = "Entry (< 5K)" or [SalaryBand] = "Junior (5K–10K)") then "🔴 Critical Risk (High Talent, Low Comp)"
+     else if [TenureYears] > 4.0 and [SalaryBand] = "Junior (5K–10K)" then "🟡 Moderate Risk (Tenured Compression)"
+     else "🟢 Retained & Stable"
+     ```
+   * Set type to **Text (`ABC`)**.
+
+2. **Retirement Planning Proximity (`RetirementProximity`)**:
+   * Go to **Add Column > Conditional Column** $\to$ Name: `RetirementProximity`.
+   * Rule: If `AgeBand` equals `Pre-Retirement (55+)` then `Succession Required (< 5 Years)`, Else `Normal Horizon`.
+
+---
+
+#### 5. Advanced M Performance: Table Buffering (`Table.Buffer`):
+When performing multiple `Table.NestedJoin` (Merge Queries) operations across large tables (e.g. 114,952 badge logs or 12,392 audit records), Power Query may evaluate the lookup table repeatedly, leading to slow data refresh speeds.
+
+Wrapping dimension queries in `Table.Buffer()` loads the entire dimension table into RAM once:
+
+```powerquery
+// Example: Buffering Dim_Employee before joining into Fact tables
+let
+    Source = Dim_Employee,
+    BufferedEmployeeDim = Table.Buffer(Source),
+    #"Merged Facts" = Table.NestedJoin(Fact_DailyAttendance, {"EmployeeID"}, BufferedEmployeeDim, {"الرقم التعريفي"}, "Dim_Employee", JoinKind.LeftOuter)
+in
+    #"Merged Facts"
+```
+*(Use `Table.Buffer()` on small to medium conformed dimensions like `Dim_Department`, `Dim_Branch`, and `Dim_Course` to accelerate joins by up to $300\%$!)*
 
 ---
 
