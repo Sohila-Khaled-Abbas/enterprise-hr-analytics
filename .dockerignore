@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.git/
+.github/
+.vscode/
+.idea/
+venv/
+env/
+*.env
+*.tmp
+*.log
+docs/assets/*.png
+powerbi/*.pbix

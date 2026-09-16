@@ -1,4 +1,4 @@
-CurrencyKey,CurrencyCode,CurrencyName,RateToEGP,OneEGPInCurrency,RateType,LastUpdated
+﻿CurrencyKey,CurrencyCode,CurrencyName,RateToEGP,OneEGPInCurrency,RateType,LastUpdated
 1,EGP,Egyptian Pound,1.0,1.0,Base Operational Currency,2026-09-14 00:00:00
 2,USD,United States Dollar,48.85,0.020471,Central Bank Spot Rate,2026-09-14 00:00:00
 3,EUR,Euro,53.2,0.018797,Central Bank Spot Rate,2026-09-14 00:00:00

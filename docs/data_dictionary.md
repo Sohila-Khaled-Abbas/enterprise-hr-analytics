@@ -410,6 +410,61 @@ Materialized via `sql/transformations/02_mart_dimensional_model.sql` and `script
 | `OneEGPInCurrency` | `DECIMAL(18,6)` | No | Metric | Conversion multiplier: value of 1 EGP in foreign currency. |
 | `LastRefreshedUTC` | `DATETIMEOFFSET` | No | Audit | UTC timestamp of last live exchange rate sync. |
 
+---
+
+### 6.7 `mart.Fact_ProjectTasks` (Software House Client Project Delivery Fact)
+* **Source**: Synthesized billable client projects and freelance tasks (`data/processed/Fact_ProjectTasks.csv`).
+* **Grain**: 1 row per client project task / milestone delivery ($N = 3,600$ rows).
+* **Storage**: Microsoft SQL Server `[mart].[Fact_ProjectTasks]` & Power BI VertiPaq tabular model.
+
+| Column Name | Physical Data Type | Nullable | Key Type | Business Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `TaskKey` | `BIGINT` | No | PK (Identity) | Surrogate auto-incrementing primary key. |
+| `TaskID` | `NVARCHAR(50)` | No | Natural Key | Unique business task code (`TSK-10001` .. `TSK-13600`). |
+| `ProjectID` | `NVARCHAR(50)` | No | Degenerate Key | Client engagement code (`PRJ-EGP-101`, `PRJ-US-201`, etc.). |
+| `ProjectName` | `NVARCHAR(150)` | No | Attribute | Project title (e.g. `Omnichannel E-Commerce Engine`). |
+| `ClientName` | `NVARCHAR(150)` | No | Attribute | Client enterprise or agency brand. |
+| `TaskName` | `NVARCHAR(200)` | No | Attribute | Task scope and deliverable description. |
+| `AssignedEmployeeID` | `VARCHAR(20)` | No | FK | Natural employee code joining to `mart.Dim_Employee[EmployeeID]`. |
+| `StartDate` | `DATE` | No | Attribute | Work commencement date. |
+| `DueDate` | `DATE` | No | Attribute | Contractual delivery target date. |
+| `CompletionDate` | `DATE` | Yes | Attribute | Actual date deliverable was completed/accepted. |
+| `TaskStatus` | `NVARCHAR(50)` | No | Attribute | Lifecycle status: `Completed`, `In Progress`, `Under Review`. |
+| `EstimatedHours` | `DECIMAL(8,2)` | No | Metric | Scoped effort in billable hours. |
+| `ActualHours` | `DECIMAL(8,2)` | No | Metric | Time booked by engineering team. |
+| `HourlyRateUSD` | `DECIMAL(10,2)` | No | Metric | Billable hourly consulting rate in USD. |
+| `TotalCostUSD` | `DECIMAL(12,2)` | No | Metric | Total engagement cost ($ActualHours \times HourlyRateUSD$). |
+| `CurrencyCode` | `NVARCHAR(10)` | No | FK | Foreign currency code joining to `mart.Dim_CurrencyRates[CurrencyCode]`. |
+| `StartDateKey` | `INT` | No | Date FK | Smart date key (`YYYYMMDD`) joining to `mart.Dim_Date[DateKey]`. |
+| `DueDateKey` | `INT` | No | Date FK | Smart date key (`YYYYMMDD`) joining to `mart.Dim_Date[DateKey]`. |
+| `CompletionDateKey`| `INT` | Yes | Date FK | Smart date key (`YYYYMMDD`) joining to `mart.Dim_Date[DateKey]`. |
+| `IsOverdue` | `BIT` | No | Flag | `1` if completed past DueDate or active and past due; `0` otherwise. |
+| `OverrunHours` | `DECIMAL(8,2)` | No | Metric | Calculated schedule variance ($ActualHours - EstimatedHours$). |
+
+---
+
+### 6.8 `raw.Client_Projects_Tasks` & `raw.Currency_Rates` (Raw Software House Staging)
+* **`raw.Client_Projects_Tasks`** ($N = 3,600$): Raw landing feed for external client delivery tasks.
+* **`raw.Currency_Rates`** ($N = 6$): Raw landing feed for multi-currency conversion table.
+
+---
+
+### 6.9 `dbo._schema_migrations` & `stg.Pipeline_Execution_Audit` (Platform Infrastructure Metadata)
+* **`dbo._schema_migrations`**:
+  * `MigrationID INT IDENTITY(1,1)` (PK)
+  * `ScriptName NVARCHAR(255)` (Unique script filename, e.g. `01_dimensions.sql`)
+  * `AppliedAt DATETIME2(7)` (Execution timestamp)
+  * `BatchCount INT` (Number of T-SQL batches delimited by `GO`)
+  * `Status NVARCHAR(50)` (`SUCCESS` or `FAILED`)
+* **`stg.Pipeline_Execution_Audit`**:
+  * `AuditID BIGINT IDENTITY(1,1)` (PK)
+  * `PipelineName NVARCHAR(100)` (e.g. `EnterpriseHR_Galaxy_Pipeline`)
+  * `StepName NVARCHAR(150)` (Name of extraction, loading, or transformation stage)
+  * `TargetTable NVARCHAR(100)` (Target schema and table)
+  * `StartTime DATETIME2(7)`, `EndTime DATETIME2(7)`, `DurationSeconds DECIMAL(10,2)`
+  * `RowsProcessed INT`, `Status NVARCHAR(50)`, `ErrorMessage NVARCHAR(MAX)`
+
+
 
 
 

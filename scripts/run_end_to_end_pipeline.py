@@ -102,6 +102,21 @@ def run_sql_ingestion() -> bool:
     if lms_csv.exists():
         ingest_lms_logs(str(lms_csv), "raw", "LMS_Certifications")
 
+    from scripts.ingestion.ingest_software_house_data import (
+        ingest_client_projects_tasks,
+        ingest_currency_rates,
+    )
+
+    logger.info("📥 Ingesting raw client projects & tasks into raw.Client_Projects_Tasks...")
+    tasks_csv = PROJECT_ROOT / "data" / "raw" / "client_projects_tasks.csv"
+    if tasks_csv.exists():
+        ingest_client_projects_tasks(str(tasks_csv), "raw", "Client_Projects_Tasks")
+
+    logger.info("📥 Ingesting raw currency rates into raw.Currency_Rates...")
+    currency_csv = PROJECT_ROOT / "data" / "raw" / "dim_currency_rates.csv"
+    if currency_csv.exists():
+        ingest_currency_rates(str(currency_csv), "raw", "Currency_Rates")
+
     return True
 
 

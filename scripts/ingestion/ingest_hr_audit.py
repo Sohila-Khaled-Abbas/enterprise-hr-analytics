@@ -53,11 +53,13 @@ TABLE_MANIFEST = {
     "Dim_Branch.csv": ("mart.Dim_Branch", "BranchKey"),
     "Dim_Date.csv": ("mart.Dim_Date", "DateKey"),
     "Dim_Course.csv": ("mart.Dim_Course", "CourseKey"),
+    "Dim_CurrencyRates.csv": ("mart.Dim_CurrencyRates", "CurrencyKey"),
     # Fact Tables (Galaxy Constellation)
     "Fact_WorkforceSnapshot.csv": ("mart.Fact_WorkforceSnapshot", "SnapshotKey"),
     "Fact_DailyAttendance.csv": ("mart.Fact_DailyAttendance", "AttendanceKey"),
     "Fact_DepartmentBudget.csv": ("mart.Fact_DepartmentBudget", "BudgetKey"),
     "Fact_TrainingCompletions.csv": ("mart.Fact_TrainingCompletions", "CompletionKey"),
+    "Fact_ProjectTasks.csv": ("mart.Fact_ProjectTasks", "TaskKey"),
 }
 
 
@@ -242,6 +244,33 @@ def ingest_csv_to_table(
         except Exception as e:
             logger.warning("   ⚠️  Could not truncate %s: %s", target_table, e)
 
+    # Align DataFrame columns with target table in SQL Server
+    try:
+        inspector = inspect(engine)
+        existing_cols = [c["name"] for c in inspector.get_columns(table_name, schema=schema_name)]
+        if existing_cols:
+            # Drop auto-incrementing identity columns if present in CSV
+            for id_col in ["TaskKey", "RawTaskID", "RawCurrencyID", "StagingKey", "AuditID"]:
+                if id_col in df.columns and id_col in existing_cols:
+                    df = df.drop(columns=[id_col])
+
+            # Support schema evolution variants for Dim_Employee
+            if table_name == "Dim_Employee":
+                if "EmploymentStatus" in existing_cols and "EmploymentStatus" not in df.columns:
+                    df["EmploymentStatus"] = "Active"
+                if "LatestSalary" in existing_cols and "LatestSalary" not in df.columns:
+                    df["LatestSalary"] = df.get("BaseSalary", 0.0)
+                if "LatestBranch" in existing_cols and "LatestBranch" not in df.columns:
+                    branch_val = df.get("BranchKey", 1)
+                    df["LatestBranch"] = "Branch-" + branch_val.astype(str)
+
+            # Match columns
+            common_cols = [c for c in df.columns if c in existing_cols]
+            if common_cols:
+                df = df[common_cols]
+    except Exception as ex:
+        logger.warning("   ⚠️  Schema inspection warning for %s: %s", target_table, ex)
+
     # Insert data using pandas to_sql with fast_executemany (do NOT use method="multi" with fast_executemany)
     try:
         df.to_sql(
@@ -301,16 +330,23 @@ def run_post_ingestion_validation(engine: Engine) -> None:
     logger.info("═" * 60)
 
     validation_queries = [
+        ("raw.Badge_Access_Logs", "SELECT COUNT(*) FROM raw.Badge_Access_Logs"),
+        ("raw.Finance_Budget_Plan", "SELECT COUNT(*) FROM raw.Finance_Budget_Plan"),
+        ("raw.LMS_Certifications", "SELECT COUNT(*) FROM raw.LMS_Certifications"),
+        ("raw.Client_Projects_Tasks", "SELECT COUNT(*) FROM raw.Client_Projects_Tasks"),
+        ("raw.Currency_Rates", "SELECT COUNT(*) FROM raw.Currency_Rates"),
         ("stg.Exit_Attrition_Records", "SELECT COUNT(*) FROM stg.Exit_Attrition_Records"),
         ("mart.Dim_Employee", "SELECT COUNT(*) FROM mart.Dim_Employee"),
         ("mart.Dim_Department", "SELECT COUNT(*) FROM mart.Dim_Department"),
         ("mart.Dim_Branch", "SELECT COUNT(*) FROM mart.Dim_Branch"),
         ("mart.Dim_Date", "SELECT COUNT(*) FROM mart.Dim_Date"),
         ("mart.Dim_Course", "SELECT COUNT(*) FROM mart.Dim_Course"),
+        ("mart.Dim_CurrencyRates", "SELECT COUNT(*) FROM mart.Dim_CurrencyRates"),
         ("mart.Fact_WorkforceSnapshot", "SELECT COUNT(*) FROM mart.Fact_WorkforceSnapshot"),
         ("mart.Fact_DailyAttendance", "SELECT COUNT(*) FROM mart.Fact_DailyAttendance"),
         ("mart.Fact_DepartmentBudget", "SELECT COUNT(*) FROM mart.Fact_DepartmentBudget"),
         ("mart.Fact_TrainingCompletions", "SELECT COUNT(*) FROM mart.Fact_TrainingCompletions"),
+        ("mart.Fact_ProjectTasks", "SELECT COUNT(*) FROM mart.Fact_ProjectTasks"),
     ]
 
     try:
@@ -402,6 +438,7 @@ def main(
         "Dim_Department.csv",
         "Dim_Branch.csv",
         "Dim_Course.csv",
+        "Dim_CurrencyRates.csv",
         "Dim_Employee.csv",
     ]
 
@@ -424,6 +461,7 @@ def main(
         "Fact_DailyAttendance.csv",
         "Fact_DepartmentBudget.csv",
         "Fact_TrainingCompletions.csv",
+        "Fact_ProjectTasks.csv",
     ]
 
     for csv_name in fact_order:

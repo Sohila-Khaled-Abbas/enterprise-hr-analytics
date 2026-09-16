@@ -1,0 +1,12 @@
+# =============================================================================
+# Enterprise HR Analytics - Terraform Configuration Example
+# =============================================================================
+
+environment                 = "production"
+location                    = "northeurope"
+resource_group_name         = "rg-enterprise-hr-analytics-prod"
+sql_admin_username          = "dwh_admin"
+sql_admin_password          = "ChangeMeP@ssw0rd2026!#"
+database_sku                = "GP_Gen5_2"
+storage_account_tier        = "Standard"
+storage_account_replication = "LRS"

@@ -324,7 +324,75 @@ def run_pipeline():
                 "IsHighestScoreAttempt": 1 if attempt["IsHighestScoreAttempt"] else 0,
             })
 
-    # 10. Persist All Dimensional Tables to data/processed/
+    # 10. Build Conformed Dim_CurrencyRates
+    currency_path = RAW_DIR / "dim_currency_rates.csv"
+    dim_currency = []
+    if currency_path.exists():
+        with open(currency_path, mode="r", encoding="utf-8-sig") as f:
+            dim_currency = list(csv.DictReader(f))
+        for c in dim_currency:
+            c["CurrencyKey"] = int(c["CurrencyKey"])
+            c["RateToEGP"] = float(c["RateToEGP"])
+            c["OneEGPInCurrency"] = float(c["OneEGPInCurrency"])
+
+    # 11. Build Fact_ProjectTasks (Client Delivery & Milestone Engagements)
+    tasks_path = RAW_DIR / "client_projects_tasks.csv"
+    fact_tasks = []
+    if tasks_path.exists():
+        with open(tasks_path, mode="r", encoding="utf-8-sig") as f:
+            raw_tasks = list(csv.DictReader(f))
+        for idx, t in enumerate(raw_tasks, start=1):
+            s_date = t.get("TaskStartDate", "")
+            d_date = t.get("DeliveryDeadline", "")
+            c_date = t.get("ActualCompletionDate", "")
+
+            s_key = int(s_date.replace("-", "")) if s_date else None
+            d_key = int(d_date.replace("-", "")) if d_date else None
+            c_key = int(c_date.replace("-", "")) if c_date and c_date.strip() else None
+
+            p_hours = float(t.get("PlannedHours", 0))
+            a_hours = float(t.get("ActualHours", 0))
+            overrun_h = round(max(0.0, a_hours - p_hours), 2)
+            overrun_pct = round(overrun_h / p_hours, 4) if p_hours > 0 else 0.0
+            rate_usd = float(t.get("BillableHourlyRate_USD", 0))
+            total_usd = float(t.get("TotalBilling_USD", 0))
+            total_egp = round(total_usd * 48.85, 2)
+            csat = float(t["ClientSatisfactionRating"]) if t.get("ClientSatisfactionRating") and t["ClientSatisfactionRating"].strip() else None
+
+            is_overrun = 1 if str(t.get("IsHoursOverrun", "")).lower() == "true" else 0
+            is_delayed = 1 if str(t.get("IsDeliveryDelayed", "")).lower() == "true" else 0
+
+            fact_tasks.append({
+                "TaskKey": idx,
+                "TaskID": t["TaskID"],
+                "ProjectID": t["ProjectID"],
+                "ProjectName": t["ProjectName"],
+                "ClientName": t["ClientName"],
+                "ClientCountry": t["ClientCountry"],
+                "ClientRegion": t["ClientRegion"],
+                "Industry": t["Industry"],
+                "AssignedEmployeeID": t["AssignedEmployeeID"],
+                "CurrencyCode": "USD",
+                "StartDateKey": s_key,
+                "DeadlineDateKey": d_key,
+                "CompletionDateKey": c_key,
+                "TaskTitle": t["TaskTitle"],
+                "SkillDomain": t["SkillDomain"],
+                "ComplexityTier": t["ComplexityTier"],
+                "PlannedHours": p_hours,
+                "ActualHours": a_hours,
+                "ScopeOverrunHours": overrun_h,
+                "ScopeOverrunPct": overrun_pct,
+                "IsHoursOverrun": is_overrun,
+                "BillableHourlyRate_USD": rate_usd,
+                "TotalBilling_USD": total_usd,
+                "TotalBilling_EGP": total_egp,
+                "TaskStatus": t["TaskStatus"],
+                "ClientSatisfactionRating": csat,
+                "IsDeliveryDelayed": is_delayed,
+            })
+
+    # 12. Persist All Dimensional Tables to data/processed/
     def save_csv(data: List[Dict[str, Any]], filename: str):
         if not data:
             return
@@ -341,12 +409,14 @@ def run_pipeline():
     save_csv(dim_course, "Dim_Course.csv")
     save_csv(dim_date, "Dim_Date.csv")
     save_csv(dim_employee, "Dim_Employee.csv")
+    save_csv(dim_currency, "Dim_CurrencyRates.csv")
 
     print("\n--- Saving Galaxy Schema Fact Constellation Tables ---")
     save_csv(fact_workforce, "Fact_WorkforceSnapshot.csv")
     save_csv(fact_attendance, "Fact_DailyAttendance.csv")
     save_csv(fact_budget, "Fact_DepartmentBudget.csv")
     save_csv(fact_training, "Fact_TrainingCompletions.csv")
+    save_csv(fact_tasks, "Fact_ProjectTasks.csv")
 
     print("\n=================================================================")
     print("[SUCCESS] Galaxy Schema Data Mart transformation complete!")

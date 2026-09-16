@@ -1,6 +1,6 @@
-# Enterprise Pipeline Operations & Deployment Runbook
+# Enterprise Pipeline Operations, CLI & Deployment Runbook
 
-This runbook provides end-to-end operational procedures, deployment instructions, environment configuration guidelines, and troubleshooting protocols for the **Enterprise Human Capital & Operational Efficiency Diagnostics** platform.
+This runbook provides end-to-end operational procedures, deployment instructions, environment configuration guidelines, and troubleshooting protocols for the **Enterprise Human Capital, Software House & Operational Diagnostics Platform**.
 
 ---
 
@@ -8,37 +8,82 @@ This runbook provides end-to-end operational procedures, deployment instructions
 
 ### 1.1 Software Requirements
 * **Python Runtime**: Python 3.10 to 3.14 (x64) with `pip` and virtual environment support.
-* **Database Engine**: Microsoft SQL Server 2017+ (Default instance `MSSQLSERVER` on port 1433 or named instance `SQLEXPRESS`).
+* **Database Engine**: Microsoft SQL Server 2017+ (Local or Azure SQL) or Docker container.
 * **Database Driver**: `ODBC Driver 17 for SQL Server` or `ODBC Driver 18 for SQL Server`.
-* **Business Intelligence**: Power BI Desktop (supporting `.pbip` and TMDL enhanced dataset format).
-* **Operating System**: Windows 10/11 or Windows Server (utilizing Windows Integrated Authentication).
+* **Container Engine**: Docker Desktop 20+ with Docker Compose v2.
+* **Infrastructure as Code**: Terraform 1.5+ (optional for Azure cloud deployments).
+* **Business Intelligence**: Power BI Desktop (supporting `.pbip` and Git-native TMDL format).
 
 ### 1.2 Environment Configuration (`.env`)
 Create a `.env` file at the root of the project:
 ```ini
+# Database Connection
 DB_DRIVER={ODBC Driver 17 for SQL Server}
 DB_SERVER=localhost
 DB_DATABASE=EnterpriseHR_DWH
 DB_USER=
 DB_PASS=
+DB_TRUST_CERT=true
+
+# Pipeline Settings
+LOG_LEVEL=INFO
+PIPELINE_CHUNK_SIZE=1000
+EXPECTED_EMPLOYEE_COUNT=7000
 ```
-*(Leave `DB_USER` and `DB_PASS` empty to use secure Windows Authentication).*
+*(Leave `DB_USER` and `DB_PASS` empty to use secure Windows Integrated Authentication).*
 
 ---
 
-## 2. Master Dataset Grounding
+## 2. Command Line Interface (CLI) Runbook
 
-All data across the entire pipeline is grounded on:
+The platform includes a unified CLI under `enterprise_hr.cli`:
+
+```bash
+# Set PYTHONPATH to include src/
+export PYTHONPATH=src    # Linux / macOS
+$env:PYTHONPATH="src"    # Windows PowerShell
+
+# 1. System Connectivity & Asset Healthcheck
+python -m enterprise_hr.cli healthcheck
+
+# 2. Database Schema Migrations (Applies all 5 DDL scripts in order)
+python -m enterprise_hr.cli migrate
+
+# 3. Master Pipeline Execution (Extraction, Building, Ingestion, Transformations)
+python -m enterprise_hr.cli run
+
+# 4. View Production Warehouse Table Inventory
+python -m enterprise_hr.cli summary
 ```
-data/raw/employees_data_7000.txt
-```
-This file contains the authoritative records of **exactly 7,000 employees** with authentic Arabic names, roles, departments, branches, salaries, and employment attributes. **Synthetic mock drift is strictly prohibited.**
 
 ---
 
-## 3. End-to-End Orchestration (One-Command Execution)
+## 3. Containerized Operations (Docker Compose)
 
-The entire platform—from raw dataset verification, dimensional mart generation, SQL Server ingestion, SCD2 audit staging, to automated test validation—can be executed via the master orchestrator:
+To run the complete data platform and database in isolated containers:
+
+```bash
+# 1. Start SQL Server 2022 and auto-execute pipeline worker
+docker compose up --build
+
+# 2. Run SQL Server in background only
+docker compose up -d mssql
+
+# 3. Trigger manual pipeline run in container
+docker compose run --rm pipeline-worker python -m enterprise_hr.cli run
+
+# 4. Check warehouse summary in container
+docker compose run --rm pipeline-worker python -m enterprise_hr.cli summary
+
+# 5. Stop and clean up containers and volumes
+docker compose down -v
+```
+
+---
+
+## 4. End-to-End Orchestration Workflow
+
+The master orchestrator can also be invoked via the existing script wrapper:
 
 ```bash
 python scripts/run_end_to_end_pipeline.py
@@ -53,122 +98,60 @@ python scripts/run_end_to_end_pipeline.py
 │ STEP 2: Build Galaxy Dimensional Mart (pipeline_runner.py)             │
 │         -> Cleans raw feeds, parses text, builds conformed dims & facts│
 ├────────────────────────────────────────────────────────────────────────┤
-│ STEP 3: Ingest Data into SQL Server Data Warehouse (EnterpriseHR_DWH)  │
+│ STEP 3: Apply Database Migrations (MigrationManager)                   │
+│         -> Applies 00..04 DDL scripts and records in _schema_migrations│
+├────────────────────────────────────────────────────────────────────────┤
+│ STEP 4: Ingest Data into SQL Server Data Warehouse (EnterpriseHR_DWH)  │
 │         -> Ingests raw, staging, and mart tables (idempotent reload)   │
 ├────────────────────────────────────────────────────────────────────────┤
-│ STEP 4: Execute Staging SCD2 Audit Transformation (00_stg_hr_audit.sql)│
+│ STEP 5: Execute Staging Transformations (00_stg_hr_audit.sql)          │
 │         -> Deduplicates 12,516 -> 12,392 rows, computes LEAD() validity│
 ├────────────────────────────────────────────────────────────────────────┤
-│ STEP 5: Run Automated Data Quality & Integrity Suite (pytest -v)       │
-│         -> 14/14 automated test assertions pass                        │
+│ STEP 6: Execute Presentation Mart Materializations                     │
+│         -> Materializes Fact_Daily_Badge, Fact_LMS_Training            │
 ├────────────────────────────────────────────────────────────────────────┤
-│ STEP 6: Execute Live Database Inventory Verification                   │
-│         -> Prints row count across all 15 production tables            │
+│ STEP 7: Automated Quality Assurance Suite (Pytest)                     │
+│         -> Runs 29 unit and data quality contract tests                │
+├────────────────────────────────────────────────────────────────────────┤
+│ STEP 8: Production Table Inventory Verification                        │
+│         -> Queries metadata, asserting 322,217 total production rows   │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Modular Step-by-Step Execution
+## 5. Execution Telemetry & Audit Catalog (`stg.Pipeline_Execution_Audit`)
 
-For fine-grained operational control, individual stages can be executed independently:
-
-### Step 4.1: Database & Schema Initialization (DDL)
-Execute the DDL scripts in `sql/ddl/` in numerical order:
+Every pipeline execution logs detailed audit metrics into Microsoft SQL Server:
 ```sql
--- In SQL Server Management Studio (SSMS) or sqlcmd:
-:r sql/ddl/00_create_database_and_schemas.sql
-:r sql/ddl/01_dimensions.sql
-:r sql/ddl/02_facts.sql
-:r sql/ddl/03_staging_tables.sql
-```
-
-### Step 4.2: Ingestion & Dimensional Transformation (Python)
-```bash
-# Build dimensional CSV marts under data/processed/ and ingest into SQL Server
-python scripts/pipeline_runner.py --load-db --truncate
-```
-
-### Step 4.3: SCD2 Staging Transformation (T-SQL)
-```bash
-# Run the optimized SCD2 transformation procedure for HR audit logs
-python scripts/transformations/run_stg_transformations.py
-```
-
-### Step 4.4: Presentation Mart Materialization (T-SQL & Python)
-Materializes the core dimensional models directly from staged and raw records:
-1. `mart.Dim_Employee` (Latest master employee records)
-2. `mart.Fact_Employee_SCD2` (Historical temporal validity intervals)
-3. `mart.Fact_Daily_Badge` (IoT badge logs with +8h missing clock-out imputation)
-4. `mart.Fact_LMS_Training` (Deduplicated successful course completions)
-
-```bash
-# Execute the dimensional modeling script
-python scripts/transformations/run_mart_transformations.py
-```
-
-### Step 4.5: Quality Assurance & Automated Testing
-```bash
-# Run the complete 14-test Pytest verification suite
-python -m pytest tests/test_data_quality.py -v
+SELECT 
+    AuditID,
+    PipelineName,
+    StepName,
+    TargetTable,
+    StartTime,
+    DurationSeconds,
+    RowsProcessed,
+    Status,
+    ErrorMessage
+FROM stg.Pipeline_Execution_Audit
+ORDER BY StartTime DESC;
 ```
 
 ---
 
-## 5. Live Production DWH Inventory Baseline
+## 6. Automated Testing Protocols
 
-After running the end-to-end pipeline, the data warehouse contains **182,108 rows across 15 tables**:
+Execute the complete test suite with verbose output:
 
-| Layer | Schema | Table Name | Verified Row Count | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **Landing** | `raw` | `HR_Audit_Events` | 12,516 | ✅ Ingested |
-| **Landing** | `raw` | `Badge_Access_Logs` | 114,952 | ✅ Ingested |
-| **Landing** | `raw` | `Finance_Budget_Plan` | 168 | ✅ Ingested |
-| **Landing** | `raw` | `LMS_Certifications` | 7,197 | ✅ Ingested |
-| **Staging** | `stg` | `Stg_HR_Audit` | 12,392 | ✅ Transformed |
-| **Staging** | `stg` | `Exit_Attrition_Records` | 350 | ✅ Ingested |
-| **Mart** | `mart` | `Dim_Employee` | 7,000 | ✅ Loaded |
-| **Mart** | `mart` | `Dim_Department` | 6 | ✅ Loaded |
-| **Mart** | `mart` | `Dim_Branch` | 14 | ✅ Loaded |
-| **Mart** | `mart` | `Dim_Date` | 1,096 | ✅ Loaded |
-| **Mart** | `mart` | `Dim_Course` | 10 | ✅ Loaded |
-| **Mart** | `mart` | `Fact_WorkforceSnapshot` | 7,000 | ✅ Loaded |
-| **Mart** | `mart` | `Fact_DailyAttendance` | 16,000 | ✅ Loaded |
-| **Mart** | `mart` | `Fact_DepartmentBudget` | 672 | ✅ Loaded |
-| **Mart** | `mart` | `Fact_TrainingCompletions` | 2,735 | ✅ Loaded |
-| **TOTAL** | | | **182,108** | **Production Ready** |
+```bash
+$env:PYTHONPATH="src"
+python -m pytest tests/ -v
+```
 
----
-
-## 6. Power BI Semantic Model Refresh & Validation
-
-1. **Open Project**: Launch Power BI Desktop and open `powerbi/employess-report.pbip`.
-2. **Verify Native Model**: The semantic model automatically binds to the Git-native TMDL definitions in `powerbi/employess-report.SemanticModel/definition/`.
-3. **Data Refresh**:
-   * Click **Home > Refresh** to pull latest records from `EnterpriseHR_DWH` and `employees_data_7000.txt`.
-   * Ensure all 9 tables load without errors:
-     * 5 Conformed Dimensions: `Dim_Employee`, `Dim_Department`, `Dim_Branch`, `Dim_Date`, `Dim_Course`
-     * 4 Galaxy Facts: `Fact_WorkforceSnapshot`, `Fact_DailyAttendance`, `Fact_DepartmentBudget`, `Fact_TrainingCompletions`
-4. **Relationship Verification**:
-   * Navigate to the **Model View** (`Ctrl + 3`).
-   * Confirm that all 5 dimensions filter the fact tables via single-direction $1 \to *$ relationships.
-
----
-
-## 7. Troubleshooting & Production Gotchas
-
-### 7.1 SQL Server `RESOURCE_SEMAPHORE` Memory Grant Waits
-* **Symptom**: Window function queries (`ROW_NUMBER()`, `LEAD()`) appear to hang indefinitely.
-* **Root Cause**: Pandas default `to_sql` creates `VARCHAR(MAX)` columns. Multiple `VARCHAR(MAX)` columns in a window partition cause SQL Server to demand $> 73\text{ MB}$ memory grants. Under constrained physical memory ($< 800\text{ MB}$ free), Windows sets `process_physical_memory_low = 1`, causing the query to wait indefinitely in the `RESOURCE_SEMAPHORE` queue.
-* **Resolution**: Ensure strongly-typed column definitions (`VARCHAR(20)`, `VARCHAR(50)`, `DATE`, `DECIMAL(18,2)`) and indexes on partition keys `(EmployeeID, EffectiveDate)` as implemented in `sql/ddl/03_staging_tables.sql` and `sql/transformations/00_stg_hr_audit.sql`.
-
-### 7.2 Idempotent Database Ingestion
-* **Symptom**: Successive pipeline runs multiply row counts.
-* **Resolution**: In `scripts/pipeline_runner.py` and `scripts/run_end_to_end_pipeline.py`, the ingestion routines pass `truncate=True`. This ensures dimension and fact tables are truncated before loading, preserving exact counts (e.g., exactly 7,000 employees in `Dim_Employee`).
-
-### 7.3 ODBC Driver Compatibility
-* If `ODBC Driver 17 for SQL Server` is not installed on your system, install it from Microsoft or specify `ODBC Driver 18 for SQL Server` in your `.env`:
-  ```ini
-  DB_DRIVER={ODBC Driver 18 for SQL Server}
-  ```
-  *(If using Driver 18, add `TrustServerCertificate=yes;` if self-signed certificates are used).*
+### Verified Test Categories (29 Tests):
+* **Conformed Dimension Uniqueness**: Department, Branch, Course, Date, Employee, CurrencyRates.
+* **Galaxy Fact Foreign Key Integrity**: Cross-fact referential validation.
+* **Metric Boundaries**: Compa-ratio bounds, positive salary rules, overdue delivery flag rules.
+* **Data Cleansing Algorithms**: Attendance shift imputation, branch fuzzy matching, LMS score ranking.
+* **Software Engineering Architecture**: Config settings, domain entities, atomic file handlers, and migration script parsers.

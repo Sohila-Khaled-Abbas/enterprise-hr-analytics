@@ -1,4 +1,4 @@
-name: Data Quality & Dimensional Model CI
+name: Enterprise Data Platform & IaC CI
 
 on:
   push:
@@ -7,18 +7,18 @@ on:
     branches: [ master, main ]
 
 jobs:
-  validate-pipeline:
-    name: Validate Data Quality & Galaxy Schema Pipelines
+  validate-software-engineering-and-quality:
+    name: Test Software Engineering Core & Data Contracts
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
 
       - name: Install Dependencies
@@ -34,9 +34,10 @@ jobs:
         run: |
           python scripts/pipeline_runner.py
 
-      - name: Run Pytest Data Quality & Schema Contracts
+      - name: Run Pytest Suite (Data Quality & Software Engineering Core)
         run: |
-          pytest -v tests/test_data_quality.py
+          export PYTHONPATH=src
+          pytest -v tests/
 
       - name: Validate Power BI Files Unchanged
         run: |
@@ -45,3 +46,35 @@ jobs:
             echo "ERROR: Power BI files were modified!"
             exit 1
           fi
+
+  validate-docker:
+    name: Build & Verify Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Container
+        run: |
+          docker build -t enterprise-hr-analytics:ci .
+
+  validate-terraform-iac:
+    name: Validate Terraform Infrastructure as Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive terraform/
+
+      - name: Terraform Init & Validate
+        run: |
+          cd terraform
+          terraform init -backend=false
+          terraform validate

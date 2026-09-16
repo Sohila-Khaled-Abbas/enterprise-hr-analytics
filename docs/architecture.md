@@ -1,34 +1,34 @@
-# Enterprise Kimball Galaxy Schema & Data Platform Architecture
+# Enterprise Kimball Galaxy Schema, Software Engineering & IaC Architecture
 
-This document details the architectural design, dimensional modeling principles, 3-tier data warehouse layers, and end-to-end data pipeline implemented in the **Enterprise Human Capital & Operational Efficiency Diagnostics** platform.
+This document details the architectural design, dimensional modeling principles, software engineering package structure, multi-tier data warehouse layers, and Infrastructure as Code (IaC) implemented in the **Enterprise Human Capital, Software House & Operational Diagnostics Platform**.
 
 ---
 
 ## 1. High-Level Architecture & Lifecycle
 
-The platform follows modern software engineering and data warehouse engineering standards, ingesting heterogeneous enterprise systems, staging and transforming records with strict data validation contracts, and delivering a Kimball Galaxy Schema (Fact Constellation) consumed by an enterprise Power BI semantic model (TMDL).
+The platform adheres to clean software engineering and enterprise data engineering standards:
+- **Heterogeneous Ingestion**: Ingests master HRIS census, IoT badge turnstiles, FP&A Excel budgets, LMS certifications, software house client delivery tasks, and live REST exchange rates.
+- **Modular Software Engineering Core (`src/enterprise_hr`)**: Implements SOLID principles, Pydantic domain models, data contract assertions, and connection pooling.
+- **Medallion / 3-Tier Kimball Galaxy Warehouse**: Manages Bronze (`raw`), Silver (`stg`), and Gold (`mart`) dimensional schemas in Microsoft SQL Server 2022.
+- **Infrastructure as Code (IaC)**: Dual-deployment capability using **Docker Compose** for local reproducibility and **Terraform** for Azure enterprise cloud provisioning.
 
 ![Enterprise Project Lifecycle & Data Architecture](assets/project_lifecycle_architecture.svg)
 
 ---
 
-## 2. Why a Galaxy Schema (Fact Constellation)?
+## 2. Kimball Galaxy Schema (Fact Constellation)
 
-A traditional **Star Schema** models a single business process around one central fact table (e.g., Sales or Orders). In enterprise human capital analytics, operational processes operate at vastly different grains and cadences:
-
+In modern enterprise human capital and professional services analytics, operational processes operate at vastly different grains:
 1. **Monthly Workforce State**: Periodic snapshot of active personnel, compensation, and annual appraisal scores ($N = 7,000$ rows).
-2. **Daily IoT Attendance**: High-frequency clock events, turnstile swipes, and remote work flags ($N = 16,000$ to $114,952$ rows).
+2. **Daily IoT Attendance**: High-frequency clock events, turnstile swipes, and remote work flags ($N = 16,000$ rows).
 3. **Quarterly FP&A Budgeting**: Aggregated departmental headcount quotas and salary expenditure limits ($N = 672$ rows).
 4. **Talent & Certification Events**: Discrete training completions, exam scores, and educational investment fees ($N = 2,735$ rows).
-
-Attempting to merge these distinct business processes into a single fact table causes severe **grain mismatch**, **null inflation**, or **fact duplication** (e.g., repeating an employee's monthly salary on every single training attempt or daily badge log).
-
-A **Kimball Galaxy Schema (Fact Constellation)** solves this by maintaining separate fact tables for each business process while sharing **Conformed Dimensions**.
+5. **Software House Project Delivery**: Billable client project tasks, hourly consulting rates, delivery milestones, and overruns ($N = 3,600$ rows).
 
 ```
                                   ┌────────────────────────┐
                                   │       Dim_Branch       │
-                                  │ (Geocoded Coordinates) │
+                                  │ (14 Geocoded Governor.)│
                                   └───────────┬────────────┘
                                               │
                ┌──────────────────────────────┼──────────────────────────────┐
@@ -44,163 +44,129 @@ A **Kimball Galaxy Schema (Fact Constellation)** solves this by maintaining sepa
                ▼                             ▼                              │
      ┌──────────────────┐           ┌──────────────────┐                    │
      │   Dim_Employee   │           │     Dim_Date     │◄───────────────────┘
-     │ (Master Census)  │           │(Harvested 24-26) │
-     └──────────────────┘           └────────┬─────────┘
+     │ (7,000 Conformed)│           │  (2024 - 2026)   │
+     └─────────┬────────┘           └────────┬─────────┘
                │                             │
-               │                             ▼
-               │                    ┌──────────────────┐
-               │                    │Fact_TrainingComp │
-               │                    └────────┬─────────┘
-               │                             │
-               ▼                             ▼
-     ┌──────────────────┐           ┌──────────────────┐
-     │Dim_CurrencyRates │           │    Dim_Course    │
-     │ (Live REST API)  │           │ (10 Enterprise)  │
-     └──────────────────┘           └──────────────────┘
+               ├─────────────────────────────┼──────────────────────────────┐
+               │                             │                              │
+               ▼                             ▼                              ▼
+     ┌──────────────────┐           ┌──────────────────┐           ┌──────────────────┐
+     │Fact_ProjectTasks │           │Fact_TrainingComp │           │Dim_CurrencyRates │
+     │ (3,600 Delivery) │           │(2,735 Completions│           │  (6 Active FX)   │
+     └─────────┬────────┘           └────────┬─────────┘           └────────┬─────────┘
+               │                             │                              │
+               │                             ▼                              │
+               │                    ┌──────────────────┐                    │
+               │                    │    Dim_Course    │                    │
+               │                    │ (10 Enterprise)  │                    │
+               │                    └──────────────────┘                    │
+               └────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 3. The 3-Tier Enterprise Warehouse Architecture
 
-The Microsoft SQL Server data warehouse (`EnterpriseHR_DWH`) and Power BI VertiPaq tabular model are partitioned into three logical layers with an in-memory `Table.Buffer()` performance cache:
-
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
-│ 1. RAW LANDING LAYER (Schema: raw / REST APIs)                             │
+│ 1. RAW BRONZE LANDING LAYER (Schema: raw / External REST APIs)             │
 ├────────────────────────────────────────────────────────────────────────────┤
-│ • raw.HR_Audit_Events (12,516 rows) - System transaction change logs       │
 │ • raw.Badge_Access_Logs (114,952 rows) - Physical & virtual IoT clock-ins  │
-│ • raw.Finance_Budget_Plan (168 rows) - Wide departmental budget plans      │
+│ • raw.HR_Audit_Events (12,516 rows) - System transaction change logs       │
 │ • raw.LMS_Certifications (7,197 rows) - Raw exam completions & attempts   │
-│ • REST API: open.er-api.com/v6/latest/USD - Live foreign exchange rates   │
+│ • raw.Client_Projects_Tasks (3,600 rows) - Software house consulting tasks │
+│ • raw.Finance_Budget_Plan (168 rows) - Wide departmental budget plans      │
+│ • raw.Currency_Rates (6 rows) - Currency exchange rates                    │
+│ • Live REST API: open.er-api.com/v6/latest/USD                             │
 └─────────────────────────────────────┬──────────────────────────────────────┘
                                       │
                                       ▼
 ┌────────────────────────────────────────────────────────────────────────────┐
-│ 2. STAGING & TRANSFORMATION LAYER (Schema: stg / Power Query Mashups)      │
+│ 2. STAGING SILVER & AUDIT LAYER (Schema: stg / dbo Migrations)             │
 ├────────────────────────────────────────────────────────────────────────────┤
-│ • stg.Stg_HR_Audit (12,392 rows) - Deduplicated SCD2 audit with LEAD()     │
-│ • stg.Exit_Attrition_Records (350 rows) - Resignation & termination audits │
-│ • Table.Buffer() In-Memory RAM Cache Layer (Dimensions pinned in RAM)      │
-│ • Staging Stored Procedures (usp_Transform_*)                              │
+│ • stg.Stg_HR_Audit (12,392 rows) - Deduplicated SCD2 audit chain           │
+│ • stg.Exit_Attrition_Records (350 rows) - Voluntary/involuntary exits      │
+│ • stg.Pipeline_Execution_Audit - Pipeline telemetry and execution logging │
+│ • dbo._schema_migrations - Versioned DDL tracking catalog                  │
 └─────────────────────────────────────┬──────────────────────────────────────┘
                                       │
                                       ▼
 ┌────────────────────────────────────────────────────────────────────────────┐
-│ 3. ANALYTICAL DIMENSIONAL MART LAYER (Schema: mart / Tabular Model)        │
+│ 3. ANALYTICAL GOLD MART LAYER (Schema: mart / Power BI VertiPaq Model)     │
 ├────────────────────────────────────────────────────────────────────────────┤
 │ Conformed Dimensions:                                                      │
-│   • mart.Dim_Employee (7,000 rows) - SCD Type 2 active master              │
+│   • mart.Dim_Employee (7,000 rows) - SCD Type 2 active master census       │
 │   • mart.Dim_Department (6 rows) - Corporate departments & divisions       │
-│   • mart.Dim_Branch (14 rows) - Geocoded regional offices with Latitude/Lng│
-│   • mart.Dim_Date (Dynamic) - Full-year calendar harvested from datasets   │
-│   • mart.Dim_Course (10 rows) - 10-course professional tier catalog        │
-│   • mart.Dim_CurrencyRates (6 rows) - Live USD/EGP/EUR/AED/SAR/GBP rates  │
+│   • mart.Dim_Branch (14 rows) - Geocoded regional offices with GPS coord.   │
+│   • mart.Dim_Date (1,096 rows) - Enterprise calendar (2024 - 2026)         │
+│   • mart.Dim_Course (10 rows) - Professional skill development catalog     │
+│   • mart.Dim_CurrencyRates (6 rows) - Multi-currency rates (EGP/USD/EUR/..)│
 │                                                                            │
 │ Galaxy Fact Tables:                                                        │
-│   • mart.Fact_WorkforceSnapshot (21,000 rows) - Multi-period workforce fact│
-│   • mart.Fact_DailyAttendance (16,000–114,952 rows) - IoT badge compliance │
-│   • mart.Fact_DepartmentBudget (168–672 rows) - Unpivoted quarterly FP&A   │
-│   • mart.Fact_TrainingCompletions (2,735–7,197 rows) - Talent ROI & scores │
+│   • mart.Fact_WorkforceSnapshot (7,000 rows) - Monthly compensation state  │
+│   • mart.Fact_DailyAttendance (16,000 rows) - Daily badge compliance       │
+│   • mart.Fact_DepartmentBudget (672 rows) - Unpivoted quarterly FP&A plan  │
+│   • mart.Fact_TrainingCompletions (2,735 rows) - Talent ROI & certifications│
+│   • mart.Fact_ProjectTasks (3,600 rows) - Billable client delivery & tasks │
+│                                                                            │
+│ Derived Point-in-Time & Aggregated Marts:                                  │
+│   • mart.Fact_Daily_Badge (114,952 rows)                                   │
+│   • mart.Fact_Employee_SCD2 (12,392 rows)                                  │
+│   • mart.Fact_LMS_Training (5,553 rows)                                    │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Complete Live Database Inventory (16 Tables, 182,114+ Rows)
+### Live Database Production Inventory (22 Tables, 322,217 Total Rows)
 
-| Schema | Table Name | Row Count | Primary Key / Cluster Key | Business Description |
+| Schema | Table Name | Row Count | Primary Key / Cluster Key | Business Domain |
 | :--- | :--- | :--- | :--- | :--- |
-| `raw` | `HR_Audit_Events` | 12,516 | `(EmployeeID, EffectiveDate)` | Raw transactional audit log from enterprise HRIS. |
-| `raw` | `Badge_Access_Logs` | 114,952 | `LogID` | IoT badge turnstile swipes and VPN access attempts. |
-| `raw` | `Finance_Budget_Plan` | 168 | `PlanID` | Wide quarterly department budget worksheets. |
-| `raw` | `LMS_Certifications` | 7,197 | `AttemptID` | Raw learning platform course attempts and exams. |
-| `stg` | `Stg_HR_Audit` | 12,392 | `StagingAuditID` | Cleaned, deduplicated SCD2 audit chain with `LEAD()` validity windows. |
-| `stg` | `Exit_Attrition_Records` | 350 | `ExitAuditID` | Voluntary and involuntary employee termination records. |
-| `mart` | `Dim_Employee` | 7,000 | `EmployeeKey` | Core employee dimension strictly grounded on `employees_data_7000.txt`. |
-| `mart` | `Dim_Department` | 6 | `DepartmentKey` | Conformed corporate department and cost-center dimension. |
-| `mart` | `Dim_Branch` | 14 | `BranchKey` | Conformed regional branch dimension with Egyptian geocoded coordinates. |
-| `mart` | `Dim_Date` | Dynamic | `DateKey` (`YYYYMMDD`) | Canonical enterprise calendar dynamically harvested from fact tables. |
-| `mart` | `Dim_Course` | 10 | `CourseKey` | Conformed learning catalog with 3-tier difficulty governance. |
-| `mart` | `Dim_CurrencyRates` | 6 | `CurrencyKey` | Real-time foreign exchange dimension from live REST API. |
-| `mart` | `Fact_WorkforceSnapshot` | 7,000–21,000 | `SnapshotKey` | Periodic monthly workforce compensation and compression fact. |
-| `mart` | `Fact_DailyAttendance` | 16,000–114,952 | `AttendanceKey` | Daily IoT badge attendance, imputed clock-outs, and shift metrics. |
-| `mart` | `Fact_DepartmentBudget` | 168–672 | `BudgetFactKey` | Unpivoted quarterly department budget and headcount quotas. |
-| `mart` | `Fact_TrainingCompletions` | 2,735–7,197 | `CompletionFactKey` | Deduplicated training certifications, exam scores, and investments. |
+| `mart` | `Dim_Branch` | 14 | `BranchKey` | Geocoded branch offices across Egypt with GPS coordinates. |
+| `mart` | `Dim_Course` | 10 | `CourseKey` | Professional development and technical skills catalog. |
+| `mart` | `Dim_CurrencyRates` | 6 | `CurrencyKey` | Foreign exchange rates for international freelancing/contracts. |
+| `mart` | `Dim_Date` | 1,096 | `DateKey` (`YYYYMMDD`) | Conformed 3-year standard business calendar. |
+| `mart` | `Dim_Department` | 6 | `DepartmentKey` | Corporate departments, divisions, and cost centers. |
+| `mart` | `Dim_Employee` | 7,000 | `EmployeeKey` / `EmployeeID` | Conformed master census strictly grounded on 7,000 records. |
+| `mart` | `Fact_Daily_Badge` | 114,952 | `LogID` | Cleaned badge swipes with imputed clock-outs and duration. |
+| `mart` | `Fact_DailyAttendance` | 16,000 | `AttendanceKey` | Synthesized daily attendance, shifts, and remote flags. |
+| `mart` | `Fact_DepartmentBudget` | 672 | `BudgetKey` | Unpivoted quarterly OPEX budget and headcount targets. |
+| `mart` | `Fact_Employee_SCD2` | 12,392 | `StagingKey` | Full point-in-time career history and salary movements. |
+| `mart` | `Fact_LMS_Training` | 5,553 | `(EmployeeID, CourseID)` | Highest-scoring certification attempts. |
+| `mart` | `Fact_ProjectTasks` | 3,600 | `TaskKey` (Identity) | Billable software house client tasks, hours, and overruns. |
+| `mart` | `Fact_TrainingCompletions` | 2,735 | `CompletionKey` | Deduplicated training completions with talent ROI. |
+| `mart` | `Fact_WorkforceSnapshot` | 7,000 | `SnapshotKey` | Periodic workforce compensation, compa-ratio, and flight risk. |
+| `raw` | `Badge_Access_Logs` | 114,952 | `LogID` | Raw IoT badge turnstile and VPN event logs. |
+| `raw` | `Client_Projects_Tasks` | 3,600 | `RawTaskID` (Identity) | Raw software house task delivery tracking records. |
+| `raw` | `Currency_Rates` | 6 | `RawCurrencyID` (Identity) | Raw FX currency exchange rate entries. |
+| `raw` | `Finance_Budget_Plan` | 168 | `PlanID` | Raw wide departmental FP&A worksheets. |
+| `raw` | `HR_Audit_Events` | 12,516 | `(EmployeeID, EffectiveDate)` | Raw HRIS transactional event logs. |
+| `raw` | `LMS_Certifications` | 7,197 | `AttemptID` | Raw LMS exam attempt logs. |
+| `stg` | `Exit_Attrition_Records` | 350 | `ExitAuditID` | Resignation, retirement, and termination audits. |
+| `stg` | `Stg_HR_Audit` | 12,392 | `StagingKey` | Staged SCD2 audit chain with LEAD() valid-to ranges. |
+| **TOTAL** | **All 22 Tables** | **322,217** | — | **Fully live and populated in Microsoft SQL Server** |
 
 ---
 
-## 4. Conformed Dimensions
+## 4. Reusable Software Engineering Architecture (`src/enterprise_hr`)
 
-A dimension is **conformed** when it provides consistent context and identical surrogate keys across multiple fact tables:
-
-1. **`Dim_Employee`**:
-   * Grounded on `data/raw/employees_data_7000.txt` ($N = 7,000$, `EMP-10001` .. `EMP-17000`).
-   * Shared by `Fact_WorkforceSnapshot`, `Fact_DailyAttendance`, and `Fact_TrainingCompletions`.
-   * Enriched with `SalaryBand`, `AgeBand`, `TenureYears`, `FlightRiskIndex`, and `PromotionEligibility`.
-2. **`Dim_Date`**:
-   * Canonical enterprise calendar dimension dynamically harvested across fact tables.
-   * Connects to all four fact tables:
-     * `Fact_WorkforceSnapshot` via `SnapshotDateKey` (Monthly cutoff).
-     * `Fact_DailyAttendance` via `AccessDateKey` (Daily access date).
-     * `Fact_DepartmentBudget` via `DateKey` (Quarter starting date: YYYY0101, YYYY0401, etc.).
-     * `Fact_TrainingCompletions` via `CompletionDateKey` (Certification date).
-3. **`Dim_Department`**:
-   * Connects to `Fact_WorkforceSnapshot` and `Fact_DepartmentBudget`.
-4. **`Dim_Branch`**:
-   * Connects to `Fact_WorkforceSnapshot`, `Fact_DailyAttendance`, and `Fact_DepartmentBudget`.
-   * Geocoded with exact GPS coordinates (Latitude/Longitude) across all 14 Egyptian governorates.
-5. **`Dim_Course`**:
-   * Connects to `Fact_TrainingCompletions` across 4 skill domains (`Tech`, `Soft Skills`, `Leadership`, `Compliance`) and 3 difficulty tiers (`Level 1`, `Level 2`, `Level 3`).
-6. **`Dim_CurrencyRates`**:
-   * Connects to `Fact_WorkforceSnapshot` and `Fact_DepartmentBudget` via `CurrencyKey`.
-   * Live REST API rates enabling dynamic executive reporting in USD, EUR, SAR, AED, and GBP.
-
----
-
-## 5. In-Memory Buffering Performance Layer (`Table.Buffer`)
-
-To prevent Cartesian expansion and quadratic re-evaluation during Power Query data mashups, conformed dimensions are cached in memory using `Table.Buffer()`:
-* **`BufferedDimEmployee`**: Pre-selects `{"EmployeeID", "EmployeeKey"}` and pins it in RAM. Joins in `Fact_DailyAttendance` and `Fact_TrainingCompletions` execute in a single linear pass.
-* **`BufferedDimCourse`**: Pins `{"CourseID", "CourseKey"}` in RAM, accelerating exam key merges by 300%.
-* **`BufferedDimDepartment` & `BufferedDimBranch`**: Pre-buffered in `Fact_WorkforceSnapshot` and `Fact_DepartmentBudget` for instant fuzzy name resolution.
-* **`BufferedDimCurrencyRates`**: Pins exchange rates in RAM for instant currency key tagging.
-
----
-
-## 6. Power BI Git-Native Semantic Model (TMDL)
-
-The semantic model is defined in Git-native **Tabular Model Definition Language (TMDL)** under `powerbi/employess-report.SemanticModel/definition/`:
-
-* **`model.tmdl`**: Registers all 11 tables, culture (`en-US`), and data access options.
-* **`expressions.tmdl`**: Power Query M expressions importing the master employee dataset (`employees_data_7000.txt`), REST API currency exchange rate queries, and parameters.
-* **`tables/`**:
-  * `Dim_Employee.tmdl`
-  * `Dim_Department.tmdl`
-  * `Dim_Branch.tmdl`
-  * `Dim_Date.tmdl`
-  * `Dim_Course.tmdl`
-  * `Dim_CurrencyRates.tmdl`
-  * `Fact_WorkforceSnapshot.tmdl`
-  * `Fact_DailyAttendance.tmdl`
-  * `Fact_DepartmentBudget.tmdl`
-  * `Fact_TrainingCompletions.tmdl`
-  * `_Measures.tmdl`
-* **`relationships.tmdl`**: Defines all single-direction $1 \to *$ foreign key relationships linking the 6 conformed dimensions to the 4 galaxy facts.
-
----
-
-## 7. End-to-End Orchestration & Execution Flow
-
-The entire platform can be deployed, transformed, loaded, and verified via a single command:
-
-```bash
-python scripts/run_end_to_end_pipeline.py
+The platform codebase is structured into modular layers adhering to SOLID design:
+```
+src/enterprise_hr/
+├── core/                         # Config, constants, exceptions, interfaces, logging
+├── domain/                       # Pydantic entity models and DataContractValidator
+├── infrastructure/               # DatabaseManager, MigrationManager, FileHandler
+├── pipelines/                    # SqlBulkLoader, PipelineOrchestrator, Telemetry
+└── cli.py                        # Unified CLI (healthcheck, migrate, run, summary)
 ```
 
-This master orchestrator performs 6 sequential operations:
-1. **Master Fidelity Check**: Asserts `data/raw/employees_data_7000.txt` exists and contains 7,000 authentic records.
-2. **Dimensional Mart Build**: Generates all conformed dimensions and galaxy facts (`scripts/pipeline_runner.py`).
-3. **SQL Server Ingestion**: Loads all raw, staging, and mart tables into `EnterpriseHR_DWH` with idempotent truncation.
-4. **Staging Transformations**: Executes `sql/transformations/00_stg_hr_audit.sql` to generate `stg.Stg_HR_Audit`.
-5. **Quality Assurance**: Executes all 14 automated tests via `pytest`.
-6. **Executive Inventory Verification**: Queries SQL Server metadata and prints live table row counts.
+---
+
+## 5. Infrastructure as Code (IaC) & Deployment
+
+The data platform includes complete Infrastructure as Code automation:
+1. **Docker & Docker Compose (`Dockerfile`, `docker-compose.yml`)**:
+   - Runs Microsoft SQL Server 2022 in a containerized environment with healthchecks.
+   - Runs the pipeline worker with Microsoft ODBC Driver 18, automated schema migrations, and ingestion.
+2. **Terraform (`terraform/`)**:
+   - Modular HCL code provisioning Azure SQL Server, `EnterpriseHR_DWH` database, and Azure Data Lake Storage Gen2 (ADLS Gen2) with raw and processed storage containers.
+3. **Database Schema Migrations (`MigrationManager`)**:
+   - Idempotent DDL migrations tracking executed scripts in `dbo._schema_migrations`.

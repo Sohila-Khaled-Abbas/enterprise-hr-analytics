@@ -399,21 +399,39 @@ enterprise-hr-analytics/
 │   ├── employess-report.pbip             # Master Power BI Project
 │   ├── employess-report.Report/          # Report Visuals definition
 │   └── employess-report.SemanticModel/   # Semantic Model & TMDL files
-├── scripts/                              # Data Engineering Pipelines
+│   ├── employess-report.Report/          # Report Visuals definition
+│   └── employess-report.SemanticModel/   # Semantic Model & TMDL files
+├── src/                                  # Production Software Engineering Package
+│   └── enterprise_hr/                    # Clean modular enterprise package
+│       ├── core/                         # Config (Pydantic), constants, exceptions, interfaces, logging
+│       ├── domain/                       # Domain entities & DataContractValidator quality assertions
+│       ├── infrastructure/               # DatabaseManager, MigrationManager, FileHandler
+│       ├── pipelines/                    # SqlBulkLoader, PipelineOrchestrator, Telemetry
+│       └── cli.py                        # Unified Developer & Production CLI
+├── terraform/                            # Infrastructure as Code (IaC) - Cloud Deployment
+│   ├── main.tf                           # Azure SQL DWH & ADLS Gen2 root configuration
+│   ├── variables.tf                      # Parameterized cloud environment inputs
+│   ├── outputs.tf                        # FQDN, database IDs, and connection strings
+│   ├── terraform.tfvars.example          # Sample production values
+│   └── modules/                          # Reusable database and storage modules
+│       ├── database/                     # Azure SQL Server & EnterpriseHR_DWH DB
+│       └── storage/                      # Azure Data Lake Storage Gen2 (raw/processed)
+├── scripts/                              # Legacy & Automation Script Wrappers
 │   ├── ingestion/
 │   │   ├── generate_enterprise_mock_data.py # 5-system enterprise data generator
 │   │   ├── ingest_badge_logs.py           # Semi-structured JSON badge logs ingestion
 │   │   ├── ingest_finance_plan.py         # FP&A Excel unpivot & loading
 │   │   ├── ingest_hr_audit.py             # SQL Server Galaxy Schema ingestion
-│   │   └── ingest_lms_data.py             # LMS certification telemetry ingestion
+│   │   ├── ingest_lms_data.py             # LMS certification telemetry ingestion
+│   │   └── ingest_software_house_data.py  # Client delivery tasks and currency rates ingestion
 │   ├── transformations/
+│   │   ├── run_mart_transformations.py    # Presentation layer materializations
 │   │   └── run_stg_transformations.py     # Staging SCD2 T-SQL orchestrator
 │   ├── utils/
+│   │   ├── check_db_tables.py            # Quick database table verification
 │   │   ├── data_cleaners.py              # Heuristic cleaners & unpivot utilities
 │   │   ├── generate_architecture_diagram.py # Vector SVG architecture generator
-│   │   ├── generate_badge_data.py        # Monthly IoT badge JSON payload generator
-│   │   ├── generate_finance_data.py      # Messy Excel finance generator
-│   │   └── generate_lms_data.py          # LMS exam and certification generator
+│   │   └── generate_enriched_datasets.py # Software house task synthesizer
 │   ├── pipeline_runner.py                # Core dimensional mart generator
 │   └── run_end_to_end_pipeline.py        # Master unified end-to-end pipeline orchestrator
 ├── sql/                                  # Microsoft SQL Server (T-SQL) Layer
@@ -421,26 +439,25 @@ enterprise-hr-analytics/
 │   │   ├── 00_create_database_and_schemas.sql
 │   │   ├── 01_dimensions.sql
 │   │   ├── 02_facts.sql
-│   │   └── 03_staging_tables.sql
+│   │   ├── 03_staging_tables.sql
+│   │   └── 04_software_house_enrichment.sql # Client tasks & FX rate tables
+│   ├── stored_procedures/                # Business procedures (imputation, deduplication)
 │   ├── transformations/                  # SCD-2, imputation, unpivot procedures & views
-│   │   ├── 00_stg_hr_audit.sql           # Staging SCD2 deduplication & LEAD window
-│   │   ├── 01_dim_employee_scd2.sql      # Stored proc for dimension SCD2 merge
-│   │   ├── 02_attendance_imputation.sql  # Shift duration & missing checkout imputation
-│   │   ├── 03_fpa_budget_unpivot.sql     # FP&A budget unpivot & branch normalization
-│   │   ├── 04_lms_deduplication.sql      # Highest-score LMS attempt selection
-│   │   └── 05_salary_compression_analysis.sql # Role compression diagnostics
 │   └── run_all_migrations.sql            # Master database setup script
-├── tests/                                # Automated Quality Assurance
-│   └── test_data_quality.py              # 14 Pytest dimensional contract tests
+├── tests/                                # Automated Quality Assurance (29 Tests)
+│   ├── test_data_quality.py              # 14 Pytest dimensional contract tests
+│   └── test_software_engineering_core.py # 15 Pytest core architecture & entity tests
+├── Dockerfile                            # Production multi-stage Docker build with ODBC 18
+├── docker-compose.yml                    # Local multi-container stack (MSSQL 2022 + Worker)
+├── .dockerignore                         # Docker build exclusion rules
 ├── .env.example                          # Database connection template (copy → .env)
-├── .gitignore                            # Standard Python & Power BI ignore rules
-├── requirements.txt                      # Project dependencies (pandas, pyodbc, SQLAlchemy)
+├── requirements.txt                      # Project dependencies (pandas, pyodbc, SQLAlchemy, pydantic)
 └── README.md                             # Project overview & documentation index
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started & Operational Runbook
 
 ### 1. Environment Setup
 ```powershell
@@ -467,75 +484,103 @@ DB_SERVER=localhost
 DB_DATABASE=EnterpriseHR_DWH
 ```
 
-> [!TIP]
-> For **Windows Authentication**, leave `DB_USER` and `DB_PASS` empty.
-> For **SQL Server Authentication**, fill in both fields.
+---
 
-### 3. ⚡ Single-Command End-to-End Execution (Recommended)
-Execute the entire production data lifecycle—from raw 7,000-employee parsing to mart build, database migration, SCD2 staging transformation, and automated pytest validation—with a single command:
+### 3. ⚡ Modern Developer CLI (Unified Operations)
+
+The platform provides a unified CLI under `enterprise_hr.cli`:
+
 ```powershell
-python scripts/run_end_to_end_pipeline.py
+$env:PYTHONPATH="src"
+
+# 1. System Connectivity & Health Check
+python -m enterprise_hr.cli healthcheck
+
+# 2. Apply Database Schema Migrations (Idempotent DDL)
+python -m enterprise_hr.cli migrate
+
+# 3. Master Pipeline Execution (Build, Ingest, Transform)
+python -m enterprise_hr.cli run
+
+# 4. View Production Warehouse Table Inventory
+python -m enterprise_hr.cli summary
 ```
 
-This master orchestrator runs:
-1. **Master Raw Verification**: Validates the 7,000 employee master text file.
-2. **Dimensional Mart Build**: Builds all 5 conformed dimensions and 4 fact tables in `data/processed/`.
-3. **Microsoft SQL Server Ingestion**: Loads dimensions, facts, badge access logs, finance plans, and LMS logs into `mart` and `raw`.
-4. **Staging SCD2 Transformation**: Runs `00_stg_hr_audit.sql` to clean retries, normalize branches, and calculate temporal boundaries with `LEAD()`.
-5. **Automated Data Quality Tests**: Runs 14 comprehensive pytest tests verifying schema contracts, FK integrity, and domain constraints.
-6. **Executive DWH Inventory Verification**: Queries live SQL Server metadata and prints a complete inventory summary table.
+---
 
-### 📊 Production DWH Table Inventory Summary
+### 4. 🐳 Containerized Deployment (Docker Compose)
+
+Deploy the entire data warehouse and pipeline stack with a single command:
+
+```powershell
+# Spin up Microsoft SQL Server 2022 and auto-execute pipeline worker
+docker compose up --build
+
+# Run only SQL Server in the background
+docker compose up -d mssql
+
+# Run pipeline manually inside container
+docker compose run --rm pipeline-worker python -m enterprise_hr.cli run
+
+# Stop and clean up containers
+docker compose down -v
+```
+
+---
+
+### 5. ☁️ Cloud Infrastructure as Code (Terraform)
+
+Provision production cloud resources on Microsoft Azure:
+
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform plan -out=tfplan
+terraform apply tfplan
+```
+
+---
+
+### 📊 Production DWH Table Inventory Summary (322,217 Total Rows)
+
 | Schema | Table Name | Row Count | Description / Role |
 | :--- | :--- | :---: | :--- |
-| `mart` | `Dim_Branch` | **14** | Conformed branch & regional geographic dimension |
-| `mart` | `Dim_Course` | **10** | Conformed LMS course catalog dimension |
+| `mart` | `Dim_Branch` | **14** | Conformed branch & regional geographic dimension with GPS coordinates |
+| `mart` | `Dim_Course` | **10** | Conformed LMS course catalog dimension (3 difficulty tiers) |
+| `mart` | `Dim_CurrencyRates` | **6** | Multi-currency FX rates (USD, EUR, GBP, SAR, AED, EGP) |
 | `mart` | `Dim_Date` | **1,096** | Enterprise calendar dimension (2024–2026) |
-| `mart` | `Dim_Department` | **6** | Conformed organizational department dimension |
+| `mart` | `Dim_Department` | **6** | Conformed organizational department & division dimension |
 | `mart` | `Dim_Employee` | **7,000** | Master SCD Type 2 employee core dimension |
+| `mart` | `Fact_Daily_Badge` | **114,952** | Cleaned badge swipes with imputed clock-outs and duration |
 | `mart` | `Fact_DailyAttendance` | **16,000** | Daily IoT badge access telemetry |
 | `mart` | `Fact_DepartmentBudget` | **672** | FP&A quarterly departmental budget fact |
-| `mart` | `Fact_TrainingCompletions` | **2,735** | Transactional LMS course completions |
+| `mart` | `Fact_Employee_SCD2` | **12,392** | Full point-in-time career history and salary movements |
+| `mart` | `Fact_LMS_Training` | **5,553** | Highest-scoring certification attempts |
+| `mart` | `Fact_ProjectTasks` | **3,600** | Billable client project delivery tasks and overruns |
+| `mart` | `Fact_TrainingCompletions` | **2,735** | Transactional LMS course completions with talent ROI |
 | `mart` | `Fact_WorkforceSnapshot` | **7,000** | Monthly periodic workforce snapshot |
 | `raw` | `Badge_Access_Logs` | **114,952** | Flattened turnstile & VPN device logs |
+| `raw` | `Client_Projects_Tasks` | **3,600** | Raw software house task delivery tracking records |
+| `raw` | `Currency_Rates` | **6** | Raw foreign exchange currency records |
 | `raw` | `Finance_Budget_Plan` | **168** | Normalized FP&A budget plan records |
 | `raw` | `HR_Audit_Events` | **12,516** | Raw employee lifecycle audit event stream |
 | `raw` | `LMS_Certifications` | **7,197** | Raw LMS platform exam attempt logs |
 | `stg` | `Exit_Attrition_Records` | **350** | Historical resignation and exit audit records |
 | `stg` | `Stg_HR_Audit` | **12,392** | Deduplicated, normalized SCD2 staging slices |
-| **TOTAL** | **All 15 Production DWH Tables** | **182,108** | **Full Enterprise Data Warehouse Footprint** |
+| **TOTAL** | **All 22 Production DWH Tables** | **322,217** | **Full Enterprise Data Warehouse Footprint in MSSQL** |
 
-### 4. Running Individual Components (Manual Mode)
-If you prefer running pipeline stages individually:
+---
+
+### 6. Automated Quality Assurance Suite (29 Tests Passing)
+
 ```powershell
-# 1. Generate / verify dimensional CSV marts
-python scripts/pipeline_runner.py
-
-# 2. Ingest dimensional marts into SQL Server
-python scripts/ingestion/ingest_hr_audit.py --schema mart
-
-# 3. Execute SCD2 staging transformation (00_stg_hr_audit.sql)
-python scripts/transformations/run_stg_transformations.py
-
-# 4. Materialize dimensional presentation tables (02_mart_dimensional_model.sql)
-python scripts/transformations/run_mart_transformations.py
-
-# 5. Run automated test suite
-python -m pytest tests/test_data_quality.py -v
+$env:PYTHONPATH="src"
+python -m pytest tests/ -v
 ```
 
-### 5. Building the Dimensional Model (`mart` schema)
-With the staging layer cleaned and normalized, the presentation layer (`mart` schema) organizes data into Kimball-style dimensions and fact tables optimized for Power BI, handling operational realities like duplicate LMS retakes, missed badge check-outs, and historical employee attributes (SCD Type 2):
-
-* **T-SQL Script**: [`sql/transformations/02_mart_dimensional_model.sql`](sql/transformations/02_mart_dimensional_model.sql)
-  * `mart.Dim_Employee`: Latest master attributes for each employee (7,000 rows).
-  * `mart.Fact_Employee_SCD2`: Temporal validity intervals for point-in-time headcount and salary tracking (12,392 rows).
-  * `mart.Fact_Daily_Badge`: IoT badge data with +8h imputed clock-outs and duration hours (114,952 rows).
-  * `mart.Fact_LMS_Training`: Deduplicated successful completions (`AttemptRank = 1`) with exam scores and costs (5,553 rows).
-* **Python Orchestrator**: [`scripts/transformations/run_mart_transformations.py`](scripts/transformations/run_mart_transformations.py)
-
-### 6. Power BI Report & Semantic Modeling
-Open `powerbi/employess-report.pbip` in Power BI Desktop. The complete Kimball Galaxy Schema semantic model is defined in Git-native TMDL format under `powerbi/employess-report.SemanticModel/definition/`. Follow [`docs/powerbi_implementation_guide.md`](docs/powerbi_implementation_guide.md) for step-by-step visual authoring and DAX diagnostics.
+* **14 Data Quality Contract Tests** (`tests/test_data_quality.py`): PK uniqueness, foreign key cross-fact integrity, compa-ratio boundaries, and attendance imputation rules.
+* **15 Software Engineering Core Tests** (`tests/test_software_engineering_core.py`): Pydantic entity validation, atomic file handling, configuration loading, and SQL batch parser.
 
 ---
 
@@ -543,13 +588,16 @@ Open `powerbi/employess-report.pbip` in Power BI Desktop. The complete Kimball G
 
 | Document | Purpose & Target Audience | Key Contents |
 | :--- | :--- | :--- |
-| **[docs/architecture.md](docs/architecture.md)** | Architecture & Dimensional Modeling | Kimball Galaxy Schema design, 3-tier DWH layers, 15-table live inventory, and lifecycle diagrams. |
-| **[docs/pipeline_operations_guide.md](docs/pipeline_operations_guide.md)** | Operations & Deployment Runbook | Single-command orchestration, modular scripts, SQL Server configuration, and troubleshooting runbook. |
-| **[docs/data_validation_rules.md](docs/data_validation_rules.md)** | Data Quality & Validation Rules | Master text grounding contract, 14 automated pytest assertions, SCD2 temporal chain rules, and domain bounds. |
-| **[docs/data_dictionary.md](docs/data_dictionary.md)** | Enterprise Data Dictionary | Detailed column metadata, datatypes, sample values, and descriptions across all 15 warehouse tables. |
+| **[docs/architecture.md](docs/architecture.md)** | Architecture & Dimensional Modeling | Kimball Galaxy Schema design, 3-tier DWH layers, 22-table live inventory, and lifecycle diagrams. |
+| **[docs/software_engineering_standards.md](docs/software_engineering_standards.md)** | Software Engineering & Code Standards | Clean architecture, SOLID principles, Pydantic domain models, and DataContractValidator. |
+| **[docs/infrastructure_and_iac_guide.md](docs/infrastructure_and_iac_guide.md)** | Infrastructure as Code (IaC) & Docker | Docker Compose local stack, Azure Terraform cloud modules, and DDL schema migrations. |
+| **[docs/pipeline_operations_guide.md](docs/pipeline_operations_guide.md)** | Operations & Deployment Runbook | Single-command orchestration, CLI commands, SQL Server configuration, and telemetry runbook. |
+| **[docs/data_validation_rules.md](docs/data_validation_rules.md)** | Data Quality & Validation Rules | Master text grounding contract, 29 automated pytest assertions, and domain constraints. |
+| **[docs/data_dictionary.md](docs/data_dictionary.md)** | Enterprise Data Dictionary | Detailed column metadata, datatypes, sample values, and descriptions across all 22 warehouse tables. |
 | **[docs/business_diagnostics.md](docs/business_diagnostics.md)** | Business Analytics Playbook | Mathematical formulations and algorithms for Salary Compression, Ghost Workers, Budget Variance, and Talent ROI. |
 | **[docs/powerbi_implementation_guide.md](docs/powerbi_implementation_guide.md)** | Power BI & TMDL Masterclass | Visual step-by-step Power Query clickpaths, TMDL scripts, Calculation Groups, and 7 advanced DAX diagnostics. |
 
+---
 
 ## 🛡️ Software Engineering & Governance Principles
 
@@ -562,3 +610,4 @@ Open `powerbi/employess-report.pbip` in Power BI Desktop. The complete Kimball G
 
 ## 📜 License
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+

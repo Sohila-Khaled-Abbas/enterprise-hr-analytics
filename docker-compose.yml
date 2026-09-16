@@ -1,0 +1,55 @@
+services:
+  # ─────────────────────────────────────────────────────────────────
+  # Microsoft SQL Server 2022 Enterprise Data Warehouse Container
+  # ─────────────────────────────────────────────────────────────────
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: enterprise-hr-sqlserver
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASS:-StrongPassword123!}
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $${MSSQL_SA_PASSWORD} -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - enterprise-hr-net
+
+  # ─────────────────────────────────────────────────────────────────
+  # Enterprise HR Analytics Pipeline & Migration Worker
+  # ─────────────────────────────────────────────────────────────────
+  pipeline-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enterprise-hr-pipeline
+    depends_on:
+      mssql:
+        condition: service_healthy
+    environment:
+      - DB_DRIVER={ODBC Driver 18 for SQL Server}
+      - DB_SERVER=mssql
+      - DB_DATABASE=EnterpriseHR_DWH
+      - DB_USER=sa
+      - DB_PASS=${DB_PASS:-StrongPassword123!}
+      - DB_TRUST_CERT=true
+      - PYTHONPATH=/app/src
+    command: ["sh", "-c", "python -m enterprise_hr.cli migrate && python -m enterprise_hr.cli run && python -m enterprise_hr.cli summary"]
+    networks:
+      - enterprise-hr-net
+
+volumes:
+  mssql_data:
+    driver: local
+
+networks:
+  enterprise-hr-net:
+    driver: bridge
