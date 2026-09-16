@@ -1,0 +1,171 @@
+// =============================================================================
+// Enterprise Human Capital, Software House & Operational Analytics
+// Curated Production DAX Measure Library
+// Author: Sohila Khaled Abbas
+// Target: Power BI Semantic Model (TMDL / Tabular Model)
+// =============================================================================
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. WORKFORCE & COMPENSATION DYNAMICS
+// ─────────────────────────────────────────────────────────────────────────────
+
+[Total Headcount] = 
+COUNTROWS(Dim_Employee)
+
+[Active Headcount] = 
+CALCULATE(
+    COUNTROWS(Fact_WorkforceSnapshot),
+    Fact_WorkforceSnapshot[EmploymentStatus] = "Active"
+)
+
+[Total Monthly Payroll (EGP)] = 
+SUM(Fact_WorkforceSnapshot[BaseSalary])
+
+[Average Monthly Salary (EGP)] = 
+AVERAGE(Fact_WorkforceSnapshot[BaseSalary])
+
+[Compressed Salaries Count] = 
+CALCULATE(
+    COUNTROWS(Fact_WorkforceSnapshot),
+    Fact_WorkforceSnapshot[IsSalaryCompressed] = TRUE()
+)
+
+[Salary Compression %] = 
+DIVIDE([Compressed Salaries Count], [Active Headcount], 0)
+
+[Average Tenure (Years)] = 
+AVERAGE(Fact_WorkforceSnapshot[TenureYears])
+
+[Average Performance Rating] = 
+AVERAGE(Fact_WorkforceSnapshot[AnnualPerformanceRating])
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. DAILY IOT ATTENDANCE & SHIFT COMPLIANCE
+// ─────────────────────────────────────────────────────────────────────────────
+
+[Total Attendance Logs] = 
+COUNTROWS(Fact_DailyAttendance)
+
+[Remote Worker Count] = 
+CALCULATE(
+    COUNTROWS(Fact_DailyAttendance),
+    Fact_DailyAttendance[ActualWorkMode] = "Remote"
+)
+
+[Remote Working Ratio %] = 
+DIVIDE([Remote Worker Count], [Total Attendance Logs], 0)
+
+[Missing Clock-Outs Count] = 
+CALCULATE(
+    COUNTROWS(Fact_DailyAttendance),
+    Fact_DailyAttendance[IsMissingClockOut] = TRUE()
+)
+
+[Missing Clock-Out Rate %] = 
+DIVIDE([Missing Clock-Outs Count], [Total Attendance Logs], 0)
+
+[Average Shift Duration (Hours)] = 
+AVERAGE(Fact_DailyAttendance[DurationHours])
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. FP&A BUDGET & HEADCOUNT QUOTA REALIZATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+[Total Budget Allocated (EGP)] = 
+SUM(Fact_DepartmentBudget[AllocatedBudget_EGP])
+
+[Budget Variance (EGP)] = 
+[Total Budget Allocated (EGP)] - [Total Monthly Payroll (EGP)]
+
+[Budget Burn Rate %] = 
+DIVIDE([Total Monthly Payroll (EGP)], [Total Budget Allocated (EGP)], 0)
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. L&D TECH ACADEMY & TALENT DEVELOPMENT ROI
+// ─────────────────────────────────────────────────────────────────────────────
+
+[Total Certifications Attempted] = 
+COUNTROWS(Fact_TrainingCompletions)
+
+[Passed Certifications Count] = 
+CALCULATE(
+    COUNTROWS(Fact_TrainingCompletions),
+    Fact_TrainingCompletions[IsPassed] = 1
+)
+
+[Certification Pass Rate %] = 
+DIVIDE([Passed Certifications Count], [Total Certifications Attempted], 0)
+
+[Average Certification Score] = 
+AVERAGE(Fact_TrainingCompletions[Score])
+
+[Total Training Investment (EGP)] = 
+SUM(Fact_TrainingCompletions[Cost_EGP])
+
+[Cost Per Certified Engineer (EGP)] = 
+DIVIDE([Total Training Investment (EGP)], [Passed Certifications Count], 0)
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. SOFTWARE HOUSE CLIENT PROJECT DELIVERY & BILLING PROFITABILITY
+// ─────────────────────────────────────────────────────────────────────────────
+
+[Total Project Tasks] = 
+COUNTROWS(Fact_ProjectTasks)
+
+[Completed Tasks] = 
+CALCULATE(
+    COUNTROWS(Fact_ProjectTasks),
+    Fact_ProjectTasks[TaskStatus] = "Completed"
+)
+
+[Delayed Deliverables Count] = 
+CALCULATE(
+    COUNTROWS(Fact_ProjectTasks),
+    Fact_ProjectTasks[IsDeliveryDelayed] = TRUE()
+)
+
+[Delivery On-Time Rate %] = 
+1 - DIVIDE([Delayed Deliverables Count], [Total Project Tasks], 0)
+
+[Total Planned Effort (Hours)] = 
+SUM(Fact_ProjectTasks[PlannedHours])
+
+[Total Actual Billed Effort (Hours)] = 
+SUM(Fact_ProjectTasks[ActualHours])
+
+[Total Scope Overrun (Hours)] = 
+SUM(Fact_ProjectTasks[ScopeOverrunHours])
+
+[Schedule Overrun %] = 
+DIVIDE([Total Scope Overrun (Hours)], [Total Planned Effort (Hours)], 0)
+
+[Blended Hourly Billing Rate (USD)] = 
+AVERAGE(Fact_ProjectTasks[BillableHourlyRate_USD])
+
+[Total Consulting Revenue (USD)] = 
+SUM(Fact_ProjectTasks[TotalBilling_USD])
+
+[Total Consulting Revenue (EGP)] = 
+SUM(Fact_ProjectTasks[TotalBilling_EGP])
+
+[Average Client Satisfaction (CSAT)] = 
+AVERAGE(Fact_ProjectTasks[ClientSatisfactionRating])
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. DYNAMIC MULTI-CURRENCY CONVERSION SWITCHER
+// ─────────────────────────────────────────────────────────────────────────────
+
+[Dynamic Revenue Reporting Currency] = 
+VAR SelectedCurr = SELECTEDVALUE(Dim_CurrencyRates[CurrencyCode], "USD")
+VAR FxRateToEGP = LOOKUPVALUE(Dim_CurrencyRates[RateToEGP], Dim_CurrencyRates[CurrencyCode], SelectedCurr)
+RETURN
+    IF(
+        SelectedCurr = "USD",
+        [TotalConsulting Revenue (USD)],
+        DIVIDE([Total Consulting Revenue (EGP)], FxRateToEGP, 0)
+    )
