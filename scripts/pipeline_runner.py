@@ -145,23 +145,40 @@ def run_pipeline():
         with open(lms_path, mode="r", encoding="utf-8-sig") as f:
             lms_records = list(csv.DictReader(f))
 
+    catalog_path = RAW_DIR / "lms_curriculum_catalog.csv"
     course_dict = {}
     dim_course = []
     course_id_to_key = {}
-    for r in lms_records:
-        cid = r["CourseID"]
-        if cid not in course_dict:
-            c_key = len(dim_course) + 1
+    if catalog_path.exists():
+        with open(catalog_path, mode="r", encoding="utf-8-sig") as f:
+            catalog_records = list(csv.DictReader(f))
+        for r in catalog_records:
+            cid = r["CourseID"]
+            c_key = int(r["CourseKey"])
             course_id_to_key[cid] = c_key
-            course_dict[cid] = {
+            dim_course.append({
                 "CourseKey": c_key,
                 "CourseID": cid,
                 "CourseName": r["CourseName"],
                 "SkillDomain": r["SkillDomain"],
                 "TargetCompetency": f"{r['SkillDomain']} Mastery",
-                "EstimatedHours": 32.0,
-            }
-            dim_course.append(course_dict[cid])
+                "EstimatedHours": float(r.get("DurationHours", 32.0)),
+            })
+    else:
+        for r in lms_records:
+            cid = r["CourseID"]
+            if cid not in course_dict:
+                c_key = len(dim_course) + 1
+                course_id_to_key[cid] = c_key
+                course_dict[cid] = {
+                    "CourseKey": c_key,
+                    "CourseID": cid,
+                    "CourseName": r["CourseName"],
+                    "SkillDomain": r["SkillDomain"],
+                    "TargetCompetency": f"{r['SkillDomain']} Mastery",
+                    "EstimatedHours": 32.0,
+                }
+                dim_course.append(course_dict[cid])
 
     # 4. Build Dim_Date
     dim_date = build_dim_date(2024, 2026)

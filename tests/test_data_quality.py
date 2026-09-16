@@ -63,7 +63,19 @@ def test_dim_course_pk_uniqueness():
     keys = [r["CourseKey"] for r in courses]
     assert len(keys) > 0
     assert len(keys) == len(set(keys)), "Duplicate CourseKey found in Dim_Course"
-    valid_domains = {"Tech", "Soft Skills", "Leadership", "Compliance"}
+    valid_domains = {
+        "Tech",
+        "Soft Skills",
+        "Leadership",
+        "Compliance",
+        "Cloud Architecture",
+        "Data & AI Engineering",
+        "Leadership & Strategy",
+        "DevOps & SRE",
+        "Software Engineering",
+        "Cybersecurity",
+        "Cybersecurity & Compliance",
+    }
     for c in courses:
         assert c["SkillDomain"] in valid_domains, f"Invalid SkillDomain: {c['SkillDomain']}"
 

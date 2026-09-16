@@ -12,8 +12,8 @@ resource "azurerm_mssql_server" "sql_server" {
   minimum_tls_version          = "1.2"
 
   tags = {
-    Project     = "Enterprise-HR-Analytics"
-    ManagedBy   = "Terraform"
+    Project   = "Enterprise-HR-Analytics"
+    ManagedBy = "Terraform"
   }
 }
 

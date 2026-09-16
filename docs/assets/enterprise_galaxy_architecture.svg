@@ -65,35 +65,41 @@
   <!-- HEADER                                                                    -->
   <!-- ========================================================================= -->
   <g transform="translate(80, 45)">
-    <rect x="0" y="0" width="370" height="32" rx="16" fill="#064E3B" stroke="#059669" stroke-width="1.2"/>
+    <rect x="0" y="0" width="460" height="32" rx="16" fill="#064E3B" stroke="#059669" stroke-width="1.2"/>
     <circle cx="16" cy="16" r="5" fill="#34D399"/>
-    <text x="32" y="21" fill="#A7F3D0" font-size="11" font-weight="800" letter-spacing="1.5">KIMBALL GALAXY SCHEMA · FACT CONSTELLATION</text>
+    <text x="32" y="21" fill="#A7F3D0" font-size="11" font-weight="800" letter-spacing="1.5">KIMBALL GALAXY SCHEMA · 6 CONFORMED DIMS · 5 FACTS · 322,217 ROWS</text>
 
     <text x="0" y="74" fill="url(#titleGrad2)" font-size="34" font-weight="800">
       Nexora Tech Solutions: Conformed Dimensions &amp; Multi-Grain Fact Constellations
     </text>
     <text x="0" y="102" fill="#94A3B8" font-size="15">
-      6 Conformed Dimensions (Green) Shared Across 4+ Analytical Fact Tables (Amber) with Single-Direction (1 → *) Filter Propagation &amp; Table.Buffer() Caching
+      6 Conformed Dimensions (Green) Shared Across 5 Multi-Grain Fact Constellations (Amber) with Single-Direction (1 → *) Filter Propagation &amp; Table.Buffer() Caching
     </text>
 
     <!-- Advanced Architecture Badges -->
-    <g transform="translate(1520, 10)">
+    <g transform="translate(1360, 10)">
       <g transform="translate(0, 0)">
-        <rect x="0" y="0" width="220" height="40" rx="10" fill="#0F172A" stroke="#10B981" stroke-width="1.2"/>
-        <circle cx="18" cy="20" r="5" fill="#10B981"/>
-        <text x="32" y="25" fill="#D1FAE5" font-size="11" font-weight="700">In-Memory Table.Buffer()</text>
+        <rect x="0" y="0" width="195" height="40" rx="10" fill="#0F172A" stroke="#10B981" stroke-width="1.2"/>
+        <circle cx="16" cy="20" r="5" fill="#10B981"/>
+        <text x="30" y="25" fill="#D1FAE5" font-size="11" font-weight="700">In-Memory Table.Buffer()</text>
       </g>
 
-      <g transform="translate(235, 0)">
-        <rect x="0" y="0" width="220" height="40" rx="10" fill="#0F172A" stroke="#0284C7" stroke-width="1.2"/>
-        <circle cx="18" cy="20" r="5" fill="#38BDF8"/>
-        <text x="32" y="25" fill="#E0F2FE" font-size="11" font-weight="700">Dynamic Date Harvesting</text>
+      <g transform="translate(210, 0)">
+        <rect x="0" y="0" width="195" height="40" rx="10" fill="#0F172A" stroke="#0284C7" stroke-width="1.2"/>
+        <circle cx="16" cy="20" r="5" fill="#38BDF8"/>
+        <text x="30" y="25" fill="#E0F2FE" font-size="11" font-weight="700">Dynamic Date Harvest</text>
       </g>
 
-      <g transform="translate(470, 0)">
-        <rect x="0" y="0" width="270" height="40" rx="10" fill="#0F172A" stroke="#F59E0B" stroke-width="1.2"/>
-        <circle cx="18" cy="20" r="5" fill="#FBBF24"/>
-        <text x="32" y="25" fill="#FEF3C7" font-size="11" font-weight="700">Multi-Currency (Dim_CurrencyRates)</text>
+      <g transform="translate(420, 0)">
+        <rect x="0" y="0" width="230" height="40" rx="10" fill="#0F172A" stroke="#F59E0B" stroke-width="1.2"/>
+        <circle cx="16" cy="20" r="5" fill="#FBBF24"/>
+        <text x="30" y="25" fill="#FEF3C7" font-size="11" font-weight="700">Multi-Currency (Dim_FX)</text>
+      </g>
+
+      <g transform="translate(665, 0)">
+        <rect x="0" y="0" width="225" height="40" rx="10" fill="#0F172A" stroke="#8B5CF6" stroke-width="1.2"/>
+        <circle cx="16" cy="20" r="5" fill="#C084FC"/>
+        <text x="30" y="25" fill="#EDE9FE" font-size="11" font-weight="700">Docker &amp; Terraform IaC</text>
       </g>
     </g>
   </g>
@@ -194,7 +200,7 @@
     </g>
   </g>
 
-  <!-- DIMENSION 6: Dim_CurrencyRates (NEW - RIGHT LOWER) -->
+  <!-- DIMENSION 6: Dim_CurrencyRates (RIGHT LOWER) -->
   <g transform="translate(1500, 770)" filter="url(#shadowBox2)">
     <rect x="0" y="0" width="380" height="230" rx="16" fill="url(#cardDark2)" stroke="#10B981" stroke-width="1.5"/>
     <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 364 0 C 372.84 0 380 7.16 380 16 L 380 48 L 0 48 Z" fill="url(#dimHeaderGrad)"/>
@@ -211,7 +217,7 @@
   </g>
 
   <!-- ========================================================================= -->
-  <!-- 4+ GALAXY FACT TABLES (AMBER/ORANGE THEME)                                 -->
+  <!-- 5 GALAXY FACT TABLES (AMBER/ORANGE THEME)                                 -->
   <!-- ========================================================================= -->
 
   <!-- FACT 1: Fact_WorkforceSnapshot (LEFT) -->
@@ -235,7 +241,7 @@
       <text x="0" y="245" fill="#CBD5E1" font-size="12">• AnnualPerformanceRating (1.0..5.0)</text>
       <text x="0" y="270" fill="#CBD5E1" font-size="12">• SalaryPercentileInRole, TenureMonths</text>
       <text x="0" y="295" fill="#EF4444" font-size="12">• IsSalaryCompressed (Veteran Flight Risk Flag)</text>
-      <text x="0" y="320" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Active Employee / Month</text>
+      <text x="0" y="320" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Active Employee / Month (7,000 Rows)</text>
     </g>
   </g>
 
@@ -258,7 +264,7 @@
       <text x="0" y="195" fill="#CBD5E1" font-size="12">• DeclaredWorkMode vs ActualWorkMode</text>
       <text x="0" y="220" fill="#EF4444" font-size="12">• IsImputedClockOut (Recovered Forgotten Swipe)</text>
       <text x="0" y="245" fill="#EF4444" font-size="12">• IsTardyArrival (> 9:15 AM), OvertimeHours</text>
-      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Employee / Badge Access Day</text>
+      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Employee / Badge Access Day (16,000 Rows)</text>
     </g>
   </g>
 
@@ -281,7 +287,7 @@
       <text x="0" y="195" fill="#CBD5E1" font-size="12">• BudgetedHeadcount, HeadcountVariance</text>
       <text x="0" y="220" fill="#CBD5E1" font-size="12">• AllocatedSalaryBudget_EGP</text>
       <text x="0" y="245" fill="#38BDF8" font-size="11">Apportioned in DAX: Budget ÷ 3 = Monthly</text>
-      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Dept / Branch / Quarter</text>
+      <text x="0" y="270" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Dept / Branch / Quarter (672 Rows)</text>
     </g>
   </g>
 
@@ -305,11 +311,11 @@
       <text x="0" y="220" fill="#CBD5E1" font-size="12">• ScoreTier (Distinction / Proficient / Remediation)</text>
       <text x="0" y="245" fill="#CBD5E1" font-size="12">• CertificationCost_EGP</text>
       <text x="0" y="270" fill="#38BDF8" font-size="11">Talent ROI: Delta P (Upskilling Velocity)</text>
-      <text x="0" y="295" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Certification Attempt</text>
+      <text x="0" y="295" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Certification Attempt (2,735 Rows)</text>
     </g>
   </g>
 
-  <!-- FACT 5: Fact_ProjectTasks (NEW - FAR RIGHT LOWER) -->
+  <!-- FACT 5: Fact_ProjectTasks (FAR RIGHT LOWER) -->
   <g transform="translate(1950, 610)" filter="url(#shadowBox2)">
     <rect x="0" y="0" width="390" height="420" rx="16" fill="url(#cardDark2)" stroke="#F59E0B" stroke-width="2"/>
     <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 374 0 C 382.84 0 390 7.16 390 16 L 390 50 L 0 50 Z" fill="url(#factHeaderGrad)"/>
@@ -330,7 +336,7 @@
       <text x="0" y="245" fill="#CBD5E1" font-size="12">• BillableHourlyRate_USD, TotalBilling_USD</text>
       <text x="0" y="270" fill="#CBD5E1" font-size="12">• ClientSatisfactionRating (1.0..5.0 Stars)</text>
       <text x="0" y="295" fill="#38BDF8" font-size="11">Billable Realization vs Bench Cost Bleed</text>
-      <text x="0" y="320" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Client Milestone Task</text>
+      <text x="0" y="320" fill="#10B981" font-size="11" font-weight="700">Grain: 1 Row / Client Milestone Task (3,600 Rows)</text>
     </g>
   </g>
 
@@ -390,11 +396,24 @@
   <!-- Dim_Date -> Fact_WorkforceSnapshot (Arches cleanly between dims) -->
   <path d="M 980 260 C 930 260, 930 460, 470 560" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
 
+  <!-- Dim_Date -> Fact_DailyAttendance -->
+  <path d="M 1100 440 L 1100 960" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Date -> Fact_DepartmentBudget -->
+  <path d="M 1000 440 C 850 550, 750 750, 680 960" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Date -> Fact_TrainingCompletions -->
+  <path d="M 1420 220 L 1950 220" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrowGreen)"/>
+
+  <!-- Dim_Date -> Fact_ProjectTasks -->
+  <path d="M 1420 280 C 1600 280, 1900 500, 1950 650" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrowGreen)"/>
+
   <!-- ========================================================================= -->
   <!-- LEGEND & GOVERNANCE MATRIX                                                -->
   <!-- ========================================================================= -->
   <g transform="translate(60, 1260)">
-    <rect x="0" y="0" width="880" height="75" rx="14" fill="#0B1222" stroke="#1E293B"/>
+    <rect x="0" y="0" width="1380" height="75" rx="14" fill="#0B1222" stroke="#1E293B"/>
+    
     <circle cx="30" cy="37" r="7" fill="#10B981"/>
     <text x="45" y="42" fill="#E2E8F0" font-size="12" font-weight="700">Conformed Dimension (1 Side)</text>
 
@@ -404,7 +423,16 @@
     <line x1="500" y1="37" x2="550" y2="37" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
     <text x="560" y="42" fill="#E2E8F0" font-size="12" font-weight="700">Single-Direction Filter (1 → *)</text>
 
-    <rect x="750" y="22" width="110" height="30" rx="8" fill="#1E293B" stroke="#334155"/>
-    <text x="805" y="41" text-anchor="middle" fill="#38BDF8" font-size="11" font-weight="700">VERTI-PAQ OPT</text>
+    <rect x="760" y="22" width="125" height="32" rx="8" fill="#1E293B" stroke="#334155"/>
+    <text x="822" y="42" text-anchor="middle" fill="#38BDF8" font-size="11" font-weight="700">VERTI-PAQ OPT</text>
+
+    <rect x="895" y="22" width="145" height="32" rx="8" fill="#1E293B" stroke="#10B981"/>
+    <text x="967" y="42" text-anchor="middle" fill="#34D399" font-size="11" font-weight="700">29/29 PYTESTS OK</text>
+
+    <rect x="1050" y="22" width="155" height="32" rx="8" fill="#1E293B" stroke="#8B5CF6"/>
+    <text x="1127" y="42" text-anchor="middle" fill="#C084FC" font-size="11" font-weight="700">DOCKER &amp; IAC READY</text>
+
+    <rect x="1215" y="22" width="150" height="32" rx="8" fill="#1E293B" stroke="#F59E0B"/>
+    <text x="1290" y="42" text-anchor="middle" fill="#FBBF24" font-size="11" font-weight="700">22 DWH TABLES</text>
   </g>
 </svg>

@@ -25,10 +25,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .
 
       - name: Generate Enterprise Mock Datasets
         run: |
           python scripts/ingestion/generate_enterprise_mock_data.py
+          python scripts/utils/generate_enriched_datasets.py
 
       - name: Execute Galaxy Schema Data Pipeline
         run: |
@@ -36,7 +38,7 @@ jobs:
 
       - name: Run Pytest Suite (Data Quality & Software Engineering Core)
         run: |
-          export PYTHONPATH=src
+          export PYTHONPATH=.:src
           pytest -v tests/
 
       - name: Validate Power BI Files Unchanged

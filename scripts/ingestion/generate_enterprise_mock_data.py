@@ -13,10 +13,15 @@ from datetime import datetime, time, timedelta
 from pathlib import Path
 from typing import Any, Dict, List
 
+import sys
+
 # Reproducibility seed
 random.seed(42)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 RAW_DATA_DIR = BASE_DIR / "data" / "raw"
 RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -50,16 +55,16 @@ CANONICAL_BRANCHES = [
 ]
 
 LMS_COURSES = [
-    {"CourseID": "CRS-TECH-01", "CourseName": "Power BI & Enterprise DAX Modeling", "SkillDomain": "Tech", "Cost": 4500.0},
-    {"CourseID": "CRS-TECH-02", "CourseName": "Advanced SQL & Modern Data Warehousing", "SkillDomain": "Tech", "Cost": 5200.0},
-    {"CourseID": "CRS-TECH-03", "CourseName": "Python for Data Engineering & Analytics", "SkillDomain": "Tech", "Cost": 6000.0},
-    {"CourseID": "CRS-TECH-04", "CourseName": "Cloud Architecture & Cybersecurity Fundamentals", "SkillDomain": "Tech", "Cost": 7500.0},
-    {"CourseID": "CRS-LEAD-01", "CourseName": "Strategic People Leadership & Coaching", "SkillDomain": "Leadership", "Cost": 8000.0},
-    {"CourseID": "CRS-LEAD-02", "CourseName": "Operational Excellence & Lean Six Sigma", "SkillDomain": "Leadership", "Cost": 9500.0},
-    {"CourseID": "CRS-SOFT-01", "CourseName": "Executive Negotiation & Conflict Resolution", "SkillDomain": "Soft Skills", "Cost": 3200.0},
-    {"CourseID": "CRS-SOFT-02", "CourseName": "Data-Driven Decision Making & Storytelling", "SkillDomain": "Soft Skills", "Cost": 3800.0},
-    {"CourseID": "CRS-COMP-01", "CourseName": "Enterprise Labor Law & Compliance 2026", "SkillDomain": "Compliance", "Cost": 2500.0},
-    {"CourseID": "CRS-COMP-02", "CourseName": "Information Governance & GDPR/Data Protection", "SkillDomain": "Compliance", "Cost": 3000.0},
+    {"CourseID": "CRS-101", "CourseName": "Cloud Foundations & Azure Fundamentals", "SkillDomain": "Cloud Architecture", "Cost": 4500.0},
+    {"CourseID": "CRS-102", "CourseName": "Python for Enterprise Data Analytics", "SkillDomain": "Data & AI Engineering", "Cost": 5200.0},
+    {"CourseID": "CRS-103", "CourseName": "Agile Scrum & Client Consulting Practices", "SkillDomain": "Leadership & Strategy", "Cost": 3800.0},
+    {"CourseID": "CRS-201", "CourseName": "AWS Solutions Architect Associate", "SkillDomain": "Cloud Architecture", "Cost": 9500.0},
+    {"CourseID": "CRS-202", "CourseName": "Databricks & PySpark Lakehouse Engineering", "SkillDomain": "Data & AI Engineering", "Cost": 12500.0},
+    {"CourseID": "CRS-203", "CourseName": "CI/CD Automation with Docker & GitHub Actions", "SkillDomain": "DevOps & SRE", "Cost": 8200.0},
+    {"CourseID": "CRS-204", "CourseName": "Full-Stack Next.js & Microservices Architecture", "SkillDomain": "Software Engineering", "Cost": 8900.0},
+    {"CourseID": "CRS-301", "CourseName": "Kubernetes Administration (CKA) & Mesh Engineering", "SkillDomain": "DevOps & SRE", "Cost": 16000.0},
+    {"CourseID": "CRS-302", "CourseName": "Microsoft Fabric Analytics Solutions Architecture", "SkillDomain": "Data & AI Engineering", "Cost": 14500.0},
+    {"CourseID": "CRS-303", "CourseName": "Zero-Trust DevSecOps & Enterprise Security Engineering", "SkillDomain": "Cybersecurity & Compliance", "Cost": 15500.0},
 ]
 
 
@@ -408,12 +413,12 @@ def generate_lms_course_completions(employees: List[Dict[str, Any]], num_attempt
     """
     print(f"[*] Generating {num_attempts} LMS Training & Certification attempts grounded on employees_data_7000.txt...")
     dept_course_map = {
-        "تكنولوجيا المعلومات": ["CRS-TECH-01", "CRS-TECH-02", "CRS-TECH-03", "CRS-TECH-04"],
-        "الموارد البشرية": ["CRS-COMP-01", "CRS-LEAD-01", "CRS-SOFT-01"],
-        "الإدارة المالية": ["CRS-TECH-01", "CRS-TECH-02", "CRS-COMP-02"],
-        "التسويق والمبيعات": ["CRS-SOFT-02", "CRS-SOFT-01", "CRS-TECH-01"],
-        "خدمة العملاء والعمليات المساندة": ["CRS-SOFT-01", "CRS-LEAD-02", "CRS-COMP-01"],
-        "العمليات وسلاسل الإمداد": ["CRS-LEAD-02", "CRS-LEAD-01", "CRS-TECH-01"],
+        "تكنولوجيا المعلومات": ["CRS-101", "CRS-102", "CRS-201", "CRS-202", "CRS-203", "CRS-204", "CRS-301", "CRS-302", "CRS-303"],
+        "الموارد البشرية": ["CRS-102", "CRS-103", "CRS-201"],
+        "الإدارة المالية": ["CRS-102", "CRS-202", "CRS-302"],
+        "التسويق والمبيعات": ["CRS-101", "CRS-103", "CRS-204"],
+        "خدمة العملاء والعمليات المساندة": ["CRS-101", "CRS-103", "CRS-203"],
+        "العمليات وسلاسل الإمداد": ["CRS-102", "CRS-103", "CRS-202"],
     }
     course_by_id = {c["CourseID"]: c for c in LMS_COURSES}
 
@@ -424,7 +429,7 @@ def generate_lms_course_completions(employees: List[Dict[str, Any]], num_attempt
         emp = random.choice(eligible_employees)
         emp_id = emp["الرقم التعريفي"]
         dept = emp["القسم"]
-        available_cids = dept_course_map.get(dept, ["CRS-SOFT-01", "CRS-LEAD-01"])
+        available_cids = dept_course_map.get(dept, ["CRS-101", "CRS-102", "CRS-103"])
         course_id = random.choice(available_cids)
         course = course_by_id.get(course_id, LMS_COURSES[0])
 
@@ -521,13 +526,26 @@ def export_data():
         print(f"[!] Excel export skipped: {e}")
 
     # 5. LMS Course Completions
-    lms = generate_lms_course_completions(employees, num_attempts=2500)
+    lms = generate_lms_course_completions(employees, num_attempts=2735)
     lms_csv_path = RAW_DATA_DIR / "lms_course_completions.csv"
     with open(lms_csv_path, mode="w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=list(lms[0].keys()))
         writer.writeheader()
         writer.writerows(lms)
     print(f"[OK] Saved LMS Course Completions to {lms_csv_path}")
+
+    # 6. Synchronize Software House Enriched Datasets (FX, Catalog, Client Tasks)
+    try:
+        from scripts.utils.generate_enriched_datasets import (
+            generate_currency_rates,
+            generate_lms_catalog,
+            generate_client_projects_tasks,
+        )
+        generate_currency_rates()
+        generate_lms_catalog()
+        generate_client_projects_tasks()
+    except Exception as e:
+        print(f"[!] Warning: could not generate enriched datasets: {e}")
 
     print("\n[SUCCESS] All Enterprise mock datasets synchronized with employees_data_7000.txt in data/raw/")
 
